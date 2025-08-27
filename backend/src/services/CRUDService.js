@@ -70,3 +70,59 @@ export async function verifyOtpAndCreateUser(email, otp) {
 
   return newUser;
 }
+
+// Gửi OTP cho forgot password
+export async function sendOtpForForgotPassword(email) {
+  const user = await db.User.findOne({ where: { email } });
+  if (!user) throw new Error("Email không tồn tại");
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  otpStore[email] = {
+    otp,
+    purpose: "forgotPassword",
+    expiresAt: Date.now() + 5 * 60 * 1000 // 5 phút
+  };
+
+  await sendOtpEmail(email, otp);
+  return { message: "OTP đã gửi đến email của bạn" };
+}
+
+export async function verifyOtpForForgotPassword(email, otp) {
+  const record = otpStore[email];
+  if (!record || record.purpose !== "forgotPassword") {
+    throw new Error("OTP không hợp lệ hoặc đã hết hạn");
+  }
+
+  if (Date.now() > record.expiresAt) {
+    delete otpStore[email];
+    throw new Error("OTP đã hết hạn");
+  }
+
+  if (otp !== record.otp) {
+    throw new Error("OTP không chính xác");
+  }
+
+  record.verified = true;
+
+  return { message: "OTP chính xác, bạn có thể nhập mật khẩu mới" };
+}
+
+export async function resetPassword(email, newPassword) {
+  const record = otpStore[email];
+  if (!record || !record.verified) {
+    throw new Error("Bạn chưa xác thực OTP");
+  }
+
+  const hashPassword = await hashUserPassword(newPassword);
+
+  await db.User.update(
+    { password: hashPassword },
+    { where: { email } }
+  );
+
+  // Xóa OTP khỏi store sau khi đổi pass
+  delete otpStore[email];
+
+  return { message: "Đổi mật khẩu thành công" };
+}

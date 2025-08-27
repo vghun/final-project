@@ -10,6 +10,15 @@ const initWebRoutes = (app) => {
   // API xác thực OTP
   router.post("/verify-otp", authController.verifyOtp);
 
+  // API quên mật khẩu (gửi OTP)
+  router.post("/forgot-password", authController.forgotPassword);
+
+  // API xác thực OTP quên mật khẩu
+  router.post("/verify-forgot-otp", authController.verifyForgotOtp);
+
+  // API đổi mật khẻu
+  router.post("/reset-password", authController.resetPassword);
+
   return app.use("/", router);
 };
 
