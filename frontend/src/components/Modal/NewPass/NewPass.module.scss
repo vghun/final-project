@@ -1,0 +1,24 @@
+.wrapper {
+  width: 312px;
+}
+
+.inner {
+}
+
+.heading {
+  font-weight: 600;
+  line-height: 1.5;
+  font-size: 1.4em;
+  color: var(--white);
+  margin-bottom: 16px;
+}
+
+.body {
+  p {
+    margin-bottom: 1.5rem;
+    color: var(--text-base);
+  }
+  a {
+    color: var(--primary) !important;
+  }
+}
