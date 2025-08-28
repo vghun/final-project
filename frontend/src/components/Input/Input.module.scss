@@ -1,0 +1,37 @@
+.wrapper {
+  position: relative;
+}
+
+.primary {
+  height: 42px;
+  margin-bottom: 0.5rem;
+
+  input {
+    color: var(--white);
+    border: 1px solid #ffffff10;
+    border-radius: 0.4rem;
+    height: 100%;
+    width: 100%;
+    padding: 0.5rem 1rem;
+
+    &:focus {
+      border-color: #fff !important;
+      box-shadow: none !important;
+    }
+  }
+}
+
+.input {
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+}
+
+.icon {
+  position: absolute;
+  top: 55%;
+  right: 12px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #fff;
+}
