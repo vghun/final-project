@@ -22,32 +22,37 @@ function Login({ onSwitch, onClose }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const result = await AuthAPI.login(formData);
+  try {
+    const result = await AuthAPI.login(formData);
+    console.log("Login API response:", result); // 👈 check dữ liệu trả về
 
-      if (!result.error) {
-        login(result); // lưu vào context
-        showToast({
-          text: "Đăng nhập thành công",
-          type: "success",
-        });
-        onClose(); // đóng modal
-      } else {
-        showToast({
-          text: "Tài khoản hoặc mật khẩu không chính xác",
-          type: "error",
-        });
-      }
-    } catch (err) {
+    if (result.accessToken && result.user) {
+      login(result.user, result.accessToken);
+
       showToast({
-        text: "Đăng nhập không thành công, vui lòng thử lại sau",
+        text: result.message || "Đăng nhập thành công",
+        type: "success",
+      });
+      onClose();
+    } else {
+      showToast({
+        text: result.message || "Tài khoản hoặc mật khẩu không chính xác",
         type: "error",
       });
     }
-  };
+  } catch (err) {
+    console.error("Login error:", err); 
+    showToast({
+      text:
+        err.response?.data?.message ||
+        "Đăng nhập không thành công, vui lòng thử lại sau",
+      type: "error",
+    });
+  }
+};
 
   return (
     <div className={cx("wrapper")}>
