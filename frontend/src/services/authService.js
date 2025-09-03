@@ -3,11 +3,13 @@ import * as request from "~/apis/configs/httpRequest";
 export const login = async ({ email, password }) => {
   try {
     const res = await request.post("/login", { email, password });
-    return res.data;
+    console.log("API login trả về:", res); 
+    return res; 
   } catch (error) {
     throw error.response?.data || error;
   }
 };
+
 // Gửi OTP khi đăng ký
 export const register = async ({ fullName, email, password, phoneNumber }) => {
   try {
@@ -36,7 +38,7 @@ export const verifyOtp = async ({ email, otp }) => {
 export const forgotPassword = async ({ email }) => {
   try {
     const res = await request.post("/forgot-password", { email });
-    return res.data;
+    return res;
   } catch (error) {
     throw error.response?.data || error;
   }
@@ -46,7 +48,7 @@ export const forgotPassword = async ({ email }) => {
 export const verifyForgotOtp = async ({ email, otp }) => {
   try {
     const res = await request.post("/verify-forgot-otp", { email, otp });
-    return res.data;
+    return res;
   } catch (error) {
     throw error.response?.data || error;
   }
@@ -56,7 +58,7 @@ export const verifyForgotOtp = async ({ email, otp }) => {
 export const resetPassword = async ({ email, newPassword }) => {
   try {
     const res = await request.post("/reset-password", { email, newPassword });
-    return res.data;
+    return res;
   } catch (error) {
     throw error.response?.data || error;
   }
