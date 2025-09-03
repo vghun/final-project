@@ -3,9 +3,14 @@ import * as otpService from "../services/CRUDService.js";
 // Đăng ký - gửi OTP
 const register = async (req, res) => {
   try {
-    await otpService.sendOtpForRegister(req.body);
-    return res.status(200).json({ message: "OTP đã được gửi, vui lòng xác nhận" });
+    console.log("Register request body:", req.body);
+
+    const result = await otpService.sendOtpForRegister(req.body);
+
+    console.log(`OTP đã gửi đến ${req.body.email}`);
+    return res.status(200).json(result);
   } catch (err) {
+    console.error("Lỗi register:", err.message);
     return res.status(400).json({ error: err.message });
   }
 };

@@ -2,18 +2,22 @@ import * as request from "~/apis/configs/httpRequest";
 // Đăng nhập
 export const login = async ({ email, password }) => {
   try {
-    const res = await request.post("/auth/login", { email, password });
+    const res = await request.post("/login", { email, password });
     return res.data;
   } catch (error) {
     throw error.response?.data || error;
   }
 };
 // Gửi OTP khi đăng ký
-export const register = async ({ name, email, password }) => {
+export const register = async ({ fullName, email, password, phoneNumber }) => {
   try {
-    const res = await request.post("/register", { name, email, password });
-    return res.data;
+    const payload = { fullName, email, password, phoneNumber };
+    console.log("Register payload gửi xuống backend:", payload);
+
+    const res = await request.post("/register", payload);
+    return res; // 
   } catch (error) {
+    console.error("Lỗi khi gọi API register:", error.response?.data || error);
     throw error.response?.data || error;
   }
 };
@@ -22,7 +26,7 @@ export const register = async ({ name, email, password }) => {
 export const verifyOtp = async ({ email, otp }) => {
   try {
     const res = await request.post("/verify-otp", { email, otp });
-    return res.data;
+    return res;
   } catch (error) {
     throw error.response?.data || error;
   }

@@ -13,7 +13,7 @@ const cx = classNames.bind(styles);
 
 function Register({ onSwitch, onClose }) {
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     email: "",
     phoneNumber: "",
     otp: "",
@@ -30,53 +30,57 @@ function Register({ onSwitch, onClose }) {
   };
 
   // Gửi OTP
-  const handleSendOtp = async () => {
-    try {
-      const result = await AuthAPI.register({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-      });
-      showToast({ text: result.message || "OTP đã gửi", type: "success" });
-      setOtpSent(true);
-    } catch (error) {
-      showToast({
-        text: error.error || "Không gửi được OTP",
-        type: "error",
-      });
-    }
-  };
+ const handleSendOtp = async () => {
+  try {
+    const res = await AuthAPI.register({
+      fullName: formData.fullName,
+      email: formData.email,
+      password: formData.password,
+      phoneNumber: formData.phoneNumber,
+    });
+    console.log("Register response:", res);
+
+    // Lấy message từ res.data
+    showToast({
+      text: res.message || "OTP đã gửi",
+      type: "success",
+    });
+
+    setOtpSent(true);
+  } catch (error) {
+    showToast({
+      text: error.response?.data?.error || error.message || "Không gửi được OTP",
+      type: "error",
+    });
+  }
+};
+
 
   // Xác thực OTP & đăng ký
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const result = await AuthAPI.verifyOtp({
-        email: formData.email,
-        otp: formData.otp,
-      });
+  e.preventDefault();
+  try {
+    const result = await AuthAPI.verifyOtp({
+      email: formData.email,
+      otp: formData.otp,
+    });
 
-      if (result.user) {
-        // auto login sau khi verify thành công
-        const loginResult = await AuthAPI.login({
-          email: formData.email,
-          password: formData.password,
-        });
-        login(loginResult);
+    // Nếu backend trả message thì hiển thị
+    showToast({
+      text: result.message || "Đăng ký thành công",
+      type: "success",
+    });
 
-        showToast({
-          text: "Đăng ký thành công",
-          type: "success",
-        });
-        onClose();
-      }
-    } catch (error) {
-      showToast({
-        text: error.error || "Xác thực OTP thất bại",
-        type: "error",
-      });
-    }
-  };
+    // Chuyển sang màn hình đăng nhập
+    onSwitch("Login");
+
+  } catch (error) {
+    showToast({
+      text: error.response?.data?.error || error.message || "Xác thực OTP thất bại",
+      type: "error",
+    });
+  }
+};
 
   return (
     <div className={cx("wrapper")}>
@@ -92,10 +96,10 @@ function Register({ onSwitch, onClose }) {
           <form onSubmit={handleSubmit}>
             <Input
               primary
-              name="name"
+              name="fullName"
               required
-              placeholder="Tên hiển thị"
-              value={formData.name}
+              placeholder="Họ và tên"
+              value={formData.fullName}
               onChange={handleChange}
             />
             <Input
@@ -106,7 +110,6 @@ function Register({ onSwitch, onClose }) {
               value={formData.email}
               onChange={handleChange}
             />
-
             <Input
               primary
               name="phoneNumber"
@@ -115,7 +118,6 @@ function Register({ onSwitch, onClose }) {
               value={formData.phoneNumber}
               onChange={handleChange}
             />
-
             <Input
               primary
               name="password"

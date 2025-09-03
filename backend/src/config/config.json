@@ -1,8 +1,8 @@
 {
   "development": {
     "username": "root",
-    "password": "20072004",
-    "database": "ccnpmm_project",
+    "password": "123456789",
+    "database": "account",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
