@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Home.module.scss";
-import { ShoppingBag } from "lucide-react";
-import Badge from "~/components/Badge";
-import Button from "~/components/Button";
 import { Link } from "react-router-dom";
+import Button from "~/components/Button";
+import ProductCard from "~/components/ProductCard";
 
 import {
   fetchLatestProducts,
@@ -40,22 +39,13 @@ const Home = () => {
     loadProducts();
   }, []);
 
-  const renderProducts = (products) =>
-    products.map((p) => (
-      <div key={p.id} className={styles.card}>
-        <div className={styles.cardImage}>
-          <img src={p.image} alt={p.name} />
-        </div>
-        <h4 className={styles.cardTitle}>{p.name}</h4>
-        <p className={styles.cardDesc}>{p.description}</p>
-        <div className={styles.cardFooter}>
-          <span className={styles.price}>{p.price}đ</span>
-          {p.discount > 0 && (
-            <Badge variant="secondary">-{p.discount}%</Badge>
-          )}
-        </div>
-      </div>
-    ));
+  // Fake rating & reviews
+  const withFakeRating = (products) =>
+    products.map((p) => ({
+      ...p,
+      rating: (Math.random() * 2 + 3).toFixed(1), // 3.0 - 5.0
+      reviews: Math.floor(Math.random() * 200) + 1
+    }));
 
   return (
     <div className={styles.home}>
@@ -63,7 +53,25 @@ const Home = () => {
       <section className={styles.section}>
         <div className={styles.container}>
           <h3 className={styles.title}>Sản phẩm mới nhất</h3>
-          <div className={styles.grid}>{renderProducts(latest)}</div>
+          <div className={styles.grid}>
+            {withFakeRating(latest).map((p) => (
+              <ProductCard
+              key={p.id}
+              id={p.id}
+              image={p.image}
+              badge={null} // hoặc "Bán chạy" nếu muốn custom
+              category={p.category?.name || "Khác"}
+              name={p.name}
+              brand={"Thương hiệu A"}
+              rating={(Math.random() * 2 + 3).toFixed(1)}
+              reviews={Math.floor(Math.random() * 200) + 1}
+              description={p.description}
+              price={Number(p.price)}
+              discount={p.discount}
+              outOfStock={false}
+            />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -76,13 +84,28 @@ const Home = () => {
               Những sản phẩm chăm sóc tóc được yêu thích nhất
             </p>
           </div>
-          <div className={styles.grid}>{renderProducts(bestSelling)}</div>
+          <div className={styles.grid}>
+            {withFakeRating(bestSelling).map((p) => (
+              <ProductCard
+              key={p.id}
+              id={p.id}
+              image={p.image}
+              badge={null} // hoặc "Bán chạy" nếu muốn custom
+              category={p.category?.name || "Khác"}
+              name={p.name}
+              brand={"Thương hiệu A"}
+              rating={(Math.random() * 2 + 3).toFixed(1)}
+              reviews={Math.floor(Math.random() * 200) + 1}
+              description={p.description}
+              price={Number(p.price)}
+              discount={p.discount}
+              outOfStock={false}
+            />
+            ))}
+          </div>
           <div className={styles.textCenter}>
             <Link to="/products">
-              <Button size="lg">
-                <ShoppingBag className={styles.iconSmall} />
-                Xem tất cả sản phẩm
-              </Button>
+              <Button size="lg">Xem tất cả sản phẩm</Button>
             </Link>
           </div>
         </div>
@@ -92,7 +115,25 @@ const Home = () => {
       <section className={styles.section}>
         <div className={styles.container}>
           <h3 className={styles.title}>Sản phẩm xem nhiều nhất</h3>
-          <div className={styles.grid}>{renderProducts(mostViewed)}</div>
+          <div className={styles.grid}>
+            {withFakeRating(mostViewed).map((p) => (
+              <ProductCard
+              key={p.id}
+              id={p.id}
+              image={p.image}
+              badge={null} // hoặc "Bán chạy" nếu muốn custom
+              category={p.category?.name || "Khác"}
+              name={p.name}
+              brand={"Thương hiệu A"}
+              rating={(Math.random() * 2 + 3).toFixed(1)}
+              reviews={Math.floor(Math.random() * 200) + 1}
+              description={p.description}
+              price={Number(p.price)}
+              discount={p.discount}
+              outOfStock={false}
+            />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -100,7 +141,25 @@ const Home = () => {
       <section className={styles.section}>
         <div className={styles.container}>
           <h3 className={styles.title}>Khuyến mãi cao nhất</h3>
-          <div className={styles.grid}>{renderProducts(topDiscount)}</div>
+          <div className={styles.grid}>
+            {withFakeRating(topDiscount).map((p) => (
+              <ProductCard
+              key={p.id}
+              id={p.id}
+              image={p.image}
+              badge={null} // hoặc "Bán chạy" nếu muốn custom
+              category={p.category?.name || "Khác"}
+              name={p.name}
+              brand={"Thương hiệu A"}
+              rating={(Math.random() * 2 + 3).toFixed(1)}
+              reviews={Math.floor(Math.random() * 200) + 1}
+              description={p.description}
+              price={Number(p.price)}
+              discount={p.discount}
+              outOfStock={false}
+            />
+            ))}
+          </div>
         </div>
       </section>
     </div>
