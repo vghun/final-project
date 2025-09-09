@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 import { Model } from "sequelize";
 
 export default (sequelize, DataTypes) => {
@@ -13,45 +13,50 @@ export default (sequelize, DataTypes) => {
     {
       name: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
       },
       description: {
         type: DataTypes.TEXT,
-        allowNull: true
+        allowNull: true,
       },
       price: {
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: false
+        allowNull: false,
+      },
+      stock: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
       },
       views: {
         type: DataTypes.INTEGER,
-        defaultValue: 0
+        defaultValue: 0,
       },
       sold: {
         type: DataTypes.INTEGER,
-        defaultValue: 0
+        defaultValue: 0,
       },
       discount: {
         type: DataTypes.INTEGER,
-        defaultValue: 0
+        defaultValue: 0,
       },
       image: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
       },
       categoryId: {
         type: DataTypes.INTEGER,
         references: {
           model: "categories",
-          key: "id"
+          key: "id",
         },
-        allowNull: true
-      }
+        allowNull: true,
+      },
     },
     {
       sequelize,
       modelName: "Product",
-      tableName: "products"
+      tableName: "products",
     }
   );
 
