@@ -1,0 +1,22 @@
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+}
+
+.default {
+  background-color: #e5e7eb; // gray-200
+  color: #111827; // gray-900
+}
+
+.secondary {
+  background-color: #f3f4f6; // gray-100
+  color: #374151; // gray-700
+}
+
+.primary {
+  background-color: #3b82f6; // blue-500
+  color: white;
+}
