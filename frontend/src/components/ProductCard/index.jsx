@@ -5,7 +5,7 @@ import styles from "./ProductCard.module.scss";
 
 const cx = classNames.bind(styles);
 
-function ProductCard({
+const ProductCard = ({
   id,
   image,
   badge,
@@ -15,18 +15,23 @@ function ProductCard({
   rating,
   reviews,
   description,
-  price,
-  oldPrice,
-  outOfStock,
-}) {
+  price,     // giá gốc
+  discount,  // % giảm
+  outOfStock
+}) => {
   const navigate = useNavigate();
+
+  const hasDiscount = discount && discount > 0;
+  const finalPrice = hasDiscount
+    ? Math.round(price * (1 - discount / 100))
+    : price;
 
   return (
     <div className={cx("card")}>
       {/* Badge */}
-      {badge && (
+      {(badge || hasDiscount) && (
         <span className={cx("badge", { danger: badge === "Hết hàng" })}>
-          {badge}
+          {badge || `-${discount}%`}
         </span>
       )}
 
@@ -53,9 +58,9 @@ function ProductCard({
 
         {/* Giá */}
         <div className={cx("price")}>
-          <span className={cx("new")}>{price.toLocaleString()}đ</span>
-          {oldPrice && (
-            <span className={cx("old")}>{oldPrice.toLocaleString()}đ</span>
+          <span className={cx("new")}>{finalPrice.toLocaleString()}đ</span>
+          {hasDiscount && (
+            <span className={cx("old")}>{price.toLocaleString()}đ</span>
           )}
         </div>
 
@@ -74,6 +79,6 @@ function ProductCard({
       </div>
     </div>
   );
-}
+};
 
 export default ProductCard;
