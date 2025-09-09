@@ -1,0 +1,39 @@
+.wrapper {
+  margin: 0 20px;
+}
+
+.header {
+  padding-top: 32px;
+  margin-bottom: 32px;
+
+  h2 {
+    font-size: 30px;
+  }
+
+  p {
+    color: #555555;
+  }
+}
+.section {
+  display: flex;
+  gap: 24px;
+}
+
+.left-section {
+  flex: 0 0 260px; /* cố định chiều rộng */
+  position: sticky;
+  top: 70px; /* khoảng cách với top khi dính */
+  align-self: flex-start;
+  height: fit-content;
+}
+
+.right-section {
+  flex: 1;
+}
+
+.product-list {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
