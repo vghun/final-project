@@ -59,7 +59,25 @@ export async function getTopDiscountProducts() {
 
 // Lấy chi tiết sản phẩm
 export async function getProductById(id) {
-  return await db.Product.findByPk(id, {
-    include: [{ model: db.Category, as: "category" }]
+  const product = await db.Product.findByPk(id, {
+    include: [{ model: db.Category, as: "category", attributes: ["id", "name"] }]
   });
+
+  if (!product) return null;
+
+  return {
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    price: product.price,
+    quantity: product.quantity,   // ✅ số lượng tồn
+    discount: product.discount,
+    sold: product.sold,
+    views: product.views,
+    image: product.image,
+    category: product.category ? product.category.name : null,
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt
+  };
 }
+
