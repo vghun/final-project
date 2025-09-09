@@ -1,56 +1,61 @@
-'use strict';
+"use strict";
 
 export async function up(queryInterface, Sequelize) {
   await queryInterface.createTable("products", {
     id: {
       type: Sequelize.INTEGER,
       autoIncrement: true,
-      primaryKey: true
+      primaryKey: true,
     },
     name: {
       type: Sequelize.STRING,
-      allowNull: false
+      allowNull: false,
     },
     description: {
-      type: Sequelize.TEXT
+      type: Sequelize.TEXT,
     },
     price: {
       type: Sequelize.DECIMAL(10, 2),
-      allowNull: false
+      allowNull: false,
     },
     views: {
       type: Sequelize.INTEGER,
-      defaultValue: 0
+      defaultValue: 0,
     },
     sold: {
       type: Sequelize.INTEGER,
-      defaultValue: 0
+      defaultValue: 0,
     },
     discount: {
       type: Sequelize.INTEGER,
-      defaultValue: 0
+      defaultValue: 0,
     },
     image: {
-      type: Sequelize.STRING
+      type: Sequelize.STRING,
+    },
+    stock: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
     },
     categoryId: {
       type: Sequelize.INTEGER,
       allowNull: true,
       references: {
-        model: "categories",   // tên bảng categories
-        key: "id"
+        model: "categories",
+        key: "id",
       },
       onUpdate: "CASCADE",
-      onDelete: "SET NULL"
+      onDelete: "SET NULL",
     },
     createdAt: {
       type: Sequelize.DATE,
-      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP")
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
     },
     updatedAt: {
       type: Sequelize.DATE,
-      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-    }
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+    },
   });
 }
 
