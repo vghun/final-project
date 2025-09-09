@@ -6,6 +6,7 @@ import cors from "cors";  // <-- thêm dòng này
 import viewEngine from "./config/viewEngine.js";
 import initWebRoutes from "./route/web.js";
 import connectDB from "./config/configdb.js";
+import productRouter from "./route/product.js";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(cors());  // <-- thêm dòng này
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use("/api/products", productRouter);
 
 viewEngine(app);
 initWebRoutes(app);
