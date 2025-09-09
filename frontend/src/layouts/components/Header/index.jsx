@@ -45,6 +45,8 @@ function Header() {
             </Button>
             <Button href={"/products"} text>
               Sản phẩm
+            <Button href={"/about"} text>
+              Về chúng tôi
             </Button>
           </div>
         </div>
