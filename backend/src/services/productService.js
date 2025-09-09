@@ -1,10 +1,24 @@
 import db from "../models/index.js";
 
 // Lấy tất cả sản phẩm
-export async function getAllProducts() {
-  return await db.Product.findAll({
-    include: [{ model: db.Category, as: "category" }]
-  });
+export const getAllProducts = async (page, limit) => {
+  if (page && limit) {
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await db.Product.findAndCountAll({
+      include: [{ model: db.Category, as: "category" }],
+      limit,
+      offset,
+      order: [["createdAt", "DESC"]],
+    });
+
+    return {
+      total: count,
+      page,
+      totalPages: Math.ceil(count / limit),
+      products: rows,
+    };
+  }
 }
 
 // Lấy sản phẩm mới nhất

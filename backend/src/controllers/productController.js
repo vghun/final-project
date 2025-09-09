@@ -1,14 +1,18 @@
 import * as productService from "../services/productService.js";
+import db from "../models/index.js"; 
 
 export const getAll = async (req, res) => {
   try {
-    const products = await productService.getAllProducts();
-    return res.status(200).json(products);
+    let { page, limit } = req.query;
+    page = page ? parseInt(page) : null;
+    limit = limit ? parseInt(limit) : null;
+
+    const result = await productService.getAllProducts(page, limit);
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 };
-
 export const getLatest = async (req, res) => {
   try {
     const products = await productService.getLatestProducts();
