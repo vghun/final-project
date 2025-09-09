@@ -19,3 +19,9 @@ export const fetchTopDiscountProducts = async () => {
   const res = await productApi.getTopDiscount();
   return res.data;
 };
+
+export const fetchPagedProducts = async (page, limit) => {
+  const res = await productApi.getPaged(page, limit);
+  return res.data;
+};
+
