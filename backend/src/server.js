@@ -20,7 +20,7 @@ viewEngine(app);
 initWebRoutes(app);
 connectDB();
 
-let port = process.env.PORT || 6969;
+let port = process.env.PORT || 8088;
 
 app.listen(port, () => {
   console.log("Backend Node.js is running on the port: " + port);
