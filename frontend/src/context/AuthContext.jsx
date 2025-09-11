@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
+    const storedToken = localStorage.getItem("accessToken");
 
     if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
@@ -16,25 +16,32 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const login = (user, accessToken) => {
-    // lưu vào localStorage
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("token", accessToken);
+  const login = (userData, accessToken) => {
+    // Lưu vào localStorage
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("accessToken", accessToken);
 
-    setUser(user);
+    setUser(userData);
     setToken(accessToken);
   };
 
   const logout = () => {
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    localStorage.removeItem("accessToken");
     setUser(null);
     setToken(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, isLogin: !!user }}
+      value={{
+        user,
+        token,
+        setUser,       // <-- thêm dòng này để có thể cập nhật user từ component khác
+        login,
+        logout,
+        isLogin: !!user,
+      }}
     >
       {children}
     </AuthContext.Provider>

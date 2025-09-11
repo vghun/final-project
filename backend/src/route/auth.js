@@ -6,7 +6,7 @@ import db from "../models/index.js";
 
 let router = express.Router();
 
-const initWebRoutes = (app) => {
+const authRoutes = (app) => {
   // API đăng ký (gửi OTP)
   router.post("/register", authController.register);
 
@@ -16,13 +16,6 @@ const initWebRoutes = (app) => {
   // API đăng nhập
   router.post("/login", login);
 
-  // API profile (yêu cầu JWT)
-  router.get("/profile", authenticate, async (req, res) => {
-    const user = await db.User.findByPk(req.user.id, {
-      attributes: { exclude: ["password"] },
-    });
-    return res.json({ user });
-  });
 
   // API quên mật khẩu (gửi OTP)
   router.post("/forgot-password", authController.forgotPassword);
@@ -36,4 +29,4 @@ const initWebRoutes = (app) => {
   return app.use("/", router);
 };
 
-export default initWebRoutes;
+export default authRoutes;
