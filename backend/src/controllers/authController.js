@@ -38,6 +38,7 @@ export const login = async (req, res) => {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
+        image: user.image || null,
       },
     });
   } catch (error) {

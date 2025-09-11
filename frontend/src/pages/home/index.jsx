@@ -39,16 +39,36 @@ const Home = () => {
     loadProducts();
   }, []);
 
-  // Fake rating & reviews
   const withFakeRating = (products) =>
     products.map((p) => ({
       ...p,
-      rating: (Math.random() * 2 + 3).toFixed(1), // 3.0 - 5.0
+      rating: (Math.random() * 2 + 3).toFixed(1),
       reviews: Math.floor(Math.random() * 200) + 1
     }));
 
   return (
     <div className={styles.home}>
+      {/* Hero Section */}
+     <section
+  className={styles.heroSection}
+        style={{ backgroundImage: `url(/brand.jpg)` }}
+       >
+        <div className={styles.overlay}></div>
+        <div className={styles.heroContent}>
+          <h1>Barbershop</h1>
+          <p>Chăm sóc tóc cho quý ông – Phong cách & Chất lượng</p>
+          <div className={styles.heroButtons}>
+            <Link to="/booking">
+              <button className={styles.btnPrimary}>Đặt lịch</button>
+            </Link>
+            <Link to="/consult">
+              <button className={styles.btnSecondary}>Tư vấn</button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+
       {/* Sản phẩm mới nhất */}
       <section className={styles.section}>
         <div className={styles.container}>
@@ -56,20 +76,20 @@ const Home = () => {
           <div className={styles.grid}>
             {withFakeRating(latest).map((p) => (
               <ProductCard
-              key={p.id}
-              id={p.id}
-              image={p.image}
-              badge={null} // hoặc "Bán chạy" nếu muốn custom
-              category={p.category?.name || "Khác"}
-              name={p.name}
-              brand={"Thương hiệu A"}
-              rating={(Math.random() * 2 + 3).toFixed(1)}
-              reviews={Math.floor(Math.random() * 200) + 1}
-              description={p.description}
-              price={Number(p.price)}
-              discount={p.discount}
-              outOfStock={false}
-            />
+                key={p.id}
+                id={p.id}
+                image={p.image}
+                badge={null}
+                category={p.category?.name || "Khác"}
+                name={p.name}
+                brand={"Thương hiệu A"}
+                rating={p.rating}
+                reviews={p.reviews}
+                description={p.description}
+                price={Number(p.price)}
+                discount={p.discount}
+                outOfStock={false}
+              />
             ))}
           </div>
         </div>
@@ -87,20 +107,20 @@ const Home = () => {
           <div className={styles.grid}>
             {withFakeRating(bestSelling).map((p) => (
               <ProductCard
-              key={p.id}
-              id={p.id}
-              image={p.image}
-              badge={null} // hoặc "Bán chạy" nếu muốn custom
-              category={p.category?.name || "Khác"}
-              name={p.name}
-              brand={"Thương hiệu A"}
-              rating={(Math.random() * 2 + 3).toFixed(1)}
-              reviews={Math.floor(Math.random() * 200) + 1}
-              description={p.description}
-              price={Number(p.price)}
-              discount={p.discount}
-              outOfStock={false}
-            />
+                key={p.id}
+                id={p.id}
+                image={p.image}
+                badge={null}
+                category={p.category?.name || "Khác"}
+                name={p.name}
+                brand={"Thương hiệu A"}
+                rating={p.rating}
+                reviews={p.reviews}
+                description={p.description}
+                price={Number(p.price)}
+                discount={p.discount}
+                outOfStock={false}
+              />
             ))}
           </div>
           <div className={styles.textCenter}>
@@ -118,20 +138,20 @@ const Home = () => {
           <div className={styles.grid}>
             {withFakeRating(mostViewed).map((p) => (
               <ProductCard
-              key={p.id}
-              id={p.id}
-              image={p.image}
-              badge={null} // hoặc "Bán chạy" nếu muốn custom
-              category={p.category?.name || "Khác"}
-              name={p.name}
-              brand={"Thương hiệu A"}
-              rating={(Math.random() * 2 + 3).toFixed(1)}
-              reviews={Math.floor(Math.random() * 200) + 1}
-              description={p.description}
-              price={Number(p.price)}
-              discount={p.discount}
-              outOfStock={false}
-            />
+                key={p.id}
+                id={p.id}
+                image={p.image}
+                badge={null}
+                category={p.category?.name || "Khác"}
+                name={p.name}
+                brand={"Thương hiệu A"}
+                rating={p.rating}
+                reviews={p.reviews}
+                description={p.description}
+                price={Number(p.price)}
+                discount={p.discount}
+                outOfStock={false}
+              />
             ))}
           </div>
         </div>
@@ -144,20 +164,20 @@ const Home = () => {
           <div className={styles.grid}>
             {withFakeRating(topDiscount).map((p) => (
               <ProductCard
-              key={p.id}
-              id={p.id}
-              image={p.image}
-              badge={null} // hoặc "Bán chạy" nếu muốn custom
-              category={p.category?.name || "Khác"}
-              name={p.name}
-              brand={"Thương hiệu A"}
-              rating={(Math.random() * 2 + 3).toFixed(1)}
-              reviews={Math.floor(Math.random() * 200) + 1}
-              description={p.description}
-              price={Number(p.price)}
-              discount={p.discount}
-              outOfStock={false}
-            />
+                key={p.id}
+                id={p.id}
+                image={p.image}
+                badge={null}
+                category={p.category?.name || "Khác"}
+                name={p.name}
+                brand={"Thương hiệu A"}
+                rating={p.rating}
+                reviews={p.reviews}
+                description={p.description}
+                price={Number(p.price)}
+                discount={p.discount}
+                outOfStock={false}
+              />
             ))}
           </div>
         </div>
