@@ -3,11 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 
 import styles from "./Header.module.scss";
-import {
-  faChevronDown,
-  faCut,
-  faUser,
-} from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faCut, faUser } from "@fortawesome/free-solid-svg-icons";
 
 import Button from "~/components/Button";
 import Modal from "~/components/Modal";
@@ -43,17 +39,19 @@ function Header() {
             <Button href={"/service"} text>
               Dịch vụ
             </Button>
+            <Button href={"/products"} text>
+              Sản phẩm
+            </Button>
+            <Button href={"/about"} text>
+              Về chúng tôi
+            </Button>
           </div>
         </div>
 
         <div className={cx("right-section")}>
           {!isLogin && (
             <div className={cx("not-logged")}>
-              <Button
-                rounded
-                leftIcon={<FontAwesomeIcon icon={faUser} />}
-                onClick={() => setShowModal(true)}
-              >
+              <Button rounded leftIcon={<FontAwesomeIcon icon={faUser} />} onClick={() => setShowModal(true)}>
                 Thành viên
               </Button>
             </div>
@@ -63,10 +61,7 @@ function Header() {
             <UserMenu>
               <div className={cx("logged")}>
                 <div className={cx("user-icon")}>
-                  <FontAwesomeIcon
-                    icon={faUser}
-                    className={cx("user-icon-inner")}
-                  />
+                  <FontAwesomeIcon icon={faUser} className={cx("user-icon-inner")} />
                 </div>
                 <span>{user.fullName}</span>
                 <div className={cx("faChevronDown-icon")}>
