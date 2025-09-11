@@ -10,17 +10,29 @@ const cx = classNames.bind(styles);
 
 function Modal({ isOpen, onClose }) {
   const [modalType, setModalType] = useState("login");
+  const [modalData, setModalData] = useState({}); // thêm state để giữ data (vd: email)
+
+  // custom lại onSwitch để vừa đổi trang vừa lưu data
+  const handleSwitch = (type, data = {}) => {
+    setModalType(type);
+    setModalData(data);
+  };
 
   const renderModalContent = () => {
     switch (modalType) {
       case "register":
-        return <Register onSwitch={setModalType} onClose={onClose} />;
+        return <Register onSwitch={handleSwitch} onClose={onClose} />;
       case "forgetpass":
-        return <ForgetPass onSwitch={setModalType} />;
+        return <ForgetPass onSwitch={handleSwitch} />;
       case "newpass":
-        return <NewPass onSwitch={setModalType} />;
+        return (
+          <NewPass
+            onSwitch={handleSwitch}
+            email={modalData.email} // truyền email vào đây
+          />
+        );
       default:
-        return <Login onSwitch={setModalType} onClose={onClose} />;
+        return <Login onSwitch={handleSwitch} onClose={onClose} />;
     }
   };
 

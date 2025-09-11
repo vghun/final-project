@@ -1,0 +1,147 @@
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: #059669;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &.danger {
+    background: #dc2626;
+  }
+}
+
+.image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-bottom: 1px solid #e5e7eb;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.content {
+  padding: 16px;
+}
+
+.category {
+  display: inline-block;
+  background: #f3f4f6;
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 4px 0;
+}
+
+.brand {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.rating {
+  font-size: 14px;
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+
+  .reviews {
+    color: #6b7280;
+    font-size: 13px;
+  }
+}
+
+.desc {
+  font-size: 13px;
+  color: #4b5563;
+  margin-bottom: 10px;
+}
+
+.price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .new {
+    font-size: 16px;
+    font-weight: 700;
+    color: #059669;
+  }
+
+  .old {
+    font-size: 14px;
+    text-decoration: line-through;
+    color: #9ca3af;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+
+  .btn {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s;
+
+    &.outline {
+      border: 1px solid #d1d5db;
+      background: #fff;
+
+      &:hover {
+        background: #f3f4f6;
+      }
+    }
+
+    &.primary {
+      background: #059669;
+      color: #fff;
+
+      &:hover:not(:disabled) {
+        background: #047857;
+      }
+
+      &:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
