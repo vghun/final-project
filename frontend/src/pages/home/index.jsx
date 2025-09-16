@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styles from "./Home.module.scss";
 import { Link } from "react-router-dom";
 import Button from "~/components/Button";
 import ProductCard from "~/components/ProductCard";
+import AIChat from "../../components/AIChat/AIChat";
+
 
 import {
   fetchLatestProducts,
@@ -16,6 +18,8 @@ const Home = () => {
   const [bestSelling, setBestSelling] = useState([]);
   const [mostViewed, setMostViewed] = useState([]);
   const [topDiscount, setTopDiscount] = useState([]);
+
+  const chatRef = useRef(null); 
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -45,6 +49,9 @@ const Home = () => {
       rating: (Math.random() * 2 + 3).toFixed(1),
       reviews: Math.floor(Math.random() * 200) + 1
     }));
+     const scrollToChat = () => {
+    chatRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <div className={styles.home}>
@@ -61,13 +68,18 @@ const Home = () => {
             <Link to="/booking">
               <button className={styles.btnPrimary}>Đặt lịch</button>
             </Link>
-            <Link to="/consult">
-              <button className={styles.btnSecondary}>Tư vấn</button>
-            </Link>
+             <button className={styles.btnSecondary} onClick={scrollToChat}>
+              Tư vấn
+            </button>
           </div>
         </div>
-      </section>
 
+      </section>
+       <section className={styles.section} ref={chatRef}>
+        <div className={styles.container}>
+          <AIChat />
+        </div>
+      </section>
 
       {/* Sản phẩm mới nhất */}
       <section className={styles.section}>
