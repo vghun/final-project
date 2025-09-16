@@ -1,4 +1,4 @@
-import * as otpService from "../services/CRUDService.js";
+import * as otpService from "../services/userService.js";
 
 // Đăng ký - gửi OTP
 const register = async (req, res) => {

@@ -3,7 +3,7 @@ import * as request from "~/apis/configs/httpRequest";
 // Lấy thông tin user hiện tại
 export const getProfile = async (token) => {
   try {
-    const res = await request.get("/profile", {
+    const res = await request.get("/user/profile", {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("API getProfile trả về:", res);
@@ -16,7 +16,7 @@ export const getProfile = async (token) => {
 // Cập nhật thông tin user (fullName, email, phoneNumber, avatar)
 export const updateProfile = async (token, data) => {
   try {
-    const res = await request.put("/profile", data, {
+    const res = await request.put("/user/profile", data, {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("API updateProfile trả về:", res);
