@@ -8,8 +8,9 @@ import styles from "./Profile.module.scss";
 const cx = classNames.bind(styles);
 
 function Profile() {
-  const { token, user, setUser } = useAuth();
-  const { showToast } = useToast();  // ✅ chỉ để 1 lần thôi
+  // Sửa: lấy đúng accessToken từ context
+  const { accessToken, user, setUser } = useAuth();
+  const { showToast } = useToast();  
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,18 +22,21 @@ function Profile() {
   const [avatarFile, setAvatarFile] = useState(null);
   const [preview, setPreview] = useState("");
 
+  // Fetch profile khi accessToken có giá trị
   useEffect(() => {
+    if (!accessToken) return;
+
     const fetchProfile = async () => {
-      if (!token) return;
       try {
-        const res = await ProfileAPI.getProfile(token);
+        const res = await ProfileAPI.getProfile(accessToken);
+        console.log("fetchProfile res:", res);
         setProfile(res.user);
 
         setFullName(res.user.fullName);
         setPhoneNumber(res.user.phoneNumber);
         setPreview(res.user.image || "/user.png");
       } catch (err) {
-        console.error(err);
+        console.error("Lỗi khi tải profile:", err);
         showToast({
           text: "Lỗi khi tải dữ liệu!",
           type: "error",
@@ -42,8 +46,9 @@ function Profile() {
         setLoading(false);
       }
     };
+
     fetchProfile();
-  }, [token, showToast]);
+  }, [accessToken, showToast]);
 
   if (loading) return <div className={cx("loading")}>Đang tải...</div>;
   if (!profile) return <div className={cx("loading")}>Không có dữ liệu</div>;
@@ -58,35 +63,34 @@ function Profile() {
     }
   };
 
-const handleEditProfile = async () => {
-  if (!/^(0|\+84)[0-9]{9,10}$/.test(phoneNumber)) {
-    showToast({ text: "Số điện thoại không hợp lệ!", type: "error", duration: 3000 });
-    return;
-  }
+  const handleEditProfile = async () => {
+    if (!/^(0|\+84)[0-9]{9,10}$/.test(phoneNumber)) {
+      showToast({ text: "Số điện thoại không hợp lệ!", type: "error", duration: 3000 });
+      return;
+    }
 
-  try {
-    const formData = new FormData();
-    formData.append("fullName", fullName);
-    formData.append("phoneNumber", phoneNumber);
-    if (avatarFile) formData.append("avatar", avatarFile);
+    try {
+      const formData = new FormData();
+      formData.append("fullName", fullName);
+      formData.append("phoneNumber", phoneNumber);
+      if (avatarFile) formData.append("avatar", avatarFile);
 
-    const updatedProfile = await ProfileAPI.updateProfile(token, formData);
+      const updatedProfile = await ProfileAPI.updateProfile(accessToken, formData);
 
-    // Cập nhật toast
-    showToast({ text: "Cập nhật thành công!", type: "success", duration: 3000 });
+      showToast({ text: "Cập nhật thành công!", type: "success", duration: 3000 });
 
-    // Cập nhật preview và context user
-     setUser({
-      ...updatedProfile.user,
-      avatar: updatedProfile.user.image || "/user.png",
-    });
-    setPreview(updatedProfile.user.image || "/user.png");
-
-  } catch (err) {
-    console.error(err);
-    showToast({ text: "Có lỗi khi cập nhật!", type: "error", duration: 3000 });
-  }
-};
+      // Cập nhật context user và preview
+      setUser({
+        ...updatedProfile.user,
+        avatar: updatedProfile.user.image || "/user.png",
+      });
+      setPreview(updatedProfile.user.image || "/user.png");
+      setProfile(updatedProfile.user);
+    } catch (err) {
+      console.error("Lỗi cập nhật profile:", err);
+      showToast({ text: "Có lỗi khi cập nhật!", type: "error", duration: 3000 });
+    }
+  };
 
   const handleChangePassword = () => {
     showToast({
@@ -95,7 +99,6 @@ const handleEditProfile = async () => {
       duration: 3000,
     }); 
   };
-
 
   return (
     <div className={cx("wrapper")}>

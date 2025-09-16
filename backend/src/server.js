@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/api/products", productRouter);
 
-app.use("/profile", profileRoutes); 
+app.use("/user/profile", profileRoutes); 
 
 viewEngine(app);
 authRoutes(app);
