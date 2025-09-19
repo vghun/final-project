@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 import { Model } from "sequelize";
 
 export default (sequelize, DataTypes) => {
@@ -13,38 +13,39 @@ export default (sequelize, DataTypes) => {
       email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
       },
       password: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
       },
       fullName: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
       },
       phoneNumber: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
       },
       isStatus: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false
+        defaultValue: false,
       },
       image: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
       },
       role: {
-        type: DataTypes.STRING,
-        defaultValue: "customer"
-      }
+        type: DataTypes.ENUM("customer", "barber", "admin"),
+        allowNull: false,
+        defaultValue: "customer",
+      },
     },
     {
       sequelize,
       modelName: "User",
-      tableName: "users"
+      tableName: "users",
     }
   );
 
