@@ -1,5 +1,6 @@
 import { useState } from "react";
 import classNames from "classnames/bind";
+import { useNavigate } from "react-router-dom";
 
 import { useToast } from "~/context/ToastContext";
 import { useAuth } from "~/context/AuthContext";
@@ -13,6 +14,7 @@ const cx = classNames.bind(styles);
 
 function Login({ onSwitch, onClose }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const navigate = useNavigate();
 
   const { login } = useAuth();
   const { showToast } = useToast();
@@ -22,43 +24,54 @@ function Login({ onSwitch, onClose }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const result = await AuthAPI.login(formData);
+    try {
+      const result = await AuthAPI.login(formData);
 
-    if (result.accessToken && result.user) {
-      // Map image -> avatar
-      const userWithAvatar = {
-        ...result.user,
-        avatar: result.user.image || "/user.png",
-      };
+      if (result.accessToken && result.refreshToken && result.user) {
+        // Map image -> avatar
+        const userWithAvatar = {
+          ...result.user,
+          avatar: result.user.image || "/user.png",
+        };
 
-      login(userWithAvatar, result.accessToken);
+        // Lưu vào context
+        login(userWithAvatar, result.accessToken, result.refreshToken);
 
+        showToast({
+          text: result.message || "Đăng nhập thành công",
+          type: "success",
+        });
+
+        // Điều hướng theo role
+        switch (result.user.role) {
+          case "admin":
+            navigate("/admin");
+            break;
+          case "barber":
+            navigate("/tho-cat-toc");
+            break;
+          default: // customer
+            navigate("/");
+        }
+
+        onClose();
+      } else {
+        showToast({
+          text: result.message || "Tài khoản hoặc mật khẩu không chính xác",
+          type: "error",
+        });
+      }
+    } catch (err) {
+      console.error("Login error:", err);
       showToast({
-        text: result.message || "Đăng nhập thành công",
-        type: "success",
-      });
-      onClose();
-    } else {
-      showToast({
-        text: result.message || "Tài khoản hoặc mật khẩu không chính xác",
+        text: err.response?.data?.message || "Đăng nhập không thành công, vui lòng thử lại sau",
         type: "error",
       });
     }
-  } catch (err) {
-    console.error("Login error:", err); 
-    showToast({
-      text:
-        err.response?.data?.message ||
-        "Đăng nhập không thành công, vui lòng thử lại sau",
-      type: "error",
-    });
-  }
-};
-
+  };
 
   return (
     <div className={cx("wrapper")}>
@@ -72,14 +85,7 @@ const handleSubmit = async (e) => {
             </a>
           </p>
           <form onSubmit={handleSubmit}>
-            <Input
-              primary
-              name="email"
-              required
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-            />
+            <Input primary name="email" required placeholder="Email" value={formData.email} onChange={handleChange} />
             <Input
               primary
               name="password"
@@ -91,10 +97,7 @@ const handleSubmit = async (e) => {
               onChange={handleChange}
             />
             <div className={cx("forgetpass-wrapper")}>
-              <div
-                className={cx("forgetpass")}
-                onClick={() => onSwitch("forgetpass")}
-              >
+              <div className={cx("forgetpass")} onClick={() => onSwitch("forgetpass")}>
                 Quên mật khẩu ?
               </div>
             </div>
