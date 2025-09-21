@@ -1,34 +1,60 @@
-  import express from "express";
-  import userController from "../controllers/userController.js"; // controller cho đăng ký & OTP
-  import authController from "../controllers/authController.js"; // controller cho login
-  import { authenticate } from "../middlewares/authMiddleware.js"; // middleware JWT
-  import db from "../models/index.js";
+import express from "express";
+import userController from "../controllers/userController.js"; // controller cho đăng ký & OTP
+import authController from "../controllers/authController.js"; // controller cho login
+import { authenticate, authorize } from "../middlewares/authMiddleware.js"; // middleware JWT
 
-  let router = express.Router();
+let router = express.Router();
 
-  const authRoutes = (app) => {
-    // API đăng ký (gửi OTP)
-    router.post("/register", userController.register);
+const authRoutes = (app) => {
+  // ========== AUTH ==========
 
-    // API xác thực OTP
-    router.post("/verify-otp", userController.verifyOtp);
+  // Đăng ký (gửi OTP)
+  router.post("/register", userController.register);
 
-    // API đăng nhập
-    router.post("/login", authController.login);
-    router.post("/refresh", authController.refresh);
-    router.post("/logout", authController.logout);  
+  // Xác thực OTP
+  router.post("/verify-otp", userController.verifyOtp);
 
+  // Đăng nhập
+  router.post("/login", authController.login);
 
-    // API quên mật khẩu (gửi OTP)
-    router.post("/forgot-password", userController.forgotPassword);
+  // Refresh token
+  router.post("/refresh", authController.refresh);
 
-    // API xác thực OTP quên mật khẩu
-    router.post("/verify-forgot-otp", userController.verifyForgotOtp);
+  // Đăng xuất
+  router.post("/logout", authController.logout);
 
-    // API đổi mật khẻu
-    router.post("/reset-password", userController.resetPassword);
+  // ========== QUÊN MẬT KHẨU ==========
+  // Gửi OTP quên mật khẩu
+  router.post("/forgot-password", userController.forgotPassword);
 
-    return app.use("/auth", router);
-  };
+  // Xác thực OTP quên mật khẩu
+  router.post("/verify-forgot-otp", userController.verifyForgotOtp);
 
-  export default authRoutes;
+  // Đặt lại mật khẩu
+  router.post("/reset-password", userController.resetPassword);
+
+  // ========== TEST AUTH & ROLE ==========
+  // Ai đã login cũng gọi được
+  router.get("/me", authenticate, (req, res) => {
+    res.json({ message: "Bạn đã đăng nhập", user: req.user });
+  });
+
+  // Customer
+  router.get("/customer", authenticate, authorize(["customer"]), (req, res) => {
+    res.json({ message: "Xin chào Customer", user: req.user });
+  });
+
+  // Admin
+  router.get("/admin", authenticate, authorize(["admin"]), (req, res) => {
+    res.json({ message: "Xin chào Admin", user: req.user });
+  });
+
+  // Thợ cắt tóc (barber)
+  router.get("/tho-cat-toc", authenticate, authorize(["barber"]), (req, res) => {
+    res.json({ message: "Xin chào Barber", user: req.user });
+  });
+
+  return app.use("/auth", router);
+};
+
+export default authRoutes;
