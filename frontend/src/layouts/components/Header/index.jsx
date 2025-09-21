@@ -31,6 +31,7 @@ function Header() {
 
         {/* Middle */}
         <div className={cx("mid-section")}>
+
         <div className={cx("nav-menu")}>
           <Button href="/" text className={cx("menu-button")}>Trang chủ</Button>
           <Button href="/team" text className={cx("menu-button")}>Chi nhánh & Thợ</Button>
