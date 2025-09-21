@@ -27,10 +27,15 @@ const handleSubmit = async (e) => {
 
   try {
     const result = await AuthAPI.login(formData);
-    console.log("Login API response:", result); // 👈 check dữ liệu trả về
 
     if (result.accessToken && result.user) {
-      login(result.user, result.accessToken);
+      // Map image -> avatar
+      const userWithAvatar = {
+        ...result.user,
+        avatar: result.user.image || "/user.png",
+      };
+
+      login(userWithAvatar, result.accessToken);
 
       showToast({
         text: result.message || "Đăng nhập thành công",
@@ -53,6 +58,7 @@ const handleSubmit = async (e) => {
     });
   }
 };
+
 
   return (
     <div className={cx("wrapper")}>
