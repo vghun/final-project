@@ -3,11 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 
 import styles from "./Header.module.scss";
-import {
-  faChevronDown,
-  faCut,
-  faUser,
-} from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faCut } from "@fortawesome/free-solid-svg-icons";
 
 import Button from "~/components/Button";
 import Modal from "~/components/Modal";
@@ -23,6 +19,7 @@ function Header() {
   return (
     <header className={cx("wrapper")}>
       <div className={cx("inner")}>
+        {/* Left */}
         <div className={cx("left-section")}>
           <div className={cx("logo")}>
             <div className={cx("logo-icon")}>
@@ -32,35 +29,30 @@ function Header() {
           </div>
         </div>
 
+        {/* Middle */}
         <div className={cx("mid-section")}>
-          <div className={cx("nav-menu")}>
-            <Button href={"/"} text>
-              Trang chủ
-            </Button>
-            <Button href={"/team"} text>
-              Chi nhánh & Thợ
-            </Button>
-            <Button href={"/service"} text>
-              Dịch vụ
-            </Button>
-            <Button href={"/products"} text>
-              Sản phẩm
-            </Button>
-            <Button href={"/about"} text>
-              Về chúng tôi
-            </Button>
-          </div>
+
+        <div className={cx("nav-menu")}>
+          <Button href="/" text className={cx("menu-button")}>Trang chủ</Button>
+          <Button href="/team" text className={cx("menu-button")}>Chi nhánh & Thợ</Button>
+          <Button href="/service" text className={cx("menu-button")}>Dịch vụ</Button>
+          <Button href="/products" text className={cx("menu-button")}>Sản phẩm</Button>
+          <Button href="/about" text className={cx("menu-button")}>Về chúng tôi</Button>
         </div>
 
+        </div>
+
+        {/* Right */}
         <div className={cx("right-section")}>
           {!isLogin && (
             <div className={cx("not-logged")}>
-              <Button
-                rounded
-                leftIcon={<FontAwesomeIcon icon={faUser} />}
-                onClick={() => setShowModal(true)}
-              >
-                Thành viên
+              <Button rounded onClick={() => setShowModal(true)} className={cx("guest-button")}>
+                <span>Thành viên</span>
+                <img
+                  src="/user.png"
+                  alt="Avatar của thành viên"
+                  className={cx("user-avatar")}
+                />
               </Button>
             </div>
           )}
@@ -68,13 +60,13 @@ function Header() {
           {isLogin && (
             <UserMenu>
               <div className={cx("logged")}>
-                <div className={cx("user-icon")}>
-                  <FontAwesomeIcon
-                    icon={faUser}
-                    className={cx("user-icon-inner")}
+                <span>{user.fullName}</span>
+                <div className={cx("user-avatar")}>
+                  <img
+                    src={user.avatar || "/user.png"}
+                    alt={user.fullName}
                   />
                 </div>
-                <span>{user.fullName}</span>
                 <div className={cx("faChevronDown-icon")}>
                   <FontAwesomeIcon icon={faChevronDown} />
                 </div>

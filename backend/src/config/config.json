@@ -1,11 +1,12 @@
 {
-  "development": {
-    "username": "root",
-    "password": "xuandung",
-    "database": "account",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
-  },
+ "development": {
+  "username": "root",
+  "password": "123456789",
+  "database": "account",
+  "host": "127.0.0.1",
+  "port": 3306,
+  "dialect": "mysql"
+},
   "test": {
     "username": "root",
     "password": null,

@@ -1,19 +1,108 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styles from "./Home.module.scss";
-import { ShoppingBag } from "lucide-react";
-import Badge from "~/components/Badge";
-import Button from "~/components/Button";
 import { Link } from "react-router-dom";
+import Button from "~/components/Button";
+import ProductCard from "~/components/ProductCard";
+import AIChat from "../../components/AIChat/AIChat";
+
+
+import {
+  fetchLatestProducts,
+  fetchBestSellingProducts,
+  fetchMostViewedProducts,
+  fetchTopDiscountProducts
+} from "~/services/productService";
 
 const Home = () => {
+  const [latest, setLatest] = useState([]);
+  const [bestSelling, setBestSelling] = useState([]);
+  const [mostViewed, setMostViewed] = useState([]);
+  const [topDiscount, setTopDiscount] = useState([]);
+
+  const chatRef = useRef(null); 
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const [latestData, bestData, viewedData, discountData] =
+          await Promise.all([
+            fetchLatestProducts(),
+            fetchBestSellingProducts(),
+            fetchMostViewedProducts(),
+            fetchTopDiscountProducts()
+          ]);
+        setLatest(latestData);
+        setBestSelling(bestData);
+        setMostViewed(viewedData);
+        setTopDiscount(discountData);
+      } catch (err) {
+        console.error("Lỗi load sản phẩm:", err);
+      }
+    };
+
+    loadProducts();
+  }, []);
+
+  const withFakeRating = (products) =>
+    products.map((p) => ({
+      ...p,
+      rating: (Math.random() * 2 + 3).toFixed(1),
+      reviews: Math.floor(Math.random() * 200) + 1
+    }));
+     const scrollToChat = () => {
+    chatRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className={styles.home}>
+      {/* Hero Section */}
+     <section
+  className={styles.heroSection}
+        style={{ backgroundImage: `url(/brand.jpg)` }}
+       >
+        <div className={styles.overlay}></div>
+        <div className={styles.heroContent}>
+          <h1>Barbershop</h1>
+          <p>Chăm sóc tóc cho quý ông – Phong cách & Chất lượng</p>
+          <div className={styles.heroButtons}>
+            <Link to="/booking">
+              <button className={styles.btnPrimary}>Đặt lịch</button>
+            </Link>
+             <button className={styles.btnSecondary} onClick={scrollToChat}>
+              Tư vấn
+            </button>
+          </div>
+        </div>
+
+      </section>
+       <section className={styles.section} ref={chatRef}>
+        <div className={styles.container}>
+          <AIChat />
+        </div>
+      </section>
+
       {/* Sản phẩm mới nhất */}
       <section className={styles.section}>
         <div className={styles.container}>
           <h3 className={styles.title}>Sản phẩm mới nhất</h3>
           <div className={styles.grid}>
-            {/* TODO: Map 8 sản phẩm mới nhất */}
+            {withFakeRating(latest).map((p) => (
+              <ProductCard
+                key={p.id}
+                id={p.id}
+                image={p.image}
+                badge={null}
+                category={p.category?.name || "Khác"}
+                name={p.name}
+                brand={"Thương hiệu A"}
+                rating={p.rating}
+                reviews={p.reviews}
+                description={p.description}
+                price={Number(p.price)}
+                discount={p.discount}
+                outOfStock={false}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -28,27 +117,27 @@ const Home = () => {
             </p>
           </div>
           <div className={styles.grid}>
-            {/* TODO: Map 6 sản phẩm bán chạy */}
-            <div className={styles.card}>
-              <div className={styles.cardImage}>
-                <ShoppingBag className={styles.icon} />
-              </div>
-              <h4 className={styles.cardTitle}>Wax tạo kiểu Gatsby</h4>
-              <p className={styles.cardDesc}>
-                Giữ nếp lâu, không bết dính
-              </p>
-              <div className={styles.cardFooter}>
-                <span className={styles.price}>250.000đ</span>
-                <Badge variant="secondary">Bán chạy #1</Badge>
-              </div>
-            </div>
+            {withFakeRating(bestSelling).map((p) => (
+              <ProductCard
+                key={p.id}
+                id={p.id}
+                image={p.image}
+                badge={null}
+                category={p.category?.name || "Khác"}
+                name={p.name}
+                brand={"Thương hiệu A"}
+                rating={p.rating}
+                reviews={p.reviews}
+                description={p.description}
+                price={Number(p.price)}
+                discount={p.discount}
+                outOfStock={false}
+              />
+            ))}
           </div>
           <div className={styles.textCenter}>
             <Link to="/products">
-              <Button size="lg">
-                <ShoppingBag className={styles.iconSmall} />
-                Xem tất cả sản phẩm
-              </Button>
+              <Button size="lg">Xem tất cả sản phẩm</Button>
             </Link>
           </div>
         </div>
@@ -59,7 +148,23 @@ const Home = () => {
         <div className={styles.container}>
           <h3 className={styles.title}>Sản phẩm xem nhiều nhất</h3>
           <div className={styles.grid}>
-            {/* TODO: Map 8 sản phẩm xem nhiều */}
+            {withFakeRating(mostViewed).map((p) => (
+              <ProductCard
+                key={p.id}
+                id={p.id}
+                image={p.image}
+                badge={null}
+                category={p.category?.name || "Khác"}
+                name={p.name}
+                brand={"Thương hiệu A"}
+                rating={p.rating}
+                reviews={p.reviews}
+                description={p.description}
+                price={Number(p.price)}
+                discount={p.discount}
+                outOfStock={false}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -69,7 +174,23 @@ const Home = () => {
         <div className={styles.container}>
           <h3 className={styles.title}>Khuyến mãi cao nhất</h3>
           <div className={styles.grid}>
-            {/* TODO: Map 4 sản phẩm khuyến mãi */}
+            {withFakeRating(topDiscount).map((p) => (
+              <ProductCard
+                key={p.id}
+                id={p.id}
+                image={p.image}
+                badge={null}
+                category={p.category?.name || "Khác"}
+                name={p.name}
+                brand={"Thương hiệu A"}
+                rating={p.rating}
+                reviews={p.reviews}
+                description={p.description}
+                price={Number(p.price)}
+                discount={p.discount}
+                outOfStock={false}
+              />
+            ))}
           </div>
         </div>
       </section>
