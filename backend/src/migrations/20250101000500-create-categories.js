@@ -1,28 +1,24 @@
-'use strict';
+"use strict";
 
 export async function up(queryInterface, Sequelize) {
   await queryInterface.createTable("categories", {
-    id: {
+    idCategory: {
       type: Sequelize.INTEGER,
       autoIncrement: true,
-      primaryKey: true
+      primaryKey: true,
     },
     name: {
-      type: Sequelize.STRING,
+      type: Sequelize.STRING(100),
       allowNull: false,
-      unique: true
-    },
-    description: {
-      type: Sequelize.TEXT
     },
     createdAt: {
       type: Sequelize.DATE,
-      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP")
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
     },
     updatedAt: {
       type: Sequelize.DATE,
-      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-    }
+      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+    },
   });
 }
 
