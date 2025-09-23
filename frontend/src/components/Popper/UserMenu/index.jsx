@@ -12,12 +12,14 @@ import {
   faGift,
   faRightFromBracket,
   faUserCircle,
+  faBoxOpen,
+  faDashboard,
 } from "@fortawesome/free-solid-svg-icons";
 
 const cx = classNames.bind(styles);
 
 function UserMenu({ children }) {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth(); // Lấy user có role
   const [visible, setVisible] = useState(false);
   const triggerRef = useRef();
   const navigate = useNavigate();
@@ -36,35 +38,48 @@ function UserMenu({ children }) {
     hideMenu();
   };
 
-  const renderResult = (attrs) => (
-  <div className={cx("menu-list")} tabIndex="-1" {...attrs}>
-    <PopperWrapper className={cx("menu-popper")}>
-      <div className={cx("menu-body")}>
-        <div className={cx("body")}>
-          <button className={cx("menu-item")} onClick={handleProfileClick}>
-            <FontAwesomeIcon icon={faUserCircle} />
-            <div>Hồ sơ cá nhân</div>
-          </button>
-          <a className={cx("menu-item")} href="#">
-            <FontAwesomeIcon icon={faCalendar} />
-            <div>Lịch hẹn của tôi</div>
-          </a>
-          <a className={cx("menu-item")} href="#">
-            <FontAwesomeIcon icon={faGift} />
-            <div>Điểm tích luỹ</div>
-          </a>
-        </div>
-        <div className={cx("footer")}>
-          <button className={cx("menu-item")} onClick={handleLogout}>
-            <FontAwesomeIcon icon={faRightFromBracket} />
-            <div>Đăng xuất</div>
-          </button>
-        </div>
-      </div>
-    </PopperWrapper>
-  </div>
-);
+  // Map role → menu items
+  const menuItemsByRole = {
+    customer: [
+      { icon: faUserCircle, label: "Hồ sơ cá nhân", onClick: handleProfileClick },
+      { icon: faCalendar, label: "Lịch hẹn của tôi", onClick: () => navigate("/appointments") },
+      { icon: faGift, label: "Điểm tích luỹ", onClick: () => navigate("/points") },
+    ],
+    barber: [
+      { icon: faBoxOpen, label: "Quản lý dịch vụ", onClick: () => navigate("/tho-cat-toc") },
+    ],
+    admin: [
+      { icon: faDashboard, label: "Quản lý cửa hàng", onClick: () => navigate("/admin") },
+    ],
+  };
 
+  const renderResult = (attrs) => (
+    <div className={cx("menu-list")} tabIndex="-1" {...attrs}>
+      <PopperWrapper className={cx("menu-popper")}>
+        <div className={cx("menu-body")}>
+          <div className={cx("body")}>
+            {menuItemsByRole[user.role]?.map((item, idx) => (
+              <button
+                key={idx}
+                className={cx("menu-item")}
+                onClick={() => { item.onClick(); hideMenu(); }}
+              >
+                <FontAwesomeIcon icon={item.icon} />
+                <div>{item.label}</div>
+              </button>
+            ))}
+          </div>
+
+          <div className={cx("footer")}>
+            <button className={cx("menu-item")} onClick={handleLogout}>
+              <FontAwesomeIcon icon={faRightFromBracket} />
+              <div>Đăng xuất</div>
+            </button>
+          </div>
+        </div>
+      </PopperWrapper>
+    </div>
+  );
 
   return (
     <div ref={triggerRef}>
