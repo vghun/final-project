@@ -8,7 +8,6 @@ import styles from "./Profile.module.scss";
 const cx = classNames.bind(styles);
 
 function Profile() {
-  // Sửa: lấy đúng accessToken từ context
   const { accessToken, user, setUser } = useAuth();
   const { showToast } = useToast();  
 
@@ -30,11 +29,13 @@ function Profile() {
       try {
         const res = await ProfileAPI.getProfile(accessToken);
         console.log("fetchProfile res:", res);
-        setProfile(res.user);
 
-        setFullName(res.user.fullName);
-        setPhoneNumber(res.user.phoneNumber);
-        setPreview(res.user.image || "/user.png");
+        const userProfile = res.profile;
+        setProfile(userProfile);
+
+        setFullName(userProfile.fullName || "");
+        setPhoneNumber(userProfile.phoneNumber || "");
+        setPreview(userProfile.image || "/user.png");
       } catch (err) {
         console.error("Lỗi khi tải profile:", err);
         showToast({
@@ -53,7 +54,9 @@ function Profile() {
   if (loading) return <div className={cx("loading")}>Đang tải...</div>;
   if (!profile) return <div className={cx("loading")}>Không có dữ liệu</div>;
 
-  const { email, points = 0, gallery = [] } = profile;
+  const { email, profileDetail } = profile;
+  const points = profileDetail?.loyaltyPoint || 0;
+  const gallery = profileDetail?.gallery || []; // Nếu gallery có trong profileDetail
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -77,15 +80,15 @@ function Profile() {
 
       const updatedProfile = await ProfileAPI.updateProfile(accessToken, formData);
 
-      showToast({ text: "Cập nhật thành công!", type: "success", duration: 3000 });
-
-      // Cập nhật context user và preview
+      const updatedUser = updatedProfile.profile;
+      setProfile(updatedUser);
       setUser({
-        ...updatedProfile.user,
-        avatar: updatedProfile.user.image || "/user.png",
+        ...updatedUser,
+        avatar: updatedUser.image || "/user.png",
       });
-      setPreview(updatedProfile.user.image || "/user.png");
-      setProfile(updatedProfile.user);
+      setPreview(updatedUser.image || "/user.png");
+
+      showToast({ text: "Cập nhật thành công!", type: "success", duration: 3000 });
     } catch (err) {
       console.error("Lỗi cập nhật profile:", err);
       showToast({ text: "Có lỗi khi cập nhật!", type: "error", duration: 3000 });

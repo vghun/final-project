@@ -15,7 +15,6 @@ const register = async (req, res) => {
   }
 };
 
-// Xác thực OTP
 const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
