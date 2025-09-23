@@ -45,17 +45,7 @@ function Login({ onSwitch, onClose }) {
           type: "success",
         });
 
-        // Điều hướng theo role
-        switch (result.user.role) {
-          case "admin":
-            navigate("/admin");
-            break;
-          case "barber":
-            navigate("/tho-cat-toc");
-            break;
-          default: // customer
-            navigate("/");
-        }
+        navigate("/"); 
 
         onClose();
       } else {
