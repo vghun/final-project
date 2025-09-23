@@ -1,52 +1,37 @@
 "use strict";
 
 export async function up(queryInterface, Sequelize) {
-  await queryInterface.createTable("products", {
-    id: {
+  await queryInterface.createTable("services", {
+    idService: {
       type: Sequelize.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
+    idCategory: {
+      type: Sequelize.INTEGER,
+      references: { model: "categories", key: "idCategory" },
+      onUpdate: "CASCADE",
+      onDelete: "SET NULL",
+    },
     name: {
-      type: Sequelize.STRING,
+      type: Sequelize.STRING(100),
       allowNull: false,
     },
     description: {
       type: Sequelize.TEXT,
+      allowNull: true,
     },
     price: {
       type: Sequelize.DECIMAL(10, 2),
       allowNull: false,
     },
-    views: {
-      type: Sequelize.INTEGER,
-      defaultValue: 0,
-    },
-    sold: {
-      type: Sequelize.INTEGER,
-      defaultValue: 0,
-    },
-    discount: {
-      type: Sequelize.INTEGER,
-      defaultValue: 0,
-    },
-    image: {
-      type: Sequelize.STRING,
-    },
-    stock: {
-      type: Sequelize.INTEGER,
+    duration: {
+      type: Sequelize.INTEGER, // phút
       allowNull: false,
-      defaultValue: 0,
     },
-    categoryId: {
-      type: Sequelize.INTEGER,
-      allowNull: true,
-      references: {
-        model: "categories",
-        key: "id",
-      },
-      onUpdate: "CASCADE",
-      onDelete: "SET NULL",
+    status: {
+      type: Sequelize.ENUM("Active", "Inactive"),
+      defaultValue: "Active",
     },
     createdAt: {
       type: Sequelize.DATE,
@@ -60,5 +45,5 @@ export async function up(queryInterface, Sequelize) {
 }
 
 export async function down(queryInterface, Sequelize) {
-  await queryInterface.dropTable("products");
+  await queryInterface.dropTable("services");
 }
