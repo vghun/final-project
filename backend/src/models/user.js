@@ -1,15 +1,29 @@
 "use strict";
-import { Model } from "sequelize";
+import { Model, DataTypes } from "sequelize";
 
-export default (sequelize, DataTypes) => {
+export default (sequelize) => {
   class User extends Model {
     static associate(models) {
-      // define association here (nếu sau này có bảng liên quan)
+      // Quan hệ 1-1 với Customer
+      User.hasOne(models.Customer, {
+        foreignKey: "idCustomer",
+        as: "customer",
+      });
+
+      // Quan hệ 1-1 với Barber
+      User.hasOne(models.Barber, {
+        foreignKey: "idBarber",
+        as: "barber",
+      });
     }
   }
-
   User.init(
     {
+      idUser: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       email: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -27,6 +41,7 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+        field: 'phoneNumber', // map với DB
       },
       isStatus: {
         type: DataTypes.BOOLEAN,
@@ -46,6 +61,7 @@ export default (sequelize, DataTypes) => {
       sequelize,
       modelName: "User",
       tableName: "users",
+      timestamps: true,
     }
   );
 

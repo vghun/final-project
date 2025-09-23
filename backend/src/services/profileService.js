@@ -1,15 +1,27 @@
 import db from "../models/index.js";
 import cloudinary from "../config/cloudinary.js";
 
-// Lấy profile
-export const getUserProfile = async (userId) => {
-  const user = await db.User.findByPk(userId, {
+// ====== Lấy profile (theo role) ======
+const getUserProfileWithRole = async (idUser) => {
+  return await db.User.findByPk(idUser, {
     attributes: { exclude: ["password"] },
+    include: [
+      {
+        model: db.Customer,
+        as: "customer",
+        attributes: ["idCustomer", "loyaltyPoint", "address", "createdAt", "updatedAt"],
+      },
+      {
+        model: db.Barber,
+        as: "barber",
+        attributes: ["idBarber", "profileDescription", "createdAt", "updatedAt"],
+
+      },
+    ],
   });
-  return user;
 };
 
-// Hàm upload buffer lên Cloudinary
+// ====== Upload buffer lên Cloudinary ======
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -23,18 +35,33 @@ const uploadToCloudinary = (buffer) => {
   });
 };
 
-// Cập nhật profile
-export const updateUserProfile = async (userId, { fullName, email, phoneNumber, avatarFile }) => {
-  const user = await db.User.findByPk(userId);
+// ====== Cập nhật profile ======
+const updateUserProfile = async (idUser, { fullName, email, phoneNumber, avatarFile }) => {
+  const user = await db.User.findByPk(idUser);
   if (!user) return null;
 
-  let imageUrl = user.image; // đổi avatar -> image
+  let imageUrl = user.image;
 
+  // Nếu có file ảnh mới thì upload
   if (avatarFile) {
     const uploadResult = await uploadToCloudinary(avatarFile.buffer);
     imageUrl = uploadResult.secure_url;
   }
 
-  await user.update({ fullName, email, phoneNumber, image: imageUrl }); // update trường image
+  // Chỉ update các trường được truyền vào
+  const updateData = {
+    ...(fullName && { fullName }),
+    ...(email && { email }),
+    ...(phoneNumber && { phoneNumber }),
+    image: imageUrl,
+  };
+
+  await user.update(updateData);
   return user;
+};
+
+// ====== Export ======
+export default {
+  getUserProfileWithRole,
+  updateUserProfile,
 };
