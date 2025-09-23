@@ -1,0 +1,95 @@
+.card {
+  background: #fff;
+  border: 1px solid #d1fae5;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #064e3b;
+  }
+}
+
+.status {
+  background: #059669;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.address {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #065f46;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+
+  span {
+    color: #065f46;
+  }
+
+  strong {
+    color: #064e3b;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  gap: 8px; // khoảng cách giữa 2 nút
+
+  button {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+}
+
+.editBtn {
+  flex: 5;
+  background: transparent;
+  border: 1px solid #059669;
+  color: #059669;
+
+  &:hover {
+    background: #059669;
+    color: #fff;
+  }
+}
+
+.deleteBtn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid #dc2626;
+  color: #dc2626;
+
+  &:hover {
+    background: #dc2626;
+    color: #fff;
+  }
+}

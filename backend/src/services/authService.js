@@ -7,7 +7,6 @@ const User = db.User;
 console.log("JWT_SECRET:", process.env.JWT_SECRET);
 console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
 
-
 class AuthService {
   // LOGIN
   static async login(email, password) {
@@ -21,7 +20,7 @@ class AuthService {
     const match = await bcrypt.compare(password, user.password);
     if (!match) throw { status: 401, message: "Email hoặc mật khẩu không đúng." };
 
-    const payload = { id: user.id, email: user.email };
+    const payload = { id: user.id, email: user.email, role: user.role };
 
     // Access Token & Refresh Token
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -29,7 +28,6 @@ class AuthService {
 
     // Lưu refreshToken vào Redis
     await redisClient.set(`refresh:${user.id}`, refreshToken, "EX", 7 * 24 * 60 * 60);
-
 
     return {
       accessToken,
@@ -40,6 +38,7 @@ class AuthService {
         fullName: user.fullName,
         email: user.email,
         image: user.image || null,
+        role: user.role,
       },
     };
   }
@@ -59,12 +58,14 @@ class AuthService {
 
       // Sinh Access Token mới
       const newAccessToken = jwt.sign(
-        { id: decoded.id, email: decoded.email },
+        { id: decoded.id, email: decoded.email, role: decoded.role },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        {
+          expiresIn: "1h",
+        }
       );
 
-      return { accessToken: newAccessToken, expiresIn: 3600 };
+      return { accessToken: newAccessToken, expiresIn: 3600, role: decoded.role };
     } catch (err) {
       throw { status: 403, message: "INVALID_REFRESH_TOKEN" };
     }
