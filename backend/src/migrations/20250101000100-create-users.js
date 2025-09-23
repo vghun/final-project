@@ -7,8 +7,8 @@ export async function up(queryInterface, Sequelize) {
       autoIncrement: true,
       primaryKey: true,
     },
-    username: {
-      type: Sequelize.STRING(50),
+    email: {
+      type: Sequelize.STRING(100),
       allowNull: false,
       unique: true,
     },
@@ -16,38 +16,37 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.STRING(255),
       allowNull: false,
     },
-    avatar: {
-      type: Sequelize.STRING,
-      allowNull: true,
-    },
     fullName: {
       type: Sequelize.STRING(100),
       allowNull: false,
     },
-    phone: {
+    phoneNumber: { // đổi từ phone → phoneNumber
       type: Sequelize.STRING(20),
-      allowNull: true,
-    },
-    email: {
-      type: Sequelize.STRING(100),
-      allowNull: true,
+      allowNull: false,
       unique: true,
     },
-    role: {
-      type: Sequelize.ENUM("Customer", "Barber", "Admin"),
+    isStatus: { // đổi từ status → isStatus
+      type: Sequelize.BOOLEAN,
       allowNull: false,
+      defaultValue: false,
     },
-    status: {
-      type: Sequelize.ENUM("Active", "Locked"),
+    image: { // đổi từ avatar → image
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    role: { // enum khớp với model
+      type: Sequelize.ENUM("customer", "barber", "admin"),
       allowNull: false,
-      defaultValue: "Active",
+      defaultValue: "customer",
     },
     createdAt: {
       type: Sequelize.DATE,
+      allowNull: false,
       defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
     },
     updatedAt: {
       type: Sequelize.DATE,
+      allowNull: false,
       defaultValue: Sequelize.literal(
         "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
       ),

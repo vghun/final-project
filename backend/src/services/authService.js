@@ -20,21 +20,22 @@ class AuthService {
     const match = await bcrypt.compare(password, user.password);
     if (!match) throw { status: 401, message: "Email hoặc mật khẩu không đúng." };
 
-    const payload = { id: user.id, email: user.email, role: user.role };
+    // Payload token dùng idUser
+    const payload = { idUser: user.idUser, email: user.email, role: user.role };
 
     // Access Token & Refresh Token
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
     const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
 
-    // Lưu refreshToken vào Redis
-    await redisClient.set(`refresh:${user.id}`, refreshToken, "EX", 7 * 24 * 60 * 60);
+    // Lưu refreshToken vào Redis với idUser
+    await redisClient.set(`refresh:${user.idUser}`, refreshToken, "EX", 7 * 24 * 60 * 60);
 
     return {
       accessToken,
       refreshToken,
-      expiresIn: 3600, // 1h (tính bằng giây)
+      expiresIn: 3600, // 1h
       user: {
-        id: user.id,
+        idUser: user.idUser,
         fullName: user.fullName,
         email: user.email,
         image: user.image || null,
@@ -50,19 +51,17 @@ class AuthService {
     try {
       const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-      // Kiểm tra token trong Redis
-      const savedToken = await redisClient.get(`refresh:${decoded.id}`);
+      // Kiểm tra token trong Redis với idUser
+      const savedToken = await redisClient.get(`refresh:${decoded.idUser}`);
       if (!savedToken || savedToken !== refreshToken) {
         throw { status: 403, message: "INVALID_REFRESH_TOKEN" };
       }
 
       // Sinh Access Token mới
       const newAccessToken = jwt.sign(
-        { id: decoded.id, email: decoded.email, role: decoded.role },
+        { idUser: decoded.idUser, email: decoded.email, role: decoded.role },
         process.env.JWT_SECRET,
-        {
-          expiresIn: "1h",
-        }
+        { expiresIn: "1h" }
       );
 
       return { accessToken: newAccessToken, expiresIn: 3600, role: decoded.role };
@@ -77,7 +76,7 @@ class AuthService {
 
     try {
       const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-      await redisClient.del(`refresh:${decoded.id}`);
+      await redisClient.del(`refresh:${decoded.idUser}`);
       return { message: "Logout thành công" };
     } catch (err) {
       throw { status: 400, message: "Invalid refresh token" };
