@@ -7,19 +7,27 @@ export async function up(queryInterface, Sequelize) {
       autoIncrement: true,
       primaryKey: true,
     },
-    discountPercent: {
+    title: {                  // Tên voucher
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    discountPercent: {        // Giảm giá %
       type: Sequelize.DECIMAL(5, 2),
       allowNull: false,
     },
-    expiryDate: {
+    pointCost: {              // Số điểm đổi
+      type: Sequelize.INTEGER,
+      allowNull: false,
+    },
+    totalQuantity: {          // Số lượng tối đa có thể đổi (null = không giới hạn)
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
+    expiryDate: {             // Ngày hết hạn
       type: Sequelize.DATE,
       allowNull: false,
     },
-    minPoint: {
-      type: Sequelize.INTEGER,
-      defaultValue: 0,
-    },
-    description: {
+    description: {            // Mô tả chi tiết
       type: Sequelize.STRING,
       allowNull: true,
     },

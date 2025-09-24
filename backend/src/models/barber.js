@@ -5,7 +5,7 @@ export default (sequelize) => {
   class Barber extends Model {
     static associate(models) {
       Barber.belongsTo(models.User, {
-        foreignKey: "idUser",
+        foreignKey: "idBarber",
         as: "user",
       });
     }
