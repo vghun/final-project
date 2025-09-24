@@ -1,8 +1,8 @@
 'use strict';
 
 export async function up(queryInterface, Sequelize) {
-  await queryInterface.createTable('bookings', {
-    idBooking: {
+  await queryInterface.createTable('customer_voucher', {
+    id: {
       type: Sequelize.INTEGER,
       autoIncrement: true,
       primaryKey: true,
@@ -14,24 +14,16 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
     },
-    idCustomerVoucher: { 
+    idVoucher: {
       type: Sequelize.INTEGER,
-      allowNull: true,
-      references: { model: 'customer_voucher', key: 'id' },
+      allowNull: false,
+      references: { model: 'vouchers', key: 'idVoucher' },
       onUpdate: 'CASCADE',
-      onDelete: 'SET NULL',
-    },
-    guestCount: {
-      type: Sequelize.INTEGER,
-      defaultValue: 1,
+      onDelete: 'CASCADE',
     },
     status: {
-      type: Sequelize.ENUM('Pending', 'Completed', 'Cancelled'),
-      defaultValue: 'Pending',
-    },
-    description: {
-      type: Sequelize.TEXT,
-      allowNull: true,
+      type: Sequelize.STRING,
+      defaultValue: 'unused', // unused, used, expired
     },
     createdAt: {
       type: Sequelize.DATE,
@@ -45,5 +37,5 @@ export async function up(queryInterface, Sequelize) {
 }
 
 export async function down(queryInterface, Sequelize) {
-  await queryInterface.dropTable('bookings');
+  await queryInterface.dropTable('customer_voucher');
 }
