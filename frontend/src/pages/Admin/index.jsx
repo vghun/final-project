@@ -7,7 +7,7 @@ import TabNav from "~/components/TabNav";
 import ThongKe from "./ThongKe";
 import ChiNhanh from "./ChiNhanh";
 import ThoCatToc from "./ThoCatToc";
-import KhuyenMai from "./KhuyenMai";
+import Voucher from "./Voucher";
 import LuongThuong from "./LuongThuong";
 
 const cx = classNames.bind(styles);
@@ -16,7 +16,7 @@ const tabs = [
   { id: "thongke", label: "Thống kê" },
   { id: "chinhanh", label: "Chi nhánh" },
   { id: "tho", label: "Thợ cắt tóc" },
-  { id: "khuyenmai", label: "Khuyến mãi" },
+  { id: "voucher", label: "Quản lý voucher" },
   { id: "luong", label: "Lương thưởng" },
 ];
 
@@ -54,7 +54,7 @@ function Admin() {
         {activeTab === "thongke" && <ThongKe />}
         {activeTab === "chinhanh" && <ChiNhanh />}
         {activeTab === "tho" && <ThoCatToc />}
-        {activeTab === "khuyenmai" && <KhuyenMai />}
+        {activeTab === "voucher" && <Voucher />}
         {activeTab === "luong" && <LuongThuong />}
       </div>
     </div>

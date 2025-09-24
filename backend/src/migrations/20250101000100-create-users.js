@@ -20,7 +20,7 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.STRING(100),
       allowNull: false,
     },
-    phoneNumber: { // đổi từ phone → phoneNumber
+    phoneNumber: { 
       type: Sequelize.STRING(20),
       allowNull: false,
       unique: true,
@@ -30,7 +30,7 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: false,
     },
-    image: { // đổi từ avatar → image
+    image: { 
       type: Sequelize.STRING,
       allowNull: true,
     },
