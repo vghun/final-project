@@ -6,7 +6,7 @@ import cors from "cors";
 import viewEngine from "./config/viewEngine.js";
 import authRoutes from "./route/auth.js";
 import connectDB from "./config/configdb.js";
-import productRouter from "./route/product.js";
+import serviceRoute from "./route/service.js";
 import profileRoutes from "./route/profile.js";
 import chatRoute from "./route/chat.js"; // <-- route chat AI
 
@@ -20,7 +20,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
-app.use("/api/products", productRouter);
+app.use("/api/service", serviceRoute);
 app.use("/user/profile", profileRoutes);
 app.use("/api/chat", chatRoute); 
 
