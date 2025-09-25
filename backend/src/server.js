@@ -9,6 +9,7 @@ import connectDB from "./config/configdb.js";
 import serviceRoute from "./route/service.js";
 import profileRoutes from "./route/profile.js";
 import chatRoute from "./route/chat.js"; // <-- route chat AI
+import voucherRoutes from "./route/voucher.js";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use("/api/service", serviceRoute);
 app.use("/user/profile", profileRoutes);
 app.use("/api/chat", chatRoute); 
 
+app.use("/api/vouchers", voucherRoutes);
 // View engine & auth
 viewEngine(app);
 authRoutes(app);

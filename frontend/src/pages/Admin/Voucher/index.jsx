@@ -1,47 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import classNames from "classnames/bind";
 import styles from "./Voucher.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import PromoCard from "~/components/PromoCard";       
 import VoucherForm from "../../../components/VoucherForm";
-
+import { VoucherAPI } from "~/apis/voucherAPI";
 
 const cx = classNames.bind(styles);
 
-const initialPromotions = [
-  {
-    id: 1,
-    title: "Giảm giá 20% dịch vụ cắt tóc",
-    desc: "Áp dụng cho khách hàng mới",
-    discount: "20%",
-    startDate: "2024-01-01",
-    endDate: "2024-01-31",
-    used: 45,
-    status: "Đang áp dụng",
-  },
-  {
-    id: 2,
-    title: "Combo cắt + gội + massage",
-    desc: "Giảm 15% cho combo dịch vụ",
-    discount: "15%",
-    startDate: "2024-01-15",
-    endDate: "2024-02-15",
-    used: 28,
-    status: "Đang áp dụng",
-  },
-];
-
 function Voucher() {
-  const [promotions, setPromotions] = useState(initialPromotions);
+  const [promotions, setPromotions] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
-  const handleAddVoucher = (newVoucher) => {
-    setPromotions([
-      ...promotions,
-      { id: promotions.length + 1, ...newVoucher },
-    ]);
+  const fetchVouchers = async () => {
+    try {
+      const res = await VoucherAPI.getAll();
+      if (res.success) {
+        const mapped = res.data.map(v => ({
+          id: v.idVoucher,
+          title: v.title,
+          desc: v.description || "",
+          discount: `${v.discountPercent}%`,
+          startDate: v.createdAt?.split("T")[0] || "",
+          endDate: v.expiryDate?.split("T")[0] || "",
+          used: 0, // nếu server không trả, để 0
+          status: new Date(v.expiryDate) > new Date() ? "Đang áp dụng" : "Hết hạn",
+        }));
+        setPromotions(mapped);
+      }
+    } catch (error) {
+      console.error("Lỗi lấy danh sách voucher:", error);
+    }
   };
+
+  useEffect(() => {
+    fetchVouchers();
+  }, []);
 
   return (
     <div className={cx("promoList")}>
@@ -61,7 +56,7 @@ function Voucher() {
       {showForm && (
         <VoucherForm
           onClose={() => setShowForm(false)}
-          onSubmit={handleAddVoucher}
+          onVoucherCreated={fetchVouchers} // reload danh sách sau khi tạo
         />
       )}
     </div>
