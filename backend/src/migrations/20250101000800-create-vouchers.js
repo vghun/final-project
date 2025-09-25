@@ -27,6 +27,11 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.DATE,
       allowNull: false,
     },
+    status: {                 // Trạng thái voucher (true = active, false = inactive)
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
     description: {            // Mô tả chi tiết
       type: Sequelize.STRING,
       allowNull: true,
@@ -34,10 +39,12 @@ export async function up(queryInterface, Sequelize) {
     createdAt: {
       type: Sequelize.DATE,
       defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+      allowNull: false,
     },
     updatedAt: {
       type: Sequelize.DATE,
       defaultValue: Sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+      allowNull: false,
     },
   });
 }

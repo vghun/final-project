@@ -3,34 +3,23 @@ import classNames from "classnames/bind";
 import styles from "./Voucher.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import PromoCard from "~/components/PromoCard";       
-import VoucherForm from "../../../components/VoucherForm";
+import PromoCard from "~/components/PromoCard";
+import VoucherForm from "~/components/VoucherForm";
 import { VoucherAPI } from "~/apis/voucherAPI";
 
 const cx = classNames.bind(styles);
 
 function Voucher() {
-  const [promotions, setPromotions] = useState([]);
+  const [vouchers, setVouchers] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingVoucher, setEditingVoucher] = useState(null);
 
   const fetchVouchers = async () => {
     try {
       const res = await VoucherAPI.getAll();
-      if (res.success) {
-        const mapped = res.data.map(v => ({
-          id: v.idVoucher,
-          title: v.title,
-          desc: v.description || "",
-          discount: `${v.discountPercent}%`,
-          startDate: v.createdAt?.split("T")[0] || "",
-          endDate: v.expiryDate?.split("T")[0] || "",
-          used: 0, // nếu server không trả, để 0
-          status: new Date(v.expiryDate) > new Date() ? "Đang áp dụng" : "Hết hạn",
-        }));
-        setPromotions(mapped);
-      }
-    } catch (error) {
-      console.error("Lỗi lấy danh sách voucher:", error);
+      if (res.success) setVouchers(res.data || []);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -38,25 +27,51 @@ function Voucher() {
     fetchVouchers();
   }, []);
 
+  const handleCreateClick = () => {
+    setEditingVoucher(null);
+    setShowForm(true);
+  };
+
+  const handleEditVoucher = (voucher) => {
+    setEditingVoucher(voucher);
+    setShowForm(true);
+  };
+
+  const handleDeleteVoucher = async (idVoucher) => {
+    try {
+      const res = await VoucherAPI.delete(idVoucher);
+      if (res.success) fetchVouchers();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
-    <div className={cx("promoList")}>
+    <div className={cx("voucherPage")}>
       <div className={cx("header")}>
-        <h2>Quản lý voucher</h2>
-        <button className={cx("addBtn")} onClick={() => setShowForm(true)}>
+        <h2>Quản lý Voucher</h2>
+        <button className={cx("addBtn")} onClick={handleCreateClick}>
           <FontAwesomeIcon icon={faPlus} /> Tạo voucher
         </button>
       </div>
 
-      <div className={cx("cards")}>
-        {promotions.map((promo) => (
-          <PromoCard key={promo.id} {...promo} />
+      <div className={cx("voucherList")}>
+        {vouchers.map((v) => (
+          <PromoCard
+            key={v.idVoucher}
+            voucher={v}
+            onEdit={() => handleEditVoucher(v)}
+            onDelete={handleDeleteVoucher}
+          />
         ))}
       </div>
 
       {showForm && (
         <VoucherForm
+          voucher={editingVoucher}
           onClose={() => setShowForm(false)}
-          onVoucherCreated={fetchVouchers} // reload danh sách sau khi tạo
+          onVoucherCreated={fetchVouchers}
+          onVoucherUpdated={fetchVouchers}
         />
       )}
     </div>
