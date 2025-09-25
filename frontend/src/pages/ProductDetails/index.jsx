@@ -8,7 +8,7 @@ import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 
-import productApi from "~/apis/productApi"; // ⬅️ gọi API backend
+import productApi from "~/apis/serviceAPI"; // ⬅️ gọi API backend
 
 const cx = classNames.bind(styles);
 
