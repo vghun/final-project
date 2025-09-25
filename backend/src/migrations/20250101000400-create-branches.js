@@ -15,6 +15,18 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    openTime: {
+      type: Sequelize.TIME,
+      allowNull: false,
+    },
+    closeTime: {
+      type: Sequelize.TIME,
+      allowNull: false,   
+    },
+    slotDuration:{
+      type: Sequelize.INTEGER,
+      allowNull: false,
+    },    
     status: {
       type: Sequelize.ENUM("Active", "Inactive"),
       defaultValue: "Active",
