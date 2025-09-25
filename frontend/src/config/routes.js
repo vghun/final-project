@@ -6,6 +6,7 @@ const routes = {
   about: "/about",
   admin: "/admin",
   thoCatToc: "/tho-cat-toc",
+  booking: "/booking",
 };
 
 export default routes;
