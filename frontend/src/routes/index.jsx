@@ -1,6 +1,5 @@
 import config from "~/config";
 import Home from "~/pages/home";
-import ProductDetails from "~/pages/ProductDetails";
 import Profile from "~/pages/profile";
 import About from "~/pages/about";
 import Admin from "~/pages/Admin";
@@ -10,7 +9,6 @@ import BookingPage from "~/pages/booking";
 const publicRouter = [
   { path: config.routes.home, component: Home },
   { path: config.routes.profile, component: Profile },
-  { path: config.routes.productDetails, component: ProductDetails },
   { path: config.routes.about, component: About },
   { path: config.routes.admin, component: Admin, layout: null },
   { path: config.routes.thoCatToc, component: ThoCatToc, layout: null },
