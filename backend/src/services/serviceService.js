@@ -15,17 +15,22 @@ export const getHotServices = async (limit = 6) => {
     attributes: {
       include: [
         [
-          Sequelize.fn("COUNT", Sequelize.col("booking_details.idBookingDetail")),
+          Sequelize.fn("COUNT", Sequelize.col("bookingDetails.idBookingDetail")),
           "totalBookings",
         ],
       ],
     },
     include: [
-      { model: db.BookingDetail, attributes: [] }, // join booking_details nhưng không lấy field
+      {
+        model: db.BookingDetail,
+        as: "bookingDetails", // 👈 alias phải khớp
+        attributes: [],
+      },
     ],
     group: ["Service.idService"],
     order: [[Sequelize.literal("totalBookings"), "DESC"]],
     limit,
+    subQuery: false, // 👈 bắt buộc để Sequelize JOIN trực tiếp thay vì subquery
   });
 };
 

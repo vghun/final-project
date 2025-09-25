@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
-app.use("/api/service", serviceRoute);
+app.use("/api/services", serviceRoute);
 app.use("/user/profile", profileRoutes);
 app.use("/api/chat", chatRoute); 
 

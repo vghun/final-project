@@ -1,9 +1,9 @@
 import { Sequelize } from "sequelize";
 
-const sequelize = new Sequelize("account", "root", "123456789", {
+const sequelize = new Sequelize("account", "root", "xuandung", {
   host: "localhost",
   dialect: "mysql",
-  logging: false,
+  logging: console.log,
 });
 
 const connectDB = async () => {
