@@ -1,46 +1,61 @@
 import React, { useState } from "react";
 import classNames from "classnames/bind";
 import styles from "./VoucherForm.module.scss";
+import { VoucherAPI } from "~/apis/voucherAPI"; // import API
+import { useToast } from "~/context/ToastContext"; // import Toast
 
 const cx = classNames.bind(styles);
 
-function VoucherForm({ onClose, onSubmit }) {  
-  const [title, setTitle] = useState("");           // Tên voucher
+function VoucherForm({ onClose, onVoucherCreated }) {
+  const { showToast } = useToast();
+
+  const [title, setTitle] = useState("");           
   const [discountPercent, setDiscountPercent] = useState("");
   const [pointCost, setPointCost] = useState("");
   const [totalQuantity, setTotalQuantity] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit({
+
+    const voucherData = {
       title,
       discountPercent: Number(discountPercent),
       pointCost: Number(pointCost),
       totalQuantity: totalQuantity ? Number(totalQuantity) : null,
       expiryDate,
       description,
-    });
-    onClose();
+    };
+
+    setLoading(true);
+    try {
+      const result = await VoucherAPI.create(voucherData);
+      if (result.success) {
+        showToast({ text: "Tạo voucher thành công!", type: "success", duration: 3000 });
+        onVoucherCreated?.(); // reload danh sách voucher
+        onClose();
+      } else {
+        showToast({ text: "Tạo voucher thất bại: " + result.message, type: "error", duration: 3000 });
+      }
+    } catch (error) {
+      showToast({ text: "Lỗi khi gọi API: " + error.message, type: "error", duration: 3000 });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDiscountChange = (e) => {
     let value = e.target.value;
-    if (value === "") {
-      setDiscountPercent("");
-      return;
-    }
+    if (value === "") return setDiscountPercent("");
     value = Math.max(0, Math.min(100, Number(value)));
     setDiscountPercent(value);
   };
 
   const handleQuantityChange = (e) => {
     let value = e.target.value;
-    if (value === "") {
-      setTotalQuantity("");
-      return;
-    }
+    if (value === "") return setTotalQuantity("");
     value = Math.max(0, Number(value));
     setTotalQuantity(value);
   };
@@ -101,8 +116,10 @@ function VoucherForm({ onClose, onSubmit }) {
         />
 
         <div className={cx("formButtons")}>
-          <button type="submit">Tạo</button>
-          <button type="button" onClick={onClose}>
+          <button type="submit" disabled={loading}>
+            {loading ? "Đang tạo..." : "Tạo"}
+          </button>
+          <button type="button" onClick={onClose} disabled={loading}>
             Hủy
           </button>
         </div>
