@@ -25,6 +25,11 @@ export default (sequelize, DataTypes) => {
       pointCost: { type: DataTypes.INTEGER, allowNull: false },
       totalQuantity: { type: DataTypes.INTEGER, allowNull: true },
       expiryDate: { type: DataTypes.DATE, allowNull: false },
+      status: {                    // Trạng thái voucher
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
       description: { type: DataTypes.STRING, allowNull: true },
     },
     {
