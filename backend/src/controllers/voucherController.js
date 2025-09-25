@@ -31,6 +31,28 @@ class VoucherController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  // Cập nhật voucher
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const updatedVoucher = await voucherService.updateVoucher(id, req.body);
+      res.status(200).json({ success: true, data: updatedVoucher });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // Xoá voucher (soft delete)
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const deletedVoucher = await voucherService.deleteVoucher(id);
+      res.status(200).json({ success: true, data: deletedVoucher });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
 }
 
 export default new VoucherController();

@@ -1,5 +1,72 @@
+import React from "react";
+import "./About.scss"; // SCSS vẫn dùng cho các phần còn lại
+
 function About() {
-    return (<h1>About Page</h1>);
+  return (
+    <div className="about-page">
+      {/* Banner / tiêu đề */}
+      <section
+        className="about-banner"
+        style={{
+          backgroundImage: "url('/banner.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          textAlign: "center",
+          padding: "100px 20px",
+          color: "#fff",
+          textShadow: "0 2px 5px rgba(0,0,0,0.5)",
+        }}
+      >
+        <h1>Về Chúng Tôi</h1>
+        <p>
+          Chúng tôi mang đến trải nghiệm cắt tóc chuyên nghiệp và phong cách riêng cho mỗi khách hàng.
+        </p>
+      </section>
+
+      {/* Giới thiệu */}
+      <section className="about-intro">
+        <h2>Giới Thiệu</h2>
+        <p>
+          BarberShop XYZ được thành lập năm 2015, chuyên cung cấp dịch vụ cắt tóc, tạo kiểu và chăm sóc tóc cho mọi đối tượng. Chúng tôi tự hào về đội ngũ thợ lành nghề, sáng tạo và tận tâm với khách hàng.
+        </p>
+      </section>
+
+      {/* Sứ mệnh & tầm nhìn */}
+      <section className="about-mission">
+        <h2>Sứ Mệnh & Tầm Nhìn</h2>
+        <ul>
+          <li>Sứ mệnh: Mang đến trải nghiệm cắt tóc tuyệt vời, phong cách và chất lượng.</li>
+          <li>Tầm nhìn: Trở thành tiệm barber hàng đầu trong khu vực, được khách hàng tin tưởng và yêu thích.</li>
+        </ul>
+      </section>
+
+      {/* Đội ngũ thợ */}
+      <section className="about-team">
+        <h2>Đội Ngũ Thợ</h2>
+        <div className="team-members">
+          <div className="member">
+            <img src="/images/barber1.jpg" alt="John Doe" />
+            <h3>John Doe</h3>
+            <p>Chuyên gia tạo kiểu tóc nam</p>
+          </div>
+          <div className="member">
+            <img src="/images/barber2.jpg" alt="Jane Smith" />
+            <h3>Jane Smith</h3>
+            <p>Thợ cắt tóc và chăm sóc tóc</p>
+          </div>
+          {/* Thêm các thành viên khác nếu muốn */}
+        </div>
+      </section>
+
+      {/* Kêu gọi hành động */}
+      <section className="about-cta">
+        <h2>Hãy Trải Nghiệm Dịch Vụ Của Chúng Tôi!</h2>
+        <p>Đặt lịch hẹn ngay hôm nay để nhận sự phục vụ chuyên nghiệp từ đội ngũ barber của chúng tôi.</p>
+        <button>Đặt Lịch</button>
+      </section>
+    </div>
+  );
 }
 
 export default About;
