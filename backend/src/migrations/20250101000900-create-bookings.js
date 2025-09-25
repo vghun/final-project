@@ -14,6 +14,13 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
     },
+     idBarber: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      references: { model: "barbers", key: "idBarber" },
+      onUpdate: "CASCADE",
+      onDelete: "SET NULL",
+    },
     idCustomerVoucher: { 
       type: Sequelize.INTEGER,
       allowNull: true,
@@ -24,6 +31,14 @@ export async function up(queryInterface, Sequelize) {
     guestCount: {
       type: Sequelize.INTEGER,
       defaultValue: 1,
+    },
+    bookingDate: {
+      type: Sequelize.DATE,
+      allowNull: false,
+    },
+    bookingTime: {
+      type: Sequelize.TEXT,
+      allowNull: false,
     },
     status: {
       type: Sequelize.ENUM('Pending', 'Completed', 'Cancelled'),
