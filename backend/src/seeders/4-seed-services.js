@@ -1,0 +1,65 @@
+"use strict";
+
+export async function up(queryInterface, Sequelize) {
+  await queryInterface.bulkInsert("services", [
+    {
+      idService: 1,
+      idCategory: 1,
+      name: "Cắt tóc nam basic",
+      description: "Cắt tóc nam đơn giản, nhanh gọn",
+      price: 100000,
+      duration: 30,
+      status: "Active",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      idService: 2,
+      idCategory: 1,
+      name: "Cắt tóc nam tạo kiểu",
+      description: "Cắt fade, undercut, pompadour hiện đại",
+      price: 150000,
+      duration: 45,
+      status: "Active",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      idService: 3,
+      idCategory: 2,
+      name: "Cắt tóc nữ layer",
+      description: "Cắt layer nữ tự nhiên",
+      price: 200000,
+      duration: 60,
+      status: "Active",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      idService: 4,
+      idCategory: 3,
+      name: "Nhuộm highlight",
+      description: "Tạo điểm nhấn nổi bật với highlight",
+      price: 500000,
+      duration: 90,
+      status: "Active",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      idService: 5,
+      idCategory: 3,
+      name: "Uốn tóc xoăn sóng",
+      description: "Uốn xoăn sóng nước tự nhiên",
+      price: 600000,
+      duration: 120,
+      status: "Active",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ]);
+}
+
+export async function down(queryInterface, Sequelize) {
+  await queryInterface.bulkDelete("services", null, {});
+}
