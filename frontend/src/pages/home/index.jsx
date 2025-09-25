@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import styles from "./Home.module.scss";
 import { Link } from "react-router-dom";
 import Button from "~/components/Button";
-import ServiceCard from "~/components/ServiceCard"; // thay vì ProductCard
+// import ServiceCard from "~/components/ServiceCard"; 
 import AIChat from "../../components/AIChat/AIChat";
 
 import {
@@ -14,6 +14,10 @@ const Home = () => {
   const [latest, setLatest] = useState([]);
   const [hot, setHot] = useState([]);
   const chatRef = useRef(null);
+
+  const scrollToChat = () => {
+    chatRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
     const loadServices = async () => {
@@ -34,7 +38,32 @@ const Home = () => {
 
   return (
     <div className={styles.home}>
-      {/* Hero section giữ nguyên */}
+      {/* Hero Section */}
+      <section
+        className={styles.heroSection}
+        style={{ backgroundImage: `url(/brand.jpg)` }}
+      >
+        <div className={styles.overlay}></div>
+        <div className={styles.heroContent}>
+          <h1>Barbershop</h1>
+          <p>Chăm sóc tóc cho quý ông – Phong cách & Chất lượng</p>
+          <div className={styles.heroButtons}>
+            <Link to="/booking">
+              <button className={styles.btnPrimary}>Đặt lịch</button>
+            </Link>
+            <button className={styles.btnSecondary} onClick={scrollToChat}>
+              Tư vấn
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Chat Section */}
+      <section className={styles.section} ref={chatRef}>
+        <div className={styles.container}>
+          <AIChat />
+        </div>
+      </section>
 
       {/* Dịch vụ mới nhất */}
       <section className={styles.section}>
@@ -42,16 +71,16 @@ const Home = () => {
           <h3 className={styles.title}>Dịch vụ mới nhất</h3>
           <div className={styles.grid}>
             {latest.map((s) => (
-              <ServiceCard
+              <div
                 key={s.idService}
-                id={s.idService}
-                image={"/service.png"} // TODO: nếu có cột ảnh thì lấy từ DB
-                category={s.category?.name || "Khác"}
-                name={s.name}
-                description={s.description}
-                price={Number(s.price)}
-                duration={s.duration}
-              />
+                style={{
+                  border: "1px solid #ccc",
+                  padding: "16px",
+                  textAlign: "center"
+                }}
+              >
+                {s.name}
+              </div>
             ))}
           </div>
         </div>
@@ -68,16 +97,16 @@ const Home = () => {
           </div>
           <div className={styles.grid}>
             {hot.map((s) => (
-              <ServiceCard
+              <div
                 key={s.idService}
-                id={s.idService}
-                image={"/service.png"}
-                category={s.category?.name || "Khác"}
-                name={s.name}
-                description={s.description}
-                price={Number(s.price)}
-                duration={s.duration}
-              />
+                style={{
+                  border: "1px solid #ccc",
+                  padding: "16px",
+                  textAlign: "center"
+                }}
+              >
+                {s.name}
+              </div>
             ))}
           </div>
           <div className={styles.textCenter}>
