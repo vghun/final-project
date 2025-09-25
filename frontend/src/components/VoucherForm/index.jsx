@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import classNames from "classnames/bind";
 import styles from "./VoucherForm.module.scss";
-import { VoucherAPI } from "~/apis/voucherAPI"; // import API
-import { useToast } from "~/context/ToastContext"; // import Toast
+import { VoucherAPI } from "~/apis/voucherAPI";
+import { useToast } from "~/context/ToastContext";
 
 const cx = classNames.bind(styles);
 
-function VoucherForm({ onClose, onVoucherCreated }) {
+function VoucherForm({ voucher, onClose, onVoucherCreated, onVoucherUpdated }) {
   const { showToast } = useToast();
 
-  const [title, setTitle] = useState("");           
+  const [title, setTitle] = useState("");
   const [discountPercent, setDiscountPercent] = useState("");
   const [pointCost, setPointCost] = useState("");
   const [totalQuantity, setTotalQuantity] = useState("");
@@ -17,10 +17,27 @@ function VoucherForm({ onClose, onVoucherCreated }) {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (voucher) {
+      setTitle(voucher.title || "");
+      setDiscountPercent(voucher.discountPercent || "");
+      setPointCost(voucher.pointCost || "");
+      setTotalQuantity(voucher.totalQuantity || "");
+      setExpiryDate(voucher.expiryDate?.split("T")[0] || "");
+      setDescription(voucher.description || "");
+    } else {
+      setTitle("");
+      setDiscountPercent("");
+      setPointCost("");
+      setTotalQuantity("");
+      setExpiryDate("");
+      setDescription("");
+    }
+  }, [voucher]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const voucherData = {
+    const data = {
       title,
       discountPercent: Number(discountPercent),
       pointCost: Number(pointCost),
@@ -31,56 +48,51 @@ function VoucherForm({ onClose, onVoucherCreated }) {
 
     setLoading(true);
     try {
-      const result = await VoucherAPI.create(voucherData);
-      if (result.success) {
-        showToast({ text: "Tạo voucher thành công!", type: "success", duration: 3000 });
-        onVoucherCreated?.(); // reload danh sách voucher
-        onClose();
+      let res;
+      if (voucher?.idVoucher) {
+        // Edit
+        res = await VoucherAPI.update(voucher.idVoucher, data);
+        if (res.success) {
+          showToast({ text: "Cập nhật voucher thành công!", type: "success" });
+          onVoucherUpdated?.();
+          onClose();
+        } else {
+          showToast({ text: "Cập nhật thất bại: " + res.message, type: "error" });
+        }
       } else {
-        showToast({ text: "Tạo voucher thất bại: " + result.message, type: "error", duration: 3000 });
+        // Create
+        res = await VoucherAPI.create(data);
+        if (res.success) {
+          showToast({ text: "Tạo voucher thành công!", type: "success" });
+          onVoucherCreated?.();
+          onClose();
+        } else {
+          showToast({ text: "Tạo voucher thất bại: " + res.message, type: "error" });
+        }
       }
-    } catch (error) {
-      showToast({ text: "Lỗi khi gọi API: " + error.message, type: "error", duration: 3000 });
+    } catch (err) {
+      showToast({ text: "Lỗi API: " + err.message, type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDiscountChange = (e) => {
-    let value = e.target.value;
-    if (value === "") return setDiscountPercent("");
-    value = Math.max(0, Math.min(100, Number(value)));
-    setDiscountPercent(value);
-  };
-
-  const handleQuantityChange = (e) => {
-    let value = e.target.value;
-    if (value === "") return setTotalQuantity("");
-    value = Math.max(0, Number(value));
-    setTotalQuantity(value);
-  };
-
   return (
     <div className={cx("voucherFormOverlay")}>
       <form className={cx("voucherForm")} onSubmit={handleSubmit}>
-        <h3>Tạo voucher mới</h3>
+        <h3>{voucher?.idVoucher ? "Cập nhật voucher" : "Tạo voucher mới"}</h3>
 
         <label>Tên voucher</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
+        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
 
         <label>Giảm giá (%)</label>
         <input
           type="number"
           value={discountPercent}
-          onChange={handleDiscountChange}
-          required
+          onChange={(e) => setDiscountPercent(e.target.value)}
           min="0"
           max="100"
+          required
         />
 
         <label>Điểm đổi</label>
@@ -88,36 +100,27 @@ function VoucherForm({ onClose, onVoucherCreated }) {
           type="number"
           value={pointCost}
           onChange={(e) => setPointCost(e.target.value)}
-          required
           min="0"
+          required
         />
 
         <label>Giới hạn số lượng</label>
         <input
           type="number"
           value={totalQuantity}
-          onChange={handleQuantityChange}
+          onChange={(e) => setTotalQuantity(e.target.value)}
           min="0"
         />
 
         <label>Ngày hết hạn</label>
-        <input
-          type="date"
-          value={expiryDate}
-          onChange={(e) => setExpiryDate(e.target.value)}
-          required
-        />
+        <input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} required />
 
         <label>Mô tả</label>
-        <input
-          type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} />
 
         <div className={cx("formButtons")}>
           <button type="submit" disabled={loading}>
-            {loading ? "Đang tạo..." : "Tạo"}
+            {loading ? (voucher?.idVoucher ? "Đang cập nhật..." : "Đang tạo...") : voucher?.idVoucher ? "Cập nhật" : "Tạo"}
           </button>
           <button type="button" onClick={onClose} disabled={loading}>
             Hủy
