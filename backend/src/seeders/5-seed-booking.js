@@ -1,141 +1,48 @@
 "use strict";
 
 export async function up(queryInterface, Sequelize) {
-  await queryInterface.bulkInsert("bookings", [
-    {
-      idBooking: 1,
-      idCustomer: 2,
-      idBarber: 3,
-      idCustomerVoucher: null,
-      guestCount: 1,
-      bookingDate: new Date("2025-02-05"),
-      bookingTime: "10:00",
-      status: "Pending",
-      description: "Cắt tóc basic",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      idBooking: 2,
-      idCustomer: 2,
-      idBarber: 3,
-      idCustomerVoucher: null,
-      guestCount: 2,
-      bookingDate: new Date("2025-02-06"),
-      bookingTime: "14:30",
-      status: "Pending",
-      description: "Nhuộm highlight cho 2 người",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      idBooking: 3,
-      idCustomer: 2,
-      idBarber: 3,
-      idCustomerVoucher: null,
-      guestCount: 1,
-      bookingDate: new Date("2025-02-07"),
-      bookingTime: "09:00",
-      status: "Completed",
-      description: "Cắt tóc nữ layer",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      idBooking: 4,
-      idCustomer: 2,
-      idBarber: 3,
-      idCustomerVoucher: null,
-      guestCount: 1,
-      bookingDate: new Date("2025-02-07"),
-      bookingTime: "11:00",
-      status: "Completed",
-      description: "Uốn xoăn sóng nước",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      idBooking: 5,
-      idCustomer: 2,
-      idBarber: 3,
-      idCustomerVoucher: null,
-      guestCount: 3,
-      bookingDate: new Date("2025-02-08"),
-      bookingTime: "15:00",
-      status: "Pending",
-      description: "Nhóm 3 người đi cắt tóc",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      idBooking: 6,
-      idCustomer: 2,
-      idBarber: 3,
-      idCustomerVoucher: null,
-      guestCount: 1,
-      bookingDate: new Date("2025-02-09"),
-      bookingTime: "16:00",
-      status: "Pending",
-      description: "Cắt tóc nam tạo kiểu",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      idBooking: 7,
-      idCustomer: 2,
-      idBarber: 3,
-      idCustomerVoucher: null,
-      guestCount: 1,
-      bookingDate: new Date("2025-02-10"),
-      bookingTime: "10:30",
-      status: "Cancelled",
-      description: "Hủy lịch do khách bận",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      idBooking: 8,
-      idCustomer: 2,
-      idBarber: 3,
-      idCustomerVoucher: null,
-      guestCount: 2,
-      bookingDate: new Date("2025-02-11"),
-      bookingTime: "13:30",
-      status: "Pending",
-      description: "2 khách nhuộm tóc",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      idBooking: 9,
-      idCustomer: 2,
-      idBarber: 3,
-      idCustomerVoucher: null,
-      guestCount: 1,
-      bookingDate: new Date("2025-02-12"),
-      bookingTime: "09:30",
-      status: "Pending",
-      description: "Cắt tóc nữ layer",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      idBooking: 10,
-      idCustomer: 2,
-      idBarber: 3,
-      idCustomerVoucher: null,
-      guestCount: 1,
-      bookingDate: new Date("2025-02-13"),
-      bookingTime: "17:00",
-      status: "Pending",
-      description: "Uốn xoăn sóng nước",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]);
+  const bookings = [];
+
+  const barberIds = [7,8,9,10,11,12,13,14,15,16];
+ const bookingDates = [
+    "2025-09-01","2025-09-02","2025-09-03","2025-09-04",
+    "2025-09-05","2025-09-06","2025-09-07","2025-09-08",
+    "2025-09-09","2025-09-10"
+];
+  const statuses = ["Pending","Completed","Cancelled"];
+
+  let idBooking = 1;
+
+  for(let date of bookingDates){
+    for(let barberId of barberIds){
+      const randomGuests = Math.floor(Math.random() * 3) + 1; // 1 → 3
+      const randomHour = Math.floor(Math.random() * 12) + 9; // 9 → 20 giờ
+      const randomMinute = Math.random() < 0.5 ? "00" : "30";
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      const description = `Dịch vụ mẫu cho barber ${barberId}`;
+
+      bookings.push({
+        idBooking: idBooking++,
+        idCustomer: 2 + Math.floor(Math.random() * 5), // customer id từ 2 → 6
+        idBarber: barberId,
+        idCustomerVoucher: null,
+        guestCount: 1,
+        bookingDate: new Date(date),
+        bookingTime: `${randomHour}:${randomMinute}`,
+        status: status,
+        description: description,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      if(idBooking > 40) break; // tạo khoảng 40 booking
+    }
+    if(idBooking > 40) break;
+  }
+
+  await queryInterface.bulkInsert("bookings", bookings);
 }
 
 export async function down(queryInterface, Sequelize) {
   await queryInterface.bulkDelete("bookings", null, {});
 }
-
