@@ -1,0 +1,93 @@
+/* components/CreateRuleModal.module.scss */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  width: 400px; max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+
+.field {
+  margin-bottom: 12px;
+  label {
+    display: block;
+    margin-bottom: 4px;
+  }
+  input {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    transition: all 0.3s ease;
+  }
+}
+
+.field-checkbox {
+  margin-bottom: 12px;
+
+  label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+
+    input {
+      margin-right: 8px;
+      width: 16px; height: 16px;
+      transition: all 0.4s ease;
+
+      // Nếu là checkbox "Rule mặc định"
+      &.default {
+        &:checked {
+          transition-duration: 0.15s; // bật nhanh
+        }
+        &:not(:checked) {
+          transition-duration: 0.7s; // tắt chậm
+        }
+      }
+    }
+  }
+}
+
+.date-fields {
+  overflow: hidden;
+  max-height: 200px; /* chiều cao tối đa khi hiển thị */
+  transition: max-height 0.5s ease, opacity 0.5s ease;
+  opacity: 1;
+
+  &.hidden {
+    max-height: 0;
+    opacity: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn {
+  padding: 6px 12px;
+  border: none;
+  background: #4caf50;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  &:hover { background: #43a047; }
+}
+
+.error {
+  color: red;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
