@@ -9,6 +9,8 @@ import ChiNhanh from "./ChiNhanh";
 import ThoCatToc from "./ThoCatToc";
 import Voucher from "./Voucher";
 import LuongThuong from "./LuongThuong";
+import QuanLyDiem from "./QuanLyDiem";
+import DatLichThanhToan from "./DatLichThanhToan";
 
 const cx = classNames.bind(styles);
 
@@ -18,7 +20,10 @@ const tabs = [
   { id: "tho", label: "Thợ cắt tóc" },
   { id: "voucher", label: "Quản lý voucher" },
   { id: "luong", label: "Lương thưởng" },
+  { id: "booking", label: "Đặt lịch & Thanh toán" },  // tab mới
+  { id: "loyalty", label: "Quản lý điểm" },           // tab mới
 ];
+
 
 function Admin() {
   const [activeTab, setActiveTab] = useState(tabs[0].id);
@@ -51,12 +56,15 @@ function Admin() {
       <TabNav tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <div className={cx("tabContent")}>
-        {activeTab === "thongke" && <ThongKe />}
-        {activeTab === "chinhanh" && <ChiNhanh />}
-        {activeTab === "tho" && <ThoCatToc />}
-        {activeTab === "voucher" && <Voucher />}
-        {activeTab === "luong" && <LuongThuong />}
-      </div>
+      {activeTab === "thongke" && <ThongKe />}
+      {activeTab === "chinhanh" && <ChiNhanh />}
+      {activeTab === "tho" && <ThoCatToc />}
+      {activeTab === "voucher" && <Voucher />}
+      {activeTab === "luong" && <LuongThuong />}
+      {activeTab === "booking" && <DatLichThanhToan />}    
+      {activeTab === "loyalty" && <QuanLyDiem />}    
+    </div>
+
     </div>
   );
 }

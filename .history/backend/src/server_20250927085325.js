@@ -10,7 +10,7 @@ import serviceRoute from "./routes/service.js";
 import profileRoutes from "./routes/profile.js";
 import chatRoute from "./routes/chat.js";
 import voucherRoutes from "./routes/voucher.js";
-import loyaltyRuleRoute from "./routes/loyaltyRule.js"; 
+import loyaltyRuleRoute from "./routes/loyaltyRule.js";
 import salaryRoute from "./routes/salary.js";
 
 dotenv.config();
@@ -22,36 +22,32 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-console.log("✅ Middleware setup done");
-
 // Routes
-app.use("/api/services", serviceRoute);
-app.use("/user/profile", profileRoutes);
-// app.use("/api/chat", chatRoute);
-app.use("/api/vouchers", voucherRoutes);
-app.use("/api/loyalty-rules", loyaltyRuleRoute);
-app.use("/api/salary", salaryRoute);
-
-console.log("✅ Routes setup done");
+app.get("/", (req, res) => {
+  res.send("API is working 🚀");
+});
+app.use("/api/chat", chatRoute);
+// app.use("/api/services", serviceRoute);
+// app.use("/user/profile", profileRoutes);
+// app.use("/api/vouchers", voucherRoutes);
+// app.use("/api/loyalty-rules", loyaltyRuleRoute);
+// app.use("/api/salary", salaryRoute);
 
 // View engine & auth
 viewEngine(app);
 authRoutes(app);
 
-console.log("✅ View engine and auth setup done");
+const PORT = process.env.PORT || 8088;
 
-// Connect DB
-(async () => {
+const startServer = async () => {
   try {
-    await connectDB();
-    console.log("✅ Database connected successfully");
-
-    const PORT = process.env.PORT || 8088;
+    await connectDB(); // ✅ đợi kết nối DB thành công
     app.listen(PORT, () => {
-      console.log(`🚀 Backend Node.js is running on port: ${PORT}`);
+      console.log(`✅ Backend Node.js is running on port: ${PORT}`);
     });
-
   } catch (err) {
-    console.error("❌ Failed to connect DB or start server:", err);
+    console.error("❌ Failed to start server:", err);
   }
-})();
+};
+
+startServer();
