@@ -12,6 +12,7 @@ export default (sequelize, DataTypes) => {
       Booking.belongsTo(models.CustomerVoucher, { foreignKey: "idCustomerVoucher" });
       // Booking có nhiều BookingDetail
       Booking.hasMany(models.BookingDetail, { foreignKey: "idBooking" });
+       Booking.hasOne(models.BookingTip, { foreignKey: "idBooking", as: "BookingTip" });
     }
   }
 
