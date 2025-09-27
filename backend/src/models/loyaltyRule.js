@@ -1,10 +1,10 @@
 "use strict";
-import { Model, DataTypes } from "sequelize";
+import { Model } from "sequelize";
 
-export default (sequelize) => {
+export default (sequelize, DataTypes) => {
   class LoyaltyRule extends Model {
     static associate(models) {
-      // Nếu sau này có bảng loyalty_transactions thì sẽ liên kết ở đây
+      // Nếu sau này có bảng liên quan, ví dụ loyalty_transactions
       // LoyaltyRule.hasMany(models.LoyaltyTransaction, {
       //   foreignKey: "ruleId",
       //   as: "transactions",
