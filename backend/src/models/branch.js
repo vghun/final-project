@@ -5,8 +5,10 @@ export default (sequelize, DataTypes) => {
   class Branch extends Model {
     static associate(models) {
       Branch.hasMany(models.ServiceAssignment, { foreignKey: "idBranch" });
+      Branch.hasMany(models.Barber, { foreignKey: "idBranch" }); // thêm để Sequelize hiểu relation
     }
   }
+
   Branch.init(
     {
       idBranch: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
@@ -19,5 +21,6 @@ export default (sequelize, DataTypes) => {
     },
     { sequelize, modelName: "Branch", tableName: "branches" }
   );
+
   return Branch;
 };

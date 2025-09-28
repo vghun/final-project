@@ -1,95 +1,179 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import classNames from "classnames/bind";
 import styles from "./LuongThuong.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowTrendUp } from "@fortawesome/free-solid-svg-icons";
+import { faArrowTrendUp, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { SalaryAPI } from "~/apis/salaryAPI";
 
 const cx = classNames.bind(styles);
 
-const salaries = [
-  {
-    id: 1,
-    name: "Minh Tuấn",
-    branch: "Chi nhánh Quận 1",
-    revenue: "12.500.000đ",
-    baseSalary: "5.000.000đ",
-    commission: "8.750.000đ",
-    total: "13.750.000đ",
-    status: "Đã tính",
-  },
-  {
-    id: 2,
-    name: "Hoàng Nam",
-    branch: "Chi nhánh Quận 1",
-    revenue: "9.800.000đ",
-    baseSalary: "5.000.000đ",
-    commission: "6.860.000đ",
-    total: "11.860.000đ",
-    status: "Đã tính",
-  },
-  {
-    id: 3,
-    name: "Thanh Sơn",
-    branch: "Chi nhánh Quận 3",
-    revenue: "11.200.000đ",
-    baseSalary: "5.000.000đ",
-    commission: "7.840.000đ",
-    total: "12.840.000đ",
-    status: "Đã tính",
-  },
-];
-
 function LuongThuong() {
+  const [salaries, setSalaries] = useState([]);
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Load bảng lương từ API
+  const loadSalaries = async () => {
+    setLoading(true);
+    try {
+      const data = await SalaryAPI.getSalaries(month, year);
+      setSalaries(data);
+    } catch (error) {
+      console.error("Lỗi khi load bảng lương:", error);
+      setSalaries([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Tính lương
+  const calculateSalary = async () => {
+    setLoading(true);
+    try {
+      await SalaryAPI.calculateSalaries(month, year);
+      alert(`Đã tính lương cho tháng ${month}/${year}`);
+      loadSalaries();
+    } catch (error) {
+      console.error("Lỗi khi tính lương:", error);
+      alert("Tính lương thất bại!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSalaries();
+  }, [month, year]);
+
+  // Kiểm tra xem có phải tháng cũ chưa tính lương
+  const isPastMonth = () => {
+    const now = new Date();
+    return year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1);
+  };
+
+  const canCalculate = isPastMonth() && salaries.some((s) => s.status !== "Đã tính");
+
+  // Filter theo search
+  const filteredSalaries = salaries.filter(
+    (s) =>
+      s.barberName.toLowerCase().includes(search.toLowerCase()) ||
+      (s.branchName || "").toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className={cx("salaryPage")}>
+      {/* Header */}
       <div className={cx("header")}>
         <h2>Tính lương tự động</h2>
-        <button className={cx("calcBtn")}>
-          <FontAwesomeIcon icon={faArrowTrendUp} /> Tính lương tháng này
-        </button>
+
+        {/* Controls */}
+        <div className={cx("topControls")}>
+          <select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>Tháng {i + 1}</option>
+            ))}
+          </select>
+
+          <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
+            {Array.from({ length: 5 }, (_, i) => (
+              <option key={i} value={2023 + i}>{2023 + i}</option>
+            ))}
+          </select>
+
+          <button className={cx("calcBtn")} onClick={loadSalaries} disabled={loading}>
+            <FontAwesomeIcon icon={faArrowTrendUp} /> Xem doanh thu
+          </button>
+
+          <button
+            className={cx("calcBtn")}
+            onClick={calculateSalary}
+            disabled={!canCalculate || loading}
+            style={{
+              background: canCalculate ? "#2563eb" : "#9ca3af", // xanh nếu được, xám nếu không
+              cursor: canCalculate ? "pointer" : "not-allowed",
+            }}
+          >
+            Tính lương
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className={cx("searchCenter")}>
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo tên hoặc chi nhánh..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <FontAwesomeIcon icon={faMagnifyingGlass} />
+        </div>
       </div>
 
+      {/* Salary Table */}
       <div className={cx("salaryTable")}>
-        <h3>Bảng lương tháng hiện tại</h3>
+        <h3>Bảng lương tháng {month}/{year}</h3>
         <p className={cx("desc")}>
-          Lương được tính dựa trên 70% doanh thu cá nhân
+          Lương được tính dựa trên 15% doanh thu cá nhân + tip + lương cơ bản
         </p>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Thợ cắt tóc</th>
-              <th>Chi nhánh</th>
-              <th>Doanh thu</th>
-              <th>Lương cơ bản</th>
-              <th>Hoa hồng (70%)</th>
-              <th>Tổng lương</th>
-              <th>Trạng thái</th>
-            </tr>
-          </thead>
-          <tbody>
-            {salaries.map((s) => (
-              <tr key={s.id}>
-                <td>
-                  <div className={cx("employee")}>
-                    <div className={cx("avatar")}>
-                      {s.name.charAt(0).toUpperCase()}
-                    </div>
-                    {s.name}
-                  </div>
-                </td>
-                <td>{s.branch}</td>
-                <td>{s.revenue}</td>
-                <td>{s.baseSalary}</td>
-                <td>{s.commission}</td>
-                <td className={cx("highlight")}>{s.total}</td>
-                <td>
-                  <span className={cx("status")}>{s.status}</span>
-                </td>
+        {loading ? (
+          <p>Đang tải dữ liệu...</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Thợ cắt tóc</th>
+                <th>Chi nhánh</th>
+                <th>Doanh thu</th>
+                <th>Lương cơ bản</th>
+                <th>Hoa hồng (15%)</th>
+                <th>Tip</th>
+                <th>Tổng lương</th>
+                <th>Trạng thái</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredSalaries.length > 0 ? (
+                filteredSalaries.map((s, idx) => (
+                  <tr key={idx}>
+                    <td>
+                      <div className={cx("employee")}>
+                        <div className={cx("avatar")}>
+                          {s.barberName.charAt(0).toUpperCase()}
+                        </div>
+                        {s.barberName}
+                      </div>
+                    </td>
+                    <td>{s.branchName}</td>
+                    <td>{Number(s.serviceRevenue).toLocaleString()}đ</td>
+                    <td>{Number(s.baseSalary).toLocaleString()}đ</td>
+                    <td>{Number(s.commission).toLocaleString()}đ</td>
+                    <td>{Number(s.tip).toLocaleString()}đ</td>
+                    <td className={cx("highlight")}>{Number(s.totalSalary).toLocaleString()}đ</td>
+                    <td>
+                      <span
+                        className={cx(
+                          "status",
+                          s.status === "Đã tính" ? "calculated" : "pending"
+                        )}
+                      >
+                        {s.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: "center" }}>
+                    Không có dữ liệu
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
