@@ -7,6 +7,45 @@
   font-family: 'Old Standard TT', serif;
 }
 
+/* Phân trang */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 32px 0;
+
+  button {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+    color: #333;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Old Standard TT', serif;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }
+
+    &:disabled {
+      background: #eee;
+      color: #999;
+      cursor: not-allowed;
+    }
+  }
+
+  span {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+  }
+}
+
+
 // Hero Section
 .heroSection {
   position: relative;
