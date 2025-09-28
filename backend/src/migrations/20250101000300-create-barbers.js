@@ -9,6 +9,13 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: "CASCADE",
       onDelete: "CASCADE",
     },
+    idBranch: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      references: { model: "branches", key: "idBranch" },
+      onUpdate: "CASCADE",
+      onDelete: "SET NULL",
+    },
     profileDescription: {
       type: Sequelize.TEXT,
       allowNull: true,

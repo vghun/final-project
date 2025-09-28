@@ -21,12 +21,12 @@ export async function up(queryInterface, Sequelize) {
     },
     closeTime: {
       type: Sequelize.TIME,
-      allowNull: false,   
+      allowNull: false,
     },
-    slotDuration:{
+    slotDuration: {
       type: Sequelize.INTEGER,
       allowNull: false,
-    },    
+    },
     status: {
       type: Sequelize.ENUM("Active", "Inactive"),
       defaultValue: "Active",
