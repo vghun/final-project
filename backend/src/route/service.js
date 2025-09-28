@@ -3,7 +3,6 @@ import * as serviceController from "../controllers/serviceController.js";
 
 const router = express.Router();
 
-router.get("/latest", serviceController.getLatest);
 router.get("/hot", serviceController.getHot);
 router.get("/:id", serviceController.getById);
 
