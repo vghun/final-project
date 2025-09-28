@@ -1,7 +1,6 @@
-"use strict";
-
 export async function up(queryInterface, Sequelize) {
   await queryInterface.bulkInsert("services", [
+    // Dịch vụ nam (Category 1)
     {
       idService: 1,
       idCategory: 1,
@@ -26,6 +25,41 @@ export async function up(queryInterface, Sequelize) {
     },
     {
       idService: 3,
+      idCategory: 1,
+      name: "Cạo mặt / tạo kiểu râu",
+      description: "Chăm sóc và tạo kiểu râu, cạo gọn gàng",
+      price: 100000,
+      duration: 20,
+      status: "Active",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      idService: 4,
+      idCategory: 1,
+      name: "Gội đầu nam",
+      description: "Gội sạch, massage thư giãn",
+      price: 50000,
+      duration: 15,
+      status: "Active",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      idService: 5,
+      idCategory: 1,
+      name: "Uốn / Nhuộm tóc nam",
+      description: "Uốn hoặc nhuộm tóc theo yêu cầu",
+      price: 300000,
+      duration: 60,
+      status: "Active",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+
+    // Dịch vụ nữ (Category 2)
+    {
+      idService: 6,
       idCategory: 2,
       name: "Cắt tóc nữ layer",
       description: "Cắt layer nữ tự nhiên",
@@ -35,8 +69,10 @@ export async function up(queryInterface, Sequelize) {
       createdAt: new Date(),
       updatedAt: new Date(),
     },
+
+    // Nhuộm & uốn (Category 3)
     {
-      idService: 4,
+      idService: 7,
       idCategory: 3,
       name: "Nhuộm highlight",
       description: "Tạo điểm nhấn nổi bật với highlight",
@@ -47,7 +83,7 @@ export async function up(queryInterface, Sequelize) {
       updatedAt: new Date(),
     },
     {
-      idService: 5,
+      idService: 8,
       idCategory: 3,
       name: "Uốn tóc xoăn sóng",
       description: "Uốn xoăn sóng nước tự nhiên",

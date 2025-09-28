@@ -4,12 +4,14 @@ import dotenv from "dotenv";
 import cors from "cors";
 
 import viewEngine from "./config/viewEngine.js";
-import authRoutes from "./route/auth.js";
+import authRoutes from "./routes/auth.js";
 import connectDB from "./config/configdb.js";
-import serviceRoute from "./route/service.js";
-import profileRoutes from "./route/profile.js";
-import chatRoute from "./route/chat.js"; // <-- route chat AI
-import voucherRoutes from "./route/voucher.js";
+import serviceRoute from "./routes/service.js";
+import profileRoutes from "./routes/profile.js";
+import chatRoute from "./routes/chat.js"; // <-- route chat AI
+import voucherRoutes from "./routes/voucher.js";
+import loyaltyRuleRoute from "./routes/loyaltyRule.js"; 
+import salaryRoute from "./routes/salary.js";
 
 dotenv.config();
 
@@ -26,8 +28,10 @@ app.use("/user/profile", profileRoutes);
 app.use("/api/chat", chatRoute); 
 
 app.use("/api/vouchers", voucherRoutes);
+app.use("/api/loyalty-rules", loyaltyRuleRoute);
+app.use("/api/salary", salaryRoute);
 // View engine & auth
-viewEngine(app);
+viewEngine(app); 
 authRoutes(app);
 
 // Connect DB
