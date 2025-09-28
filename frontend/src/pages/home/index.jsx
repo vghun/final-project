@@ -2,39 +2,37 @@ import React, { useEffect, useState, useRef } from "react";
 import styles from "./Home.module.scss";
 import { Link } from "react-router-dom";
 import Button from "~/components/Button";
-// import ServiceCard from "~/components/ServiceCard"; 
+import ServiceCard from "~/components/ServiceCard"; 
 import AIChat from "../../components/AIChat/AIChat";
 
 import {
-  fetchLatestServices,
-  fetchHotServices
+  fetchHotServicesPaged,
 } from "~/services/serviceService";
 
 const Home = () => {
-  const [latest, setLatest] = useState([]);
-  const [hot, setHot] = useState([]);
   const chatRef = useRef(null);
 
   const scrollToChat = () => {
     chatRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const [hot, setHot] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 4;
+
   useEffect(() => {
-    const loadServices = async () => {
+    const loadHot = async () => {
       try {
-        const [latestData, hotData] = await Promise.all([
-          fetchLatestServices(),
-          fetchHotServices()
-        ]);
-        setLatest(latestData);
-        setHot(hotData);
+        const data = await fetchHotServicesPaged(page, limit);
+        setHot(data.data);
+        setTotal(data.total);
       } catch (err) {
-        console.error("Lỗi load dịch vụ:", err);
+        console.error("Lỗi load dịch vụ hot:", err);
       }
     };
-
-    loadServices();
-  }, []);
+    loadHot();
+  }, [page]);    
 
   return (
     <div className={styles.home}>
@@ -65,27 +63,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Dịch vụ mới nhất */}
-      <section className={styles.section}>
-        <div className={styles.container}>
-          <h3 className={styles.title}>Dịch vụ mới nhất</h3>
-          <div className={styles.grid}>
-            {latest.map((s) => (
-              <div
-                key={s.idService}
-                style={{
-                  border: "1px solid #ccc",
-                  padding: "16px",
-                  textAlign: "center"
-                }}
-              >
-                {s.name}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Dịch vụ hot nhất */}
       <section className={styles.section}>
         <div className={styles.container}>
@@ -97,25 +74,38 @@ const Home = () => {
           </div>
           <div className={styles.grid}>
             {hot.map((s) => (
-              <div
+              <ServiceCard
                 key={s.idService}
-                style={{
-                  border: "1px solid #ccc",
-                  padding: "16px",
-                  textAlign: "center"
-                }}
-              >
-                {s.name}
-              </div>
+                id={s.idService}
+                image={s.image}
+                name={s.name}
+                description={s.description}
+                price={s.price}
+                duration={s.duration}
+              />
             ))}
-          </div>
-          <div className={styles.textCenter}>
-            <Link to="/services">
-              <Button size="lg">Xem tất cả dịch vụ</Button>
-            </Link>
           </div>
         </div>
       </section>
+      <div className={styles.pagination}>
+        <button
+          disabled={page === 1}
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+        >
+          Trang trước
+        </button>
+        <span>
+          {page} / {Math.ceil(total / limit)}
+        </span>
+        <button
+          disabled={page >= Math.ceil(total / limit)}
+          onClick={() => setPage((p) => p + 1)}
+        >
+          Trang sau
+        </button>
+      </div>
+
+
     </div>
   );
 };
