@@ -1,0 +1,60 @@
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #131727;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.95;
+}
+
+.modal {
+  min-height: 400px;
+  padding: 4rem 4rem 4rem calc(420px + 4rem);
+  background-color: #1e2545;
+  border-radius: 0.75rem;
+  position: relative;
+  animation: slideDown 0.3s ease-out;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 420px;
+    height: 100%;
+    background-image: url("/assets/images/barbershop-login.jpg");
+    border-radius: 0.75rem;
+    z-index: 0;
+    background-size: cover;
+    background-position: 0 100%;
+    border-radius: 0.75rem 0 0 0.75rem;
+  }
+}
+
+.close {
+  color: var(--white);
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+}

@@ -1,0 +1,25 @@
+"use strict";
+import { Model } from "sequelize";
+
+export default (sequelize, DataTypes) => {
+  class Reel extends Model {
+    static associate(models) {
+      Reel.belongsTo(models.Barber, { foreignKey: "idBarber" });
+      Reel.hasMany(models.ReelComment, { foreignKey: "idReel" });
+      Reel.hasMany(models.ReelLike, { foreignKey: "idReel" });
+    }
+  }
+  Reel.init(
+    {
+      idReel: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+      idBarber: DataTypes.INTEGER,
+      title: DataTypes.STRING,
+      url: DataTypes.STRING,
+      description: DataTypes.TEXT,
+      uploadDate: DataTypes.DATE,
+      viewCount: DataTypes.INTEGER,
+    },
+    { sequelize, modelName: "Reel", tableName: "reels" }
+  );
+  return Reel;
+};
