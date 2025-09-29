@@ -1,0 +1,162 @@
+/* Header.module.scss */
+
+/* Import font Old Standard TT */
+@import url('https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap');
+
+.wrapper {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 60px;
+  padding: 0 20px;
+  z-index: 999;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+
+  /* đổi font toàn header */
+  font-family: 'Old Standard TT', serif;
+}
+
+.inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Left */
+.left-section {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-weight: 700; /* Bold để logo nổi bật */
+  font-size: 1.75rem;
+  color: #000;
+
+  span {
+    margin-left: 8px;
+  }
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ffd700;
+  cursor: pointer;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  .logo-icon-inner {
+    font-size: 1.25rem;
+    color: #000;
+  }
+}
+
+/* Middle */
+.mid-section {
+  display: flex;
+  align-items: center;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 24px;
+
+  .menu-button {
+    span {
+      font-family: 'Old Standard TT', serif;
+      font-weight: 700; /* Bold cho menu */
+      font-size: 1.2rem;
+      letter-spacing: 0.5px;
+      color: #111827;
+      transition: color 0.2s, text-shadow 0.2s;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+      &:hover {
+        color: #ff8c00;
+        text-shadow: 0 4px 8px rgba(0,0,0,0.25);
+      }
+    }
+  }
+}
+
+/* Right */
+.right-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .not-logged {
+    .guest-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: 2px solid #111827;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+
+      &:hover {
+        background-color: #111827;
+        color: #fff;
+      }
+
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        overflow: hidden;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+    }
+  }
+
+  .logged {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+
+    span {
+      font-weight: 700;
+      font-size: 18px;
+      font-family: 'Old Standard TT', serif;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .faChevronDown-icon {
+      display: flex;
+      align-items: center;
+    }
+  }
+}

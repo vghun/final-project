@@ -1,0 +1,147 @@
+.salaryPage h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #064e3b;
+  margin-bottom: 16px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  .topControls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .searchCenter {
+    position: relative;
+    width: 300px;
+
+    input {
+      width: 100%;
+      padding: 6px 30px 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #d1fae5;
+    }
+
+    svg {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #064e3b;
+    }
+  }
+}
+
+.calcBtn {
+  background: #059669;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    background: #047857;
+  }
+}
+
+/* Salary table styles giữ nguyên như trước */
+
+
+.salaryTable {
+  background: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #d1fae5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #064e3b;
+  }
+
+  .desc {
+    font-size: 14px;
+    color: #047857;
+    margin-bottom: 16px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+      text-align: left;
+      background: #ecfdf5;
+      color: #064e3b;
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    td {
+      padding: 12px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 14px;
+      color: #065f46;
+    }
+
+    tbody tr:hover {
+      background: #f0fdf4;
+    }
+  }
+}
+
+.employee {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+}
+
+.highlight {
+  font-weight: 600;
+  color: #065f46;
+}
+
+.status {
+  background: #059669;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &.calculated {
+    background: #059669;
+  }
+  &.pending {
+    background: #f59e0b;
+  }
+  &.rejected {
+    background: #ef4444;
+  }
+}

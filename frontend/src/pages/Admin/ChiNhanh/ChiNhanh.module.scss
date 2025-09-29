@@ -1,0 +1,35 @@
+.branchList {
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #064e3b;
+    margin-bottom: 16px;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.addBtn {
+  background: #059669;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 500;
+
+  &:hover {
+    background: #047857;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
