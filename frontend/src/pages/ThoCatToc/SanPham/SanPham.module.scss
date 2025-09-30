@@ -18,7 +18,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -36,21 +36,27 @@
   }
 }
 
-.addBtn {
-  width: 100%;
-  padding: 12px;
-  background: #059669;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-
-  &:hover {
-    background: #047857;
-  }
+.container {
+  padding: 20px;
+  margin: 0 auto;
 }
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #064e3b;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: #047857;
+  margin-bottom: 20px;
+}
+
+.empty {
+  text-align: center;
+  color: #6b7280;
+  padding: 40px 0;
+}
+

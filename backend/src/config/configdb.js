@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize";
 
-const sequelize = new Sequelize("account", "root", "123456789", {
+const sequelize = new Sequelize("account", "root", "xuandung", {
   host: "127.0.0.1",       // ép dùng TCP
   port: 3306,              // cổng MySQL
   dialect: "mysql",
