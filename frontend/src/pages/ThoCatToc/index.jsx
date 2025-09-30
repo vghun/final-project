@@ -7,16 +7,18 @@ import TabNav from "~/components/TabNav";
 
 import LichHen from "./LichHen";
 import HoSoCaNhan from "./HoSoCaNhan";
-import GioLamViec from "./GioLamViec";
-import Portfolio from "./Portfolio";
+import VideoTayNghe from "./VideoTayNghe";
+import SanPham from "./SanPham";
+import Thuong from "./Thuong";
 
 const cx = classNames.bind(styles);
 
 const tabs = [
   { id: "lichhen", label: "Lịch hẹn hôm nay" },
   { id: "hoso", label: "Hồ sơ cá nhân" },
-  { id: "giolamviec", label: "Giờ làm việc" },
-  { id: "portfolio", label: "Portfolio" },
+  { id: "video", label: "Video tay nghề" },
+  { id: "sanpham", label: "Sản phẩm" },
+  { id: "thuong", label: "Thưởng" },
 ];
 
 function ThoCatToc() {
@@ -64,8 +66,9 @@ function ThoCatToc() {
       <div className={cx("tabContent")}>
         {activeTab === "lichhen" && <LichHen />}
         {activeTab === "hoso" && <HoSoCaNhan />}
-        {activeTab === "giolamviec" && <GioLamViec />}
-        {activeTab === "portfolio" && <Portfolio />}
+        {activeTab === "video" && <VideoTayNghe />}
+        {activeTab === "sanpham" && <SanPham />}
+        {activeTab === "thuong" && <Thuong />}
       </div>
     </div>
   );
