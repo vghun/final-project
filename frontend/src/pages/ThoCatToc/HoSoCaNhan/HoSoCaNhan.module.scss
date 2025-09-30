@@ -1,176 +1,138 @@
-.profile {
-  background: #fff;
-  border-radius: 10px;
+.container {
   padding: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  margin-top: 16px;
-
-  h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #064e3b;
-    margin-bottom: 4px;
-  }
-
-  p {
-    font-size: 14px;
-    color: #6b7280;
-    margin-bottom: 20px;
-  }
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
 }
 
-.info {
+.header {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.avatarWrapper {
+.avatarBox {
   position: relative;
-  width: 100px;
-  height: 100px;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-  }
-
-  .cameraIcon {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background: #059669;
-    color: #fff;
-    font-size: 14px;
-    padding: 6px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid #fff;
-  }
 }
 
-.details {
-  flex: 1;
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #d1fae5;
+}
 
-  h2 {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: #111827;
-  }
+.changeAvatar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #059669;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
-  .experience {
-    font-size: 14px;
-    color: #374151;
-    margin-bottom: 4px;
-  }
+.name {
+  font-size: 22px;
+  font-weight: bold;
+  color: #064e3b;
+}
 
-  .branch {
-    font-size: 14px;
-    color: #374151;
-    margin-bottom: 6px;
-  }
+.branch {
+  color: #047857;
+  font-size: 15px;
+}
 
-  .rating {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    color: #059669;
+.rating {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #6b7280;
+}
 
-    .star {
-      color: #fbbf24;
-    }
-  }
+.section {
+  margin-bottom: 16px;
+}
+
+.section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #111827;
 }
 
 .specialties {
-  margin-top: 20px;
-
-  h4 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #064e3b;
-  }
-
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    .tag {
-      background: #d1fae5;
-      color: #047857;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .editBtn {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 12px;
-      font-size: 13px;
-      border-radius: 6px;
-      background: #fff;
-      border: 1px solid #059669;
-      color: #059669;
-      cursor: pointer;
-
-      &:hover {
-        background: #059669;
-        color: #fff;
-      }
-    }
-  }
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
 }
 
-.videoSection {
-  margin-top: 24px;
+.badge {
+  background: #ecfdf5;
+  color: #065f46;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
 
-  h4 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #064e3b;
-  }
+.input,
+.textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-top: 4px;
+}
 
-  .uploadBox {
-    border: 2px dashed #34d399;
-    border-radius: 8px;
-    padding: 32px 16px;
-    text-align: center;
-    color: #6b7280;
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+}
 
-    .icon {
-      font-size: 28px;
-      color: #10b981;
-      margin-bottom: 8px;
-    }
+.addBtn {
+  background: #f0fdf4;
+  border: 1px dashed #059669;
+  color: #047857;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
 
-    p {
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
+.actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
 
-    .uploadBtn {
-      background: #059669;
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      font-size: 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
+.editBtn,
+.saveBtn,
+.cancelBtn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+}
 
-      &:hover {
-        background: #047857;
-      }
-    }
-  }
+.editBtn {
+  background: #059669;
+  color: #fff;
+}
+
+.saveBtn {
+  background: #10b981;
+  color: #fff;
+}
+
+.cancelBtn {
+  background: #f3f4f6;
+  color: #374151;
 }
