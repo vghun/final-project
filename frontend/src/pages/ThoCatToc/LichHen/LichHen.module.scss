@@ -1,111 +1,91 @@
-.lichhen {
-  background: #fff;
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  margin-top: 16px;
-
-  h3 {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: #064e3b;
-  }
-
-  p {
-    font-size: 14px;
-    color: #047857;
-    margin-bottom: 16px;
-  }
+/* LichHen.module.scss */
+.container {
+  padding: 20px;
 }
 
-.appointment {
+.header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  align-items: center;
   margin-bottom: 12px;
-  transition: background 0.2s ease;
-
-  &:hover {
-    background: #f9fafb;
-  }
 }
 
-.timeBlock {
-  width: 80px;
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #064e3b;
+}
+
+.select {
+  padding: 6px 10px;
+  border: 1px solid #d1fae5;
+  border-radius: 6px;
+}
+
+.nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.navBtn {
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.rangeText {
+  font-weight: 500;
+  color: #065f46;
+}
+
+.list {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-
-  strong {
-    font-size: 18px;
-    color: #065f46;
-  }
-
-  span {
-    font-size: 12px;
-    color: #6b7280;
-  }
+  gap: 10px;
+  max-height: 500px;   /* cho ngày */
+  overflow-y: auto;
 }
 
-.info {
-  flex: 1;
-  margin-left: 16px;
-
-  strong {
-    font-size: 16px;
-    color: #111827;
-  }
-
-  p {
-    font-size: 14px;
-    color: #047857;
-    margin: 4px 0;
-  }
-
-  span {
-    font-size: 12px;
-    color: #6b7280;
-  }
+.weekGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
 }
 
-.actions {
+.weekCol {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
 }
 
-.status {
-  font-size: 13px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 6px;
-
-  &.confirmed {
-    background: #d1fae5;
-    color: #065f46;
-  }
-
-  &.pending {
-    background: #fef3c7;
-    color: #92400e;
-  }
+.weekHeader {
+  padding: 6px;
+  background: #f0fdf4;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid #d1fae5;
 }
 
-.detailBtn {
-  background: #059669;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+.weekAppts {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  max-height: 450px;   /* giới hạn chiều cao */
+  overflow-y: auto;    /* chỉ phần danh sách này cuộn */
+}
+
+.empty,
+.noAppt {
+  text-align: center;
+  color: #6b7280;
   font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-
-  &:hover {
-    background: #047857;
-  }
 }
