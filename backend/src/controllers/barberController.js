@@ -22,7 +22,39 @@ const syncBarbers = async (req, res) => {
     return res.status(500).json({ message: "Lỗi server" });
   }
 };
+const assignBarberToBranch = async (req, res) => {
+  try {
+    const { idBarber, idBranch } = req.body;
+    const barber = await barberService.assignBarberToBranch(idBarber, idBranch);
+    res.json({ message: "Barber assigned to branch", barber });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+const approveBarber = async (req, res) => {
+  try {
+    const { idBarber } = req.body;
+    const barber = await barberService.approveBarber(idBarber);
+    res.json({ message: "Barber approved", barber });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+const lockBarber = async (req, res) => {
+  try {
+    const { idBarber } = req.body;
+    const barber = await barberService.lockBarber(idBarber);
+    res.json({ message: "Barber locked", barber });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
 export default {
   getAllBarbers,
   syncBarbers,
-};  
+  assignBarberToBranch,
+  approveBarber,
+  lockBarber,
+};

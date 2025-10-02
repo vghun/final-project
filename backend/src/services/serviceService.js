@@ -1,6 +1,6 @@
 import db from "../models/index.js";
 import { Sequelize } from "sequelize";
-
+const Service = db.Service;
 // Lấy dịch vụ mới nhất
 export const getLatestServices = async (limit = 8) => {
   return await db.Service.findAll({
@@ -48,4 +48,34 @@ export const getHotServicesPaged = async (page = 1, limit = 4) => {
 // Lấy chi tiết dịch vụ theo id
 export const getServiceById = async (id) => {
   return await db.Service.findByPk(id);
+};
+
+
+export const assignServiceToBranch = async (idService, idBranch) => {
+  const service = await Service.findByPk(idService);
+  if (!service) throw new Error("Service not found");
+  service.idBranch = idBranch;
+  await service.save();
+  return service;
+};
+
+export const createService = async (data) => {
+  return await Service.create(data);
+};
+
+export const updateService = async (idService, data) => {
+  const service = await Service.findByPk(idService);
+  if (!service) throw new Error("Service not found");
+  return await service.update(data);
+};
+
+export const deleteService = async (idService) => {
+  const service = await Service.findByPk(idService);
+  if (!service) throw new Error("Service not found");
+  await service.destroy();
+  return true;
+};
+
+export const getAllServices = async () => {
+  return await Service.findAll();
 };

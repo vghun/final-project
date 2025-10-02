@@ -43,7 +43,7 @@ class AuthService {
       },
     };
   }
-
+  
   // REFRESH TOKEN
   static async refresh(refreshToken) {
     if (!refreshToken) throw { status: 401, message: "NO_REFRESH_TOKEN" };
