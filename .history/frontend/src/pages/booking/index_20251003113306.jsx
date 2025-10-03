@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import DefaultLayout from "../../layouts/DefaultLayout";
 import styles from "./Booking.module.scss";
 import VoucherPopup from "../../components/VoucherPopup";
@@ -6,9 +6,7 @@ import VoucherPopup from "../../components/VoucherPopup";
 function BookingPage() {
   const [booking, setBooking] = useState({
     branch: "",
-    branchId: null,
     barber: "",
-    barberId: null,
     date: "",
     time: "",
     services: [],
@@ -17,10 +15,32 @@ function BookingPage() {
   });
 
   const [showVoucherList, setShowVoucherList] = useState(false);
-  const [branches, setBranches] = useState([]); // lấy từ API
-  const [barbers, setBarbers] = useState([]);
-  const [services, setServices] = useState([]);
-  const [times, setTimes] = useState([]);
+
+  // ================= DATA =================
+  const branches = ["Cơ sở 1 - Hà Nội", "Cơ sở 2 - Đà Nẵng", "Cơ sở 3 - TP.HCM"];
+  const barbersByBranch = {
+    "Cơ sở 1 - Hà Nội": ["Anh Nam", "Anh Hùng", "Anh Dũng"],
+    "Cơ sở 2 - Đà Nẵng": ["Anh Tuấn", "Anh Khánh"],
+    "Cơ sở 3 - TP.HCM": ["Anh Phúc", "Anh Lâm", "Anh Hoàng"],
+  };
+
+  const times = ["9:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+
+  // bookedTimes theo ngày
+  const bookedTimesByDate = {
+    "2025-10-03": ["10:00", "15:00"],
+    "2025-10-04": ["9:00", "14:00"],
+    "2025-10-05": ["11:00"],
+  };
+
+  // dịch vụ
+  const services = [
+    { name: "Cắt tóc", price: 100000 },
+    { name: "Cạo râu", price: 50000 },
+    { name: "Nhuộm tóc", price: 200000 },
+    { name: "Gội đầu", price: 70000 },
+    { name: "Massage", price: 150000 },
+  ];
 
   // voucher
   const vouchers = [
@@ -36,103 +56,62 @@ function BookingPage() {
     { code: "FREESHIP", description: "Miễn phí gội đầu", discount: 5, exchanged: true, expireDate: "01/01/2026" },
   ];
 
-  // ================= CALL API =================
-  useEffect(() => {
-    // Gọi API lấy danh sách chi nhánh
-    fetch("http://localhost:8088/api/booking/branches")
-      .then((res) => res.json())
-      .then((data) => setBranches(data))
-      .catch((err) => console.error("Error fetch branches:", err));
-  }, []);
+  // ================= HANDLER =================
+  const handleBranchChange = (e) =>
+    setBooking({ ...booking, branch: e.target.value, barber: "" });
 
-  const handleBranchChange = async (e) => {
-    const branchId = e.target.value;
-    setBooking({ ...booking, branchId, branch: "", barber: "", barberId: null, services: [], time: "" });
+  const handleBarberChange = (e) =>
+    setBooking({ ...booking, barber: e.target.value });
 
-    if (!branchId) return;
+  const handleDateChange = (e) =>
+    setBooking({ ...booking, date: e.target.value, time: "" });
 
-    // Gọi API chi tiết chi nhánh
-    try {
-      const res = await fetch(`http://localhost:8088/api/booking/branches/${branchId}/details`);
-      const data = await res.json();
-
-      setBooking((prev) => ({ ...prev, branch: data.branch.name }));
-      setBarbers(data.barbers || []);
-      setServices(data.services || []);
-
-      // tạo danh sách times từ openTime-closeTime theo slotDuration
-      const start = new Date(`2000-01-01T${data.branch.openTime}`);
-      const end = new Date(`2000-01-01T${data.branch.closeTime}`);
-      const slot = data.branch.slotDuration;
-      let slots = [];
-      for (let t = start; t < end; t.setMinutes(t.getMinutes() + slot)) {
-        slots.push(t.toTimeString().slice(0, 5)); // HH:mm
-      }
-      setTimes(slots);
-    } catch (err) {
-      console.error("Error fetch branch details:", err);
-    }
+  const handleTimeSelect = (time) => {
+    const bookedTimes = booking.date ? bookedTimesByDate[booking.date] || [] : [];
+    if (!bookedTimes.includes(time)) setBooking({ ...booking, time });
   };
-
-  const handleBarberChange = (e) => {
-    const barberId = e.target.value;
-    const barber = barbers.find((b) => b.idBarber == barberId);
-    setBooking({ ...booking, barberId, barber: barber?.name || "" });
-  };
-
-  const handleTimeSelect = (time) => setBooking({ ...booking, time });
 
   const handleServiceAdd = (e) => {
-    const selectedId = e.target.value;
-    const service = services.find((s) => s.idService == selectedId);
-    if (service && !booking.services.find((s) => s.idService == service.idService)) {
+    const selected = e.target.value;
+    const service = services.find((s) => s.name === selected);
+    if (service && !booking.services.find((s) => s.name === selected)) {
       setBooking({ ...booking, services: [...booking.services, service] });
     }
   };
 
-  const handleRemoveService = (idService) =>
-    setBooking({ ...booking, services: booking.services.filter((s) => s.idService !== idService) });
+  const handleRemoveService = (serviceName) =>
+    setBooking({
+      ...booking,
+      services: booking.services.filter((s) => s.name !== serviceName),
+    });
 
   const handleVoucherSelect = (voucher) => {
     setBooking({ ...booking, discount: voucher.discount, voucher });
     setShowVoucherList(false);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
+    const totalPrice = booking.services.reduce((sum, s) => sum + s.price, 0);
     const discountAmount = (totalPrice * booking.discount) / 100;
     const finalPrice = totalPrice - discountAmount;
 
-    // Gọi API tạo booking
-    try {
-      const res = await fetch("http://localhost:8088/api/booking/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idCustomer: 1, // TODO: lấy từ user login
-          idBranch: booking.branchId,
-          idBarber: booking.barberId,
-          bookingDate: "2025-10-05", // TODO: chọn ngày thực tế
-          bookingTime: booking.time,
-          services: booking.services.map((s) => ({ idService: s.idService, price: s.price, quantity: 1 })),
-          description: booking.services.map((s) => s.name).join(", "),
-        }),
-      });
-      const result = await res.json();
-      if (res.ok) {
-        alert(`Đặt lịch thành công!\nThành tiền: ${finalPrice.toLocaleString()}đ`);
-      } else {
-        alert("Lỗi đặt lịch: " + result.message);
-      }
-    } catch (err) {
-      console.error("Error create booking:", err);
-      alert("Không thể kết nối server!");
-    }
+    alert(
+      `Đặt lịch thành công:\n` +
+        `Cơ sở: ${booking.branch}\n` +
+        `Barber: ${booking.barber}\n` +
+        `Ngày: ${booking.date}\n` +
+        `Giờ: ${booking.time}\n` +
+        `Dịch vụ: ${booking.services
+          .map((s) => `${s.name} (${s.price.toLocaleString()}đ)`)
+          .join(", ")}\n` +
+        `Voucher: ${booking.voucher ? booking.voucher.code : "Không"}\n` +
+        `Thành tiền: ${finalPrice.toLocaleString()}đ`
+    );
   };
 
   // ================= RENDER =================
-  const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
+  const totalPrice = booking.services.reduce((sum, s) => sum + s.price, 0);
   const discountAmount = (totalPrice * booking.discount) / 100;
   const finalPrice = totalPrice - discountAmount;
 
@@ -141,21 +120,23 @@ function BookingPage() {
   return (
     <DefaultLayout>
       <div className={styles.bookingWrapper}>
+        {/* Logo râu dưới header */}
         <div className={styles.logoBarber}>
           <img src="/rau.png" alt="Barber Logo" />
         </div>
 
+        {/* Container booking */}
         <div className={styles.bookingContainer}>
           <h2>Đặt lịch Barber</h2>
           <form onSubmit={handleSubmit}>
             {/* Chọn cơ sở */}
             <div className={styles.formGroup}>
               <label>Cơ sở:</label>
-              <select value={booking.branchId || ""} onChange={handleBranchChange}>
+              <select value={booking.branch} onChange={handleBranchChange}>
                 <option value="">-- Chọn cơ sở --</option>
-                {branches.map((b) => (
-                  <option key={b.idBranch} value={b.idBranch}>
-                    {b.name}
+                {branches.map((b, i) => (
+                  <option key={i} value={b}>
+                    {b}
                   </option>
                 ))}
               </select>
@@ -164,13 +145,18 @@ function BookingPage() {
             {/* Chọn barber */}
             <div className={styles.formGroup}>
               <label>Kỹ thuật viên:</label>
-              <select value={booking.barberId || ""} onChange={handleBarberChange} disabled={!barbers.length}>
+              <select
+                value={booking.barber}
+                onChange={handleBarberChange}
+                disabled={!booking.branch}
+              >
                 <option value="">-- Chọn barber --</option>
-                {barbers.map((barber) => (
-                  <option key={barber.idBarber} value={barber.idBarber}>
-                    {barber.name}
-                  </option>
-                ))}
+                {booking.branch &&
+                  barbersByBranch[booking.branch].map((barber, i) => (
+                    <option key={i} value={barber}>
+                      {barber}
+                    </option>
+                  ))}
               </select>
             </div>
 
@@ -192,8 +178,11 @@ function BookingPage() {
                   <button
                     key={i}
                     type="button"
-                    className={`${styles.timeSlot} ${booking.time === time ? styles.selected : ""}`}
+                    className={`${styles.timeSlot} ${
+                      bookedTimes.includes(time) ? styles.booked : ""
+                    } ${booking.time === time ? styles.selected : ""}`}
                     onClick={() => handleTimeSelect(time)}
+                    disabled={bookedTimes.includes(time) || !booking.date}
                   >
                     {time}
                   </button>
@@ -206,17 +195,20 @@ function BookingPage() {
               <label>Dịch vụ:</label>
               <select onChange={handleServiceAdd} value="">
                 <option value="">-- Chọn dịch vụ --</option>
-                {services.map((s) => (
-                  <option key={s.idService} value={s.idService}>
-                    {s.name} - {Number(s.price).toLocaleString()}đ
+                {services.map((s, i) => (
+                  <option key={i} value={s.name}>
+                    {s.name} - {s.price.toLocaleString()}đ
                   </option>
                 ))}
               </select>
               <ul className={styles.serviceList}>
-                {booking.services.map((s) => (
-                  <li key={s.idService}>
-                    {s.name} - {Number(s.price).toLocaleString()}đ
-                    <button type="button" onClick={() => handleRemoveService(s.idService)}>
+                {booking.services.map((s, i) => (
+                  <li key={i}>
+                    {s.name} - {s.price.toLocaleString()}đ
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveService(s.name)}
+                    >
                       X
                     </button>
                   </li>
@@ -242,9 +234,11 @@ function BookingPage() {
           </form>
         </div>
 
+        {/* Kéo 2 bên container */}
         <img src="/keo.png" alt="Left Scissors" className={styles.scissorsLeft} />
         <img src="/keo.png" alt="Right Scissors" className={styles.scissorsRight} />
 
+        {/* Popup voucher */}
         {showVoucherList && (
           <VoucherPopup
             vouchers={vouchers}
