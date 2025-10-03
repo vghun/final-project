@@ -1,15 +1,23 @@
 "use strict";
 
 export async function up(queryInterface, Sequelize) {
-  await queryInterface.createTable("categories", {
-    idCategory: {
+  await queryInterface.createTable("service_assignments", {
+    id: {
       type: Sequelize.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
-    name: {
-      type: Sequelize.STRING(100),
-      allowNull: false,
+    idBranch: {
+      type: Sequelize.INTEGER,
+      references: { model: "branches", key: "idBranch" },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    },
+    idService: {
+      type: Sequelize.INTEGER,
+      references: { model: "services", key: "idService" },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
     },
     createdAt: {
       type: Sequelize.DATE,
@@ -23,5 +31,5 @@ export async function up(queryInterface, Sequelize) {
 }
 
 export async function down(queryInterface, Sequelize) {
-  await queryInterface.dropTable("categories");
+  await queryInterface.dropTable("service_assignments");
 }
