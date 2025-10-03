@@ -19,12 +19,6 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: "CASCADE",
       onDelete: "CASCADE",
     },
-    idBarber: {
-      type: Sequelize.INTEGER,
-      references: { model: "barbers", key: "idBarber" },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
-    },
     createdAt: {
       type: Sequelize.DATE,
       defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),

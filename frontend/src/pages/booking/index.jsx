@@ -9,6 +9,7 @@ function BookingPage() {
     branchId: null,
     barber: "",
     barberId: null,
+    date: "",
     time: "",
     services: [],
     discount: 0,
@@ -21,6 +22,7 @@ function BookingPage() {
   const [services, setServices] = useState([]);
   const [times, setTimes] = useState([]);
 
+  // voucher
   const vouchers = [
     { code: "SALE10", description: "Giảm 10% dịch vụ", discount: 10, exchanged: true, expireDate: "31/12/2025" },
     {
@@ -134,6 +136,8 @@ function BookingPage() {
   const discountAmount = (totalPrice * booking.discount) / 100;
   const finalPrice = totalPrice - discountAmount;
 
+  const bookedTimes = booking.date ? bookedTimesByDate[booking.date] || [] : [];
+
   return (
     <DefaultLayout>
       <div className={styles.bookingWrapper}>
@@ -168,6 +172,16 @@ function BookingPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Chọn ngày */}
+            <div className={styles.formGroup}>
+              <label>Ngày:</label>
+              <input
+                type="date"
+                value={booking.date}
+                onChange={handleDateChange}
+              />
             </div>
 
             {/* Chọn thời gian */}
@@ -232,7 +246,11 @@ function BookingPage() {
         <img src="/keo.png" alt="Right Scissors" className={styles.scissorsRight} />
 
         {showVoucherList && (
-          <VoucherPopup vouchers={vouchers} onClose={() => setShowVoucherList(false)} onSelect={handleVoucherSelect} />
+          <VoucherPopup
+            vouchers={vouchers}
+            onClose={() => setShowVoucherList(false)}
+            onSelect={handleVoucherSelect}
+          />
         )}
       </div>
     </DefaultLayout>

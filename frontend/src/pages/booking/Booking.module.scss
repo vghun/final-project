@@ -266,3 +266,38 @@
     }
   }
 }
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #2a1a0f;
+    letter-spacing: 0.5px;
+  }
+
+  select,
+  input[type="date"] {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid #6b4f36;
+    font-size: 15px;
+    outline: none;
+    background: #faf7f4;
+    color: #2a1a0f;
+    font-family: "Old Standard TT", serif;
+
+    &:focus {
+      border-color: #a0522d;
+      box-shadow: 0 0 5px rgba(160, 82, 45, 0.5);
+    }
+  }
+
+  /* Tuỳ chỉnh icon calendar */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(30%) sepia(20%) saturate(300%) hue-rotate(20deg);
+  }
+}

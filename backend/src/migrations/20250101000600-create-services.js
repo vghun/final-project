@@ -7,12 +7,6 @@ export async function up(queryInterface, Sequelize) {
       autoIncrement: true,
       primaryKey: true,
     },
-    idCategory: {
-      type: Sequelize.INTEGER,
-      references: { model: "categories", key: "idCategory" },
-      onUpdate: "CASCADE",
-      onDelete: "SET NULL",
-    },
     name: {
       type: Sequelize.STRING(100),
       allowNull: false,
@@ -26,7 +20,7 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
     },
     duration: {
-      type: Sequelize.INTEGER, // phút
+      type: Sequelize.INTEGER, 
       allowNull: false,
     },
     status: {
