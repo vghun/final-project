@@ -11,6 +11,7 @@ import serviceRoute from "./routes/service.js";
 import profileRoutes from "./routes/profile.js";
 import chatRoute from "./routes/chat.js"; // <-- route chat AI
 import voucherRoutes from "./routes/voucher.js";
+import bookingRoute from "./route/booking.js";
 import loyaltyRuleRoute from "./routes/loyaltyRule.js"; 
 import salaryRoute from "./routes/salary.js";
 
@@ -34,6 +35,8 @@ app.use("/api/salary", salaryRoute);
 
 
 app.use("/api/barbers", barberRoutes);
+
+app.use("/api/booking", bookingRoute);
 // View engine & auth
 viewEngine(app); 
 authRoutes(app);
