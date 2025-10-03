@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import DefaultLayout from "../../layouts/DefaultLayout";
-import styles from "./Booking.module.scss"; // CSS Module
+import styles from "./Booking.module.scss";
 
 function BookingPage() {
   const [booking, setBooking] = useState({
@@ -12,28 +13,55 @@ function BookingPage() {
     voucher: null,
   });
 
+  const [branches, setBranches] = useState([]);
+  const [barbers, setBarbers] = useState([]);
+  const [services, setServices] = useState([]);
+  const [times, setTimes] = useState([]);
   const [showVoucherList, setShowVoucherList] = useState(false);
 
-  const branches = ["Cơ sở 1 - Hà Nội", "Cơ sở 2 - Đà Nẵng", "Cơ sở 3 - TP.HCM"];
-  const barbersByBranch = {
-    "Cơ sở 1 - Hà Nội": ["Anh Nam", "Anh Hùng", "Anh Dũng"],
-    "Cơ sở 2 - Đà Nẵng": ["Anh Tuấn", "Anh Khánh"],
-    "Cơ sở 3 - TP.HCM": ["Anh Phúc", "Anh Lâm", "Anh Hoàng"],
+  // Lấy danh sách chi nhánh
+  useEffect(() => {
+    axios
+      .get("http://localhost:8088/api/booking/branches")
+      .then((res) => setBranches(res.data))
+      .catch((err) => console.error(err));
+  }, []);
+
+  // Khi chọn chi nhánh thì load barber + service + thời gian
+  const handleBranchChange = async (e) => {
+    const branchId = e.target.value;
+    setBooking({ ...booking, branch: branchId, barber: "" });
+
+    if (!branchId) return;
+
+    try {
+      const res = await axios.get(`http://localhost:8088/api/booking/branches/${branchId}/details`);
+      setBarbers(res.data.barbers || []);
+      setServices(res.data.services || []);
+      // Sinh timeslot từ openTime, closeTime, slotDuration
+      const { openTime, closeTime, slotDuration } = res.data.branch;
+      setTimes(generateTimeSlots(openTime, closeTime, slotDuration));
+    } catch (error) {
+      console.error("Lỗi khi load chi nhánh:", error);
+    }
   };
 
-  const times = ["9:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
-  const bookedTimes = ["10:00", "15:00"];
+  // Sinh timeslot
+  const generateTimeSlots = (openTime, closeTime, slotDuration) => {
+    const slots = [];
+    const [openH, openM] = openTime.split(":").map(Number);
+    const [closeH, closeM] = closeTime.split(":").map(Number);
+    let current = new Date();
+    current.setHours(openH, openM, 0, 0);
 
-  const services = [
-    { name: "Cắt tóc", price: 100000 },
-    { name: "Cạo râu", price: 50000 },
-    { name: "Nhuộm tóc", price: 200000 },
-    { name: "Gội đầu", price: 70000 },
-    { name: "Massage", price: 150000 },
-  ];
+    const end = new Date();
+    end.setHours(closeH, closeM, 0, 0);
 
-  const handleBranchChange = (e) => {
-    setBooking({ ...booking, branch: e.target.value, barber: "" });
+    while (current <= end) {
+      slots.push(current.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }));
+      current.setMinutes(current.getMinutes() + slotDuration);
+    }
+    return slots;
   };
 
   const handleBarberChange = (e) => {
@@ -41,23 +69,21 @@ function BookingPage() {
   };
 
   const handleTimeSelect = (time) => {
-    if (!bookedTimes.includes(time)) {
-      setBooking({ ...booking, time });
-    }
+    setBooking({ ...booking, time });
   };
 
   const handleServiceAdd = (e) => {
-    const selected = e.target.value;
-    const service = services.find((s) => s.name === selected);
-    if (service && !booking.services.find((s) => s.name === selected)) {
+    const id = e.target.value;
+    const service = services.find((s) => s.idService.toString() === id);
+    if (service && !booking.services.find((s) => s.idService === service.idService)) {
       setBooking({ ...booking, services: [...booking.services, service] });
     }
   };
 
-  const handleRemoveService = (serviceName) => {
+  const handleRemoveService = (idService) => {
     setBooking({
       ...booking,
-      services: booking.services.filter((s) => s.name !== serviceName),
+      services: booking.services.filter((s) => s.idService !== idService),
     });
   };
 
@@ -70,19 +96,37 @@ function BookingPage() {
     setShowVoucherList(false);
   };
 
-  const totalPrice = booking.services.reduce((sum, s) => sum + s.price, 0);
+  const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
   const discountAmount = (totalPrice * booking.discount) / 100;
   const finalPrice = totalPrice - discountAmount;
 
-  const handleSubmit = (e) => {
+  // Nút thanh toán
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(
-      `Đặt lịch thành công:\nCơ sở: ${booking.branch}\nBarber: ${booking.barber}\nGiờ: ${
-        booking.time
-      }\nDịch vụ: ${booking.services.map((s) => `${s.name} (${s.price.toLocaleString()}đ)`).join(", ")}\nVoucher: ${
-        booking.voucher ? booking.voucher.code : "Không"
-      }\nThành tiền: ${finalPrice.toLocaleString()}đ`
-    );
+
+    const payload = {
+      idCustomer: 1, // TODO: lấy từ user login
+      idBranch: booking.branch,
+      idBarber: booking.barber,
+      bookingDate: new Date().toISOString().split("T")[0],
+      bookingTime: booking.time,
+      services: booking.services.map((s) => ({
+        idService: s.idService,
+        quantity: 1,
+        price: s.price,
+      })),
+      description: "Đặt lịch qua frontend",
+    };
+
+    try {
+      await axios.post("http://localhost:8088/api/booking", payload);
+      alert(`Thanh toán thành công! Tổng tiền: ${finalPrice.toLocaleString()}đ`);
+      // Nếu muốn chuyển trang payment
+      // navigate("/payment-success");
+    } catch (error) {
+      console.error(error);
+      alert("Thanh toán thất bại, vui lòng thử lại!");
+    }
   };
 
   return (
@@ -95,9 +139,9 @@ function BookingPage() {
             <label>Cơ sở:</label>
             <select value={booking.branch} onChange={handleBranchChange}>
               <option value="">-- Chọn cơ sở --</option>
-              {branches.map((b, i) => (
-                <option key={i} value={b}>
-                  {b}
+              {branches.map((b) => (
+                <option key={b.idBranch} value={b.idBranch}>
+                  {b.name}
                 </option>
               ))}
             </select>
@@ -108,12 +152,11 @@ function BookingPage() {
             <label>Kỹ thuật viên:</label>
             <select value={booking.barber} onChange={handleBarberChange} disabled={!booking.branch}>
               <option value="">-- Chọn barber --</option>
-              {booking.branch &&
-                barbersByBranch[booking.branch].map((barber, i) => (
-                  <option key={i} value={barber}>
-                    {barber}
-                  </option>
-                ))}
+              {barbers.map((barber) => (
+                <option key={barber.idBarber} value={barber.idBarber}>
+                  {barber.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -125,11 +168,8 @@ function BookingPage() {
                 <button
                   key={i}
                   type="button"
-                  className={`${styles.timeSlot} ${bookedTimes.includes(time) ? styles.booked : ""} ${
-                    booking.time === time ? styles.selected : ""
-                  }`}
+                  className={`${styles.timeSlot} ${booking.time === time ? styles.selected : ""}`}
                   onClick={() => handleTimeSelect(time)}
-                  disabled={bookedTimes.includes(time)}
                 >
                   {time}
                 </button>
@@ -142,17 +182,17 @@ function BookingPage() {
             <label>Dịch vụ:</label>
             <select onChange={handleServiceAdd} value="">
               <option value="">-- Chọn dịch vụ --</option>
-              {services.map((s, i) => (
-                <option key={i} value={s.name}>
-                  {s.name} - {s.price.toLocaleString()}đ
+              {services.map((s) => (
+                <option key={s.idService} value={s.idService}>
+                  {s.name} - {Number(s.price).toLocaleString()}đ
                 </option>
               ))}
             </select>
             <ul className={styles.serviceList}>
-              {booking.services.map((s, i) => (
-                <li key={i}>
-                  {s.name} - {s.price.toLocaleString()}đ
-                  <button type="button" onClick={() => handleRemoveService(s.name)}>
+              {booking.services.map((s) => (
+                <li key={s.idService}>
+                  {s.name} - {Number(s.price).toLocaleString()}đ
+                  <button type="button" onClick={() => handleRemoveService(s.idService)}>
                     X
                   </button>
                 </li>
@@ -172,8 +212,9 @@ function BookingPage() {
             </button>
           </div>
 
+          {/* Nút thanh toán */}
           <button type="submit" className={styles.submitBtn}>
-            Xác nhận đặt lịch
+            Xác nhận & Thanh toán
           </button>
         </form>
 
