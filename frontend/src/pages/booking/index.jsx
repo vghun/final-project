@@ -7,6 +7,7 @@ function BookingPage() {
   const [booking, setBooking] = useState({
     branch: "",
     barber: "",
+    date: "",
     time: "",
     services: [],
     discount: 0,
@@ -24,8 +25,15 @@ function BookingPage() {
   };
 
   const times = ["9:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
-  const bookedTimes = ["10:00", "15:00"];
 
+  // bookedTimes theo ngày
+  const bookedTimesByDate = {
+    "2025-10-03": ["10:00", "15:00"],
+    "2025-10-04": ["9:00", "14:00"],
+    "2025-10-05": ["11:00"],
+  };
+
+  // dịch vụ
   const services = [
     { name: "Cắt tóc", price: 100000 },
     { name: "Cạo râu", price: 50000 },
@@ -34,6 +42,7 @@ function BookingPage() {
     { name: "Massage", price: 150000 },
   ];
 
+  // voucher
   const vouchers = [
     { code: "SALE10", description: "Giảm 10% dịch vụ", discount: 10, exchanged: true, expireDate: "31/12/2025" },
     {
@@ -48,11 +57,20 @@ function BookingPage() {
   ];
 
   // ================= HANDLER =================
-  const handleBranchChange = (e) => setBooking({ ...booking, branch: e.target.value, barber: "" });
-  const handleBarberChange = (e) => setBooking({ ...booking, barber: e.target.value });
+  const handleBranchChange = (e) =>
+    setBooking({ ...booking, branch: e.target.value, barber: "" });
+
+  const handleBarberChange = (e) =>
+    setBooking({ ...booking, barber: e.target.value });
+
+  const handleDateChange = (e) =>
+    setBooking({ ...booking, date: e.target.value, time: "" });
+
   const handleTimeSelect = (time) => {
+    const bookedTimes = booking.date ? bookedTimesByDate[booking.date] || [] : [];
     if (!bookedTimes.includes(time)) setBooking({ ...booking, time });
   };
+
   const handleServiceAdd = (e) => {
     const selected = e.target.value;
     const service = services.find((s) => s.name === selected);
@@ -60,8 +78,13 @@ function BookingPage() {
       setBooking({ ...booking, services: [...booking.services, service] });
     }
   };
+
   const handleRemoveService = (serviceName) =>
-    setBooking({ ...booking, services: booking.services.filter((s) => s.name !== serviceName) });
+    setBooking({
+      ...booking,
+      services: booking.services.filter((s) => s.name !== serviceName),
+    });
+
   const handleVoucherSelect = (voucher) => {
     setBooking({ ...booking, discount: voucher.discount, voucher });
     setShowVoucherList(false);
@@ -77,8 +100,11 @@ function BookingPage() {
       `Đặt lịch thành công:\n` +
         `Cơ sở: ${booking.branch}\n` +
         `Barber: ${booking.barber}\n` +
+        `Ngày: ${booking.date}\n` +
         `Giờ: ${booking.time}\n` +
-        `Dịch vụ: ${booking.services.map((s) => `${s.name} (${s.price.toLocaleString()}đ)`).join(", ")}\n` +
+        `Dịch vụ: ${booking.services
+          .map((s) => `${s.name} (${s.price.toLocaleString()}đ)`)
+          .join(", ")}\n` +
         `Voucher: ${booking.voucher ? booking.voucher.code : "Không"}\n` +
         `Thành tiền: ${finalPrice.toLocaleString()}đ`
     );
@@ -88,6 +114,8 @@ function BookingPage() {
   const totalPrice = booking.services.reduce((sum, s) => sum + s.price, 0);
   const discountAmount = (totalPrice * booking.discount) / 100;
   const finalPrice = totalPrice - discountAmount;
+
+  const bookedTimes = booking.date ? bookedTimesByDate[booking.date] || [] : [];
 
   return (
     <DefaultLayout>
@@ -117,7 +145,11 @@ function BookingPage() {
             {/* Chọn barber */}
             <div className={styles.formGroup}>
               <label>Kỹ thuật viên:</label>
-              <select value={booking.barber} onChange={handleBarberChange} disabled={!booking.branch}>
+              <select
+                value={booking.barber}
+                onChange={handleBarberChange}
+                disabled={!booking.branch}
+              >
                 <option value="">-- Chọn barber --</option>
                 {booking.branch &&
                   barbersByBranch[booking.branch].map((barber, i) => (
@@ -128,6 +160,16 @@ function BookingPage() {
               </select>
             </div>
 
+            {/* Chọn ngày */}
+            <div className={styles.formGroup}>
+              <label>Ngày:</label>
+              <input
+                type="date"
+                value={booking.date}
+                onChange={handleDateChange}
+              />
+            </div>
+
             {/* Chọn thời gian */}
             <div className={styles.formGroup}>
               <label>Thời gian:</label>
@@ -136,11 +178,11 @@ function BookingPage() {
                   <button
                     key={i}
                     type="button"
-                    className={`${styles.timeSlot} ${bookedTimes.includes(time) ? styles.booked : ""} ${
-                      booking.time === time ? styles.selected : ""
-                    }`}
+                    className={`${styles.timeSlot} ${
+                      bookedTimes.includes(time) ? styles.booked : ""
+                    } ${booking.time === time ? styles.selected : ""}`}
                     onClick={() => handleTimeSelect(time)}
-                    disabled={bookedTimes.includes(time)}
+                    disabled={bookedTimes.includes(time) || !booking.date}
                   >
                     {time}
                   </button>
@@ -163,7 +205,10 @@ function BookingPage() {
                 {booking.services.map((s, i) => (
                   <li key={i}>
                     {s.name} - {s.price.toLocaleString()}đ
-                    <button type="button" onClick={() => handleRemoveService(s.name)}>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveService(s.name)}
+                    >
                       X
                     </button>
                   </li>
@@ -195,7 +240,11 @@ function BookingPage() {
 
         {/* Popup voucher */}
         {showVoucherList && (
-          <VoucherPopup vouchers={vouchers} onClose={() => setShowVoucherList(false)} onSelect={handleVoucherSelect} />
+          <VoucherPopup
+            vouchers={vouchers}
+            onClose={() => setShowVoucherList(false)}
+            onSelect={handleVoucherSelect}
+          />
         )}
       </div>
     </DefaultLayout>

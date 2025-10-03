@@ -4,14 +4,19 @@ import { Model } from "sequelize";
 export default (sequelize, DataTypes) => {
   class Service extends Model {
     static associate(models) {
-      // 1 Service thuộc về 1 Category
-      Service.belongsTo(models.Category, { foreignKey: "idCategory" });
       // 1 Service có thể nằm trong nhiều BookingDetail
       Service.hasMany(models.BookingDetail, {
         foreignKey: "idService",
-        as: "bookingDetails", // alias rõ ràng
+        as: "bookingDetails",
       });
 
+      // 1 Service có thể thuộc nhiều Branch thông qua ServiceAssignment
+      Service.belongsToMany(models.Branch, {
+        through: models.ServiceAssignment,
+        foreignKey: "idService",
+        otherKey: "idBranch",
+        as: "branches",
+      });
     }
   }
 
@@ -22,7 +27,6 @@ export default (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
       },
-      idCategory: DataTypes.INTEGER,
       name: {
         type: DataTypes.STRING(100),
         allowNull: false,
