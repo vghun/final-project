@@ -17,6 +17,14 @@ export default (sequelize, DataTypes) => {
         otherKey: "idBranch",
         as: "branches",
       });
+
+      // 1 Service có thể do nhiều Barber thực hiện thông qua ServiceAssignment
+      Service.belongsToMany(models.Barber, {
+        through: models.ServiceAssignment,
+        foreignKey: "idService",
+        otherKey: "idBarber",
+        as: "barbers",
+      });
     }
   }
 
@@ -26,10 +34,6 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-      },
-      name: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
       },
       description: DataTypes.TEXT,
       price: {
