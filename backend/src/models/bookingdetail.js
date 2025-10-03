@@ -7,7 +7,11 @@ export default (sequelize, DataTypes) => {
       // BookingDetail thuộc về Booking
       BookingDetail.belongsTo(models.Booking, { foreignKey: "idBooking" });
       // BookingDetail thuộc về Service
-      BookingDetail.belongsTo(models.Service, { foreignKey: "idService" });
+      BookingDetail.belongsTo(models.Service, {
+        foreignKey: "idService",
+        as: "service",
+      });
+
     }
   }
 
