@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import DefaultLayout from "../../layouts/DefaultLayout";
 import styles from "./Booking.module.scss";
 import VoucherPopup from "../../components/VoucherPopup";
@@ -13,6 +14,10 @@ function BookingPage() {
     voucher: null,
   });
 
+  const [branches, setBranches] = useState([]);
+  const [barbers, setBarbers] = useState([]);
+  const [services, setServices] = useState([]);
+  const [times, setTimes] = useState([]);
   const [showVoucherList, setShowVoucherList] = useState(false);
 
   // ================= DATA =================
@@ -23,16 +28,16 @@ function BookingPage() {
     "Cơ sở 3 - TP.HCM": ["Anh Phúc", "Anh Lâm", "Anh Hoàng"],
   };
 
-  const times = ["9:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
-  const bookedTimes = ["10:00", "15:00"];
+  // Sinh timeslot
+  const generateTimeSlots = (openTime, closeTime, slotDuration) => {
+    const slots = [];
+    const [openH, openM] = openTime.split(":").map(Number);
+    const [closeH, closeM] = closeTime.split(":").map(Number);
+    let current = new Date();
+    current.setHours(openH, openM, 0, 0);
 
-  const services = [
-    { name: "Cắt tóc", price: 100000 },
-    { name: "Cạo râu", price: 50000 },
-    { name: "Nhuộm tóc", price: 200000 },
-    { name: "Gội đầu", price: 70000 },
-    { name: "Massage", price: 150000 },
-  ];
+    const end = new Date();
+    end.setHours(closeH, closeM, 0, 0);
 
   const vouchers = [
     { code: "SALE10", description: "Giảm 10% dịch vụ", discount: 10, exchanged: true, expireDate: "31/12/2025" },
@@ -45,9 +50,9 @@ function BookingPage() {
   const handleBarberChange = (e) => setBooking({ ...booking, barber: e.target.value });
   const handleTimeSelect = (time) => { if (!bookedTimes.includes(time)) setBooking({ ...booking, time }); };
   const handleServiceAdd = (e) => {
-    const selected = e.target.value;
-    const service = services.find((s) => s.name === selected);
-    if (service && !booking.services.find((s) => s.name === selected)) {
+    const id = e.target.value;
+    const service = services.find((s) => s.idService.toString() === id);
+    if (service && !booking.services.find((s) => s.idService === service.idService)) {
       setBooking({ ...booking, services: [...booking.services, service] });
     }
   };
