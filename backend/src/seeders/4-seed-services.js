@@ -3,7 +3,6 @@ export async function up(queryInterface, Sequelize) {
     // Dịch vụ nam (Category 1)
     {
       idService: 1,
-      idCategory: 1,
       name: "Cắt tóc nam basic",
       description: "Cắt tóc nam đơn giản, nhanh gọn",
       price: 100000,
@@ -14,7 +13,6 @@ export async function up(queryInterface, Sequelize) {
     },
     {
       idService: 2,
-      idCategory: 1,
       name: "Cắt tóc nam tạo kiểu",
       description: "Cắt fade, undercut, pompadour hiện đại",
       price: 150000,
@@ -25,7 +23,6 @@ export async function up(queryInterface, Sequelize) {
     },
     {
       idService: 3,
-      idCategory: 1,
       name: "Cạo mặt / tạo kiểu râu",
       description: "Chăm sóc và tạo kiểu râu, cạo gọn gàng",
       price: 100000,
@@ -36,7 +33,6 @@ export async function up(queryInterface, Sequelize) {
     },
     {
       idService: 4,
-      idCategory: 1,
       name: "Gội đầu nam",
       description: "Gội sạch, massage thư giãn",
       price: 50000,
@@ -47,7 +43,6 @@ export async function up(queryInterface, Sequelize) {
     },
     {
       idService: 5,
-      idCategory: 1,
       name: "Uốn / Nhuộm tóc nam",
       description: "Uốn hoặc nhuộm tóc theo yêu cầu",
       price: 300000,
@@ -60,7 +55,6 @@ export async function up(queryInterface, Sequelize) {
     // Dịch vụ nữ (Category 2)
     {
       idService: 6,
-      idCategory: 2,
       name: "Cắt tóc nữ layer",
       description: "Cắt layer nữ tự nhiên",
       price: 200000,
@@ -73,7 +67,6 @@ export async function up(queryInterface, Sequelize) {
     // Nhuộm & uốn (Category 3)
     {
       idService: 7,
-      idCategory: 3,
       name: "Nhuộm highlight",
       description: "Tạo điểm nhấn nổi bật với highlight",
       price: 500000,
@@ -84,7 +77,6 @@ export async function up(queryInterface, Sequelize) {
     },
     {
       idService: 8,
-      idCategory: 3,
       name: "Uốn tóc xoăn sóng",
       description: "Uốn xoăn sóng nước tự nhiên",
       price: 600000,
