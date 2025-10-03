@@ -22,6 +22,9 @@ function BookingPage() {
   const [services, setServices] = useState([]);
   const [times, setTimes] = useState([]);
 
+  // Danh sách giờ đã đặt theo ngày (map: { "YYYY-MM-DD": ["09:00", "10:00"] })
+  const [bookedTimesByDate, setBookedTimesByDate] = useState({});
+
   // voucher
   const vouchers = [
     { code: "SALE10", description: "Giảm 10% dịch vụ", discount: 10, exchanged: true, expireDate: "31/12/2025" },
@@ -41,57 +44,110 @@ function BookingPage() {
     // Gọi API lấy danh sách chi nhánh
     fetch("http://localhost:8088/api/booking/branches")
       .then((res) => res.json())
-      .then((data) => setBranches(data))
+      .then((data) => setBranches(data || []))
       .catch((err) => console.error("Error fetch branches:", err));
   }, []);
 
   const handleBranchChange = async (e) => {
-    const branchId = e.target.value;
-    setBooking({ ...booking, branchId, branch: "", barber: "", barberId: null, services: [], time: "" });
+    const branchId = Number(e.target.value) || null;
+    // giữ nguyên giao diện: reset tên branch/barber/services/time khi đổi chi nhánh
+    setBooking({ ...booking, branchId, branch: "", barber: "", barberId: null, services: [], time: "", date: "" });
 
-    if (!branchId) return;
+    if (!branchId) {
+      setBarbers([]);
+      setServices([]);
+      setTimes([]);
+      return;
+    }
 
     // Gọi API chi tiết chi nhánh
     try {
       const res = await fetch(`http://localhost:8088/api/booking/branches/${branchId}/details`);
       const data = await res.json();
 
-      setBooking((prev) => ({ ...prev, branch: data.branch.name }));
+      // data.branch, data.barbers, data.services kỳ vọng từ backend
+      setBooking((prev) => ({ ...prev, branch: data.branch?.name || "" }));
       setBarbers(data.barbers || []);
       setServices(data.services || []);
 
       // tạo danh sách times từ openTime-closeTime theo slotDuration
-      const start = new Date(`2000-01-01T${data.branch.openTime}`);
-      const end = new Date(`2000-01-01T${data.branch.closeTime}`);
-      const slot = data.branch.slotDuration;
-      let slots = [];
-      for (let t = start; t < end; t.setMinutes(t.getMinutes() + slot)) {
-        slots.push(t.toTimeString().slice(0, 5)); // HH:mm
+      if (data.branch && data.branch.openTime && data.branch.closeTime && data.branch.slotDuration) {
+        const start = new Date(`2000-01-01T${data.branch.openTime}`);
+        const end = new Date(`2000-01-01T${data.branch.closeTime}`);
+        const slot = Number(data.branch.slotDuration) || 60;
+        const slots = [];
+        // dùng copy vì setMinutes thay đổi đối tượng Date
+        for (let t = new Date(start); t < end; t = new Date(t.getTime() + slot * 60000)) {
+          const hhmm = t.toTimeString().slice(0, 5); // HH:mm
+          slots.push(hhmm);
+        }
+        setTimes(slots);
+      } else {
+        setTimes([]);
       }
-      setTimes(slots);
     } catch (err) {
       console.error("Error fetch branch details:", err);
+      setBarbers([]);
+      setServices([]);
+      setTimes([]);
     }
   };
 
   const handleBarberChange = (e) => {
-    const barberId = e.target.value;
-    const barber = barbers.find((b) => b.idBarber == barberId);
+    const barberId = Number(e.target.value) || null;
+    const barber = barbers.find((b) => Number(b.idBarber) === barberId);
     setBooking({ ...booking, barberId, barber: barber?.name || "" });
   };
 
-  const handleTimeSelect = (time) => setBooking({ ...booking, time });
+  // Khi chọn ngày: cập nhật booking.date và load booked times từ backend (nếu có)
+  const handleDateChange = async (e) => {
+    const date = e.target.value; // "YYYY-MM-DD"
+    setBooking((prev) => ({ ...prev, date }));
+
+    // Nếu bạn có API để lấy giờ đã đặt theo branch + barber + date thì gọi ở đây
+    // Ví dụ endpoint giả: /api/booking/booked-times?branchId=1&barberId=2&date=2025-10-05
+    try {
+      if (booking.branchId) {
+        const res = await fetch(
+          `http://localhost:8088/api/booking/booked-times?branchId=${booking.branchId}` +
+            `${booking.barberId ? `&barberId=${booking.barberId}` : ""}&date=${date}`
+        );
+        if (res.ok) {
+          const data = await res.json(); // kỳ vọng trả về { times: ["09:00","10:00"] } hoặc ["09:00",...]
+          const timesArr = Array.isArray(data) ? data : data.times || [];
+          setBookedTimesByDate((prev) => ({ ...prev, [date]: timesArr }));
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn("Could not fetch booked times, fallback to mock if any", err);
+    }
+
+    // fallback demo (nếu backend không có): ví dụ mock
+    const mockBooked = {
+      "2025-10-05": ["10:00", "15:00"],
+      "2025-10-04": ["09:00", "14:00"],
+    };
+    setBookedTimesByDate((prev) => ({ ...prev, [date]: mockBooked[date] || [] }));
+  };
+
+  const handleTimeSelect = (time) => {
+    // nếu time đã bị booked thì không chọn
+    const bookedTimes = booking.date ? bookedTimesByDate[booking.date] || [] : [];
+    if (bookedTimes.includes(time)) return;
+    setBooking({ ...booking, time });
+  };
 
   const handleServiceAdd = (e) => {
-    const selectedId = e.target.value;
-    const service = services.find((s) => s.idService == selectedId);
-    if (service && !booking.services.find((s) => s.idService == service.idService)) {
+    const selectedId = Number(e.target.value) || null;
+    const service = services.find((s) => Number(s.idService) === selectedId);
+    if (service && !booking.services.find((s) => Number(s.idService) === Number(service.idService))) {
       setBooking({ ...booking, services: [...booking.services, service] });
     }
   };
 
   const handleRemoveService = (idService) =>
-    setBooking({ ...booking, services: booking.services.filter((s) => s.idService !== idService) });
+    setBooking({ ...booking, services: booking.services.filter((s) => Number(s.idService) !== Number(idService)) });
 
   const handleVoucherSelect = (voucher) => {
     setBooking({ ...booking, discount: voucher.discount, voucher });
@@ -113,7 +169,7 @@ function BookingPage() {
           idCustomer: 1, // TODO: lấy từ user login
           idBranch: booking.branchId,
           idBarber: booking.barberId,
-          bookingDate: "2025-10-05", // TODO: chọn ngày thực tế
+          bookingDate: booking.date, // dùng date user chọn
           bookingTime: booking.time,
           services: booking.services.map((s) => ({ idService: s.idService, price: s.price, quantity: 1 })),
           description: booking.services.map((s) => s.name).join(", "),
@@ -123,7 +179,7 @@ function BookingPage() {
       if (res.ok) {
         alert(`Đặt lịch thành công!\nThành tiền: ${finalPrice.toLocaleString()}đ`);
       } else {
-        alert("Lỗi đặt lịch: " + result.message);
+        alert("Lỗi đặt lịch: " + (result.message || "Unknown error"));
       }
     } catch (err) {
       console.error("Error create booking:", err);
@@ -177,11 +233,7 @@ function BookingPage() {
             {/* Chọn ngày */}
             <div className={styles.formGroup}>
               <label>Ngày:</label>
-              <input
-                type="date"
-                value={booking.date}
-                onChange={handleDateChange}
-              />
+              <input type="date" value={booking.date} onChange={handleDateChange} />
             </div>
 
             {/* Chọn thời gian */}
@@ -192,8 +244,11 @@ function BookingPage() {
                   <button
                     key={i}
                     type="button"
-                    className={`${styles.timeSlot} ${booking.time === time ? styles.selected : ""}`}
+                    className={`${styles.timeSlot} ${bookedTimes.includes(time) ? styles.booked : ""} ${
+                      booking.time === time ? styles.selected : ""
+                    }`}
                     onClick={() => handleTimeSelect(time)}
+                    disabled={bookedTimes.includes(time) || !booking.date}
                   >
                     {time}
                   </button>
@@ -246,11 +301,7 @@ function BookingPage() {
         <img src="/keo.png" alt="Right Scissors" className={styles.scissorsRight} />
 
         {showVoucherList && (
-          <VoucherPopup
-            vouchers={vouchers}
-            onClose={() => setShowVoucherList(false)}
-            onSelect={handleVoucherSelect}
-          />
+          <VoucherPopup vouchers={vouchers} onClose={() => setShowVoucherList(false)} onSelect={handleVoucherSelect} />
         )}
       </div>
     </DefaultLayout>
