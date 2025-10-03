@@ -1,20 +1,14 @@
 import * as serviceService from "../services/serviceService.js";
 
-// Dịch vụ mới nhất
-export const getLatest = async (req, res) => {
-  try {
-    const services = await serviceService.getLatestServices();
-    return res.status(200).json(services);
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-};
-
 // Dịch vụ hot nhất (nhiều booking nhất)
 export const getHot = async (req, res) => {
   try {
-    const services = await serviceService.getHotServices();
-    return res.status(200).json(services);
+    const { page = 1, limit = 4 } = req.query;
+    const result = await serviceService.getHotServicesPaged(
+      parseInt(page),
+      parseInt(limit)
+    );
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

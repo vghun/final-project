@@ -9,24 +9,40 @@ export const getLatestServices = async (limit = 8) => {
   });
 };
 
-// Lấy dịch vụ hot nhất (tính theo số lượng booking_detail)
-export const getHotServices = async (limit = 6) => {
-  return await db.Service.findAll({
+// Lấy dịch vụ hot nhất có phân trang
+export const getHotServicesPaged = async (page = 1, limit = 4) => {
+  const offset = (page - 1) * limit;
+
+  const { count, rows } = await db.Service.findAndCountAll({
     attributes: {
       include: [
         [
-          Sequelize.fn("COUNT", Sequelize.col("booking_details.idBookingDetail")),
+          Sequelize.fn("COUNT", Sequelize.col("bookingDetails.idBookingDetail")),
           "totalBookings",
         ],
       ],
     },
     include: [
-      { model: db.BookingDetail, attributes: [] }, // join booking_details nhưng không lấy field
+      {
+        model: db.BookingDetail,
+        as: "bookingDetails", // 👈 alias phải khớp với Service.hasMany
+        attributes: [],
+      },
     ],
     group: ["Service.idService"],
     order: [[Sequelize.literal("totalBookings"), "DESC"]],
     limit,
+    offset,
+    subQuery: false, // 👈 bắt buộc khi có group by
+    distinct: true,  // 👈 để count đúng số bản ghi
   });
+
+  return {
+    total: Array.isArray(count) ? count.length : count, // count có thể là mảng
+    page,
+    limit,
+    data: rows,
+  };
 };
 
 // Lấy chi tiết dịch vụ theo id

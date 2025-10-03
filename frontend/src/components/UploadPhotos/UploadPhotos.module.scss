@@ -1,0 +1,36 @@
+.wrapper {
+  margin-top: 8px;
+}
+
+.input {
+  display: none;
+}
+
+.btn {
+  padding: 6px 12px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover {
+    background: #059669;
+  }
+}
+
+.preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #d1fae5;
+}
