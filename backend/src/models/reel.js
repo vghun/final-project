@@ -15,8 +15,9 @@ export default (sequelize, DataTypes) => {
       idBarber: DataTypes.INTEGER,
       title: DataTypes.STRING,
       url: DataTypes.STRING,
+      thumbnail: DataTypes.STRING,
       description: DataTypes.TEXT,
-      uploadDate: DataTypes.DATE,
+      createdAt: DataTypes.DATE,
       viewCount: DataTypes.INTEGER,
     },
     { sequelize, modelName: "Reel", tableName: "reels" }
