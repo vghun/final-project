@@ -1,0 +1,43 @@
+.pageWrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+
+  // overlay nền trắng thay vì mờ
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #fff; // nền trắng
+  }
+}
+
+.innerWrapper {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.header {
+  margin-bottom: 20px;
+
+  h1 {
+    font-family: "Old Standard TT", serif;
+    font-size: 36px;
+    color: #f8f5f0; // giữ màu chữ cũ
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
+  }
+
+  p {
+    font-size: 16px;
+    color: #d2b48c; // giữ màu chữ cũ
+  }
+}
+
+.footer {
+  margin-top: 30px;
+  font-size: 14px;
+  color: #aaa; // giữ màu chữ cũ
+}
