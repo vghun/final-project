@@ -20,11 +20,19 @@ export default (sequelize) => {
       },
       idBranch: {
         type: DataTypes.INTEGER,
-        allowNull: true, // Nếu chưa bắt buộc
+        allowNull: true,
       },
       profileDescription: {
         type: DataTypes.TEXT,
         allowNull: true,
+      },
+      isApproved: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      isLocked: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
       },
     },
     {
