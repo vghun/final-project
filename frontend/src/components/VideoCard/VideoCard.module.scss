@@ -77,8 +77,10 @@
 
 .actions {
   display: flex;
-  gap: 12px;
+  gap: 16px;
+  align-items: center;
 }
+
 .likeBtn,
 .shareBtn,
 .commentBtn {
@@ -86,8 +88,27 @@
   cursor: pointer;
   background: transparent;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  span {
+    font-size: 13px;
+    color: #374151;
+  }
 }
 
-.liked {
-  color: #dc2626;
+.likeIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.commentBtn,
+.shareBtn {
+  color: #374151;
+
+  &:hover {
+    color: #059669;
+  }
 }

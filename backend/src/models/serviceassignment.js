@@ -6,7 +6,6 @@ export default (sequelize, DataTypes) => {
     static associate(models) {
       ServiceAssignment.belongsTo(models.Branch, { foreignKey: "idBranch" });
       ServiceAssignment.belongsTo(models.Service, { foreignKey: "idService" });
-      ServiceAssignment.belongsTo(models.Barber, { foreignKey: "idBarber" });
     }
   }
   ServiceAssignment.init(
@@ -14,7 +13,6 @@ export default (sequelize, DataTypes) => {
       id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
       idBranch: DataTypes.INTEGER,
       idService: DataTypes.INTEGER,
-      idBarber: DataTypes.INTEGER,
     },
     { sequelize, modelName: "ServiceAssignment", tableName: "service_assignments" }
   );

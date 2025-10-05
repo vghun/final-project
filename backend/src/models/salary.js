@@ -4,11 +4,11 @@ import { Model } from "sequelize";
 export default (sequelize, DataTypes) => {
   class Salary extends Model {
     static associate(models) {
-      // Nếu muốn liên kết với Barber
-      // Salary.belongsTo(models.Barber, {
-      //   foreignKey: "idBarber",
-      //   as: "barber",
-      // });
+      // Liên kết Salary với Barber
+      Salary.belongsTo(models.Barber, {
+        foreignKey: "idBarber",
+        as: "barber",
+      });
     }
   }
 
@@ -43,9 +43,18 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.DECIMAL(10, 2),
         defaultValue: 0,
       },
+      bonus: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0,
+      },
       totalSalary: {
         type: DataTypes.DECIMAL(10, 2),
         defaultValue: 0,
+      },
+      status: { // <--- thêm cột status
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
     },
     {

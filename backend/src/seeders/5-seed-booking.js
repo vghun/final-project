@@ -9,7 +9,7 @@ export async function up(queryInterface, Sequelize) {
     "2025-09-05","2025-09-06","2025-09-07","2025-09-08",
     "2025-09-09","2025-09-10"
 ];
-  const statuses = ["Pending","Completed","Cancelled"];
+
 
   let idBooking = 1;
 
@@ -18,7 +18,6 @@ export async function up(queryInterface, Sequelize) {
       const randomGuests = Math.floor(Math.random() * 3) + 1; // 1 → 3
       const randomHour = Math.floor(Math.random() * 12) + 9; // 9 → 20 giờ
       const randomMinute = Math.random() < 0.5 ? "00" : "30";
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
       const description = `Dịch vụ mẫu cho barber ${barberId}`;
 
       bookings.push({
@@ -29,7 +28,7 @@ export async function up(queryInterface, Sequelize) {
         guestCount: 1,
         bookingDate: new Date(date),
         bookingTime: `${randomHour}:${randomMinute}`,
-        status: status,
+        status:"Completed",
         description: description,
         createdAt: new Date(),
         updatedAt: new Date(),

@@ -4,20 +4,12 @@ import { Model, DataTypes } from "sequelize";
 export default (sequelize) => {
   class Barber extends Model {
     static associate(models) {
-      Barber.belongsTo(models.User, {
-        foreignKey: "idBarber",
-        as: "user",
-      });
-      // Thêm association với Branch
-      Barber.belongsTo(models.Branch, {
-        foreignKey: "idBranch",
-        as: "branch",
-      });
-      Barber.hasMany(models.Booking, {
-      foreignKey: "idBarber",
-      as: "Bookings", // Phải khớp alias khi include trong service
-    });
-    }
+  Barber.belongsTo(models.User, { foreignKey: "idBarber", as: "user" });
+  Barber.belongsTo(models.Branch, { foreignKey: "idBranch", as: "branch" });
+  Barber.hasMany(models.Booking, { foreignKey: "idBarber", as: "Bookings" });
+  Barber.hasMany(models.Salary, { foreignKey: "idBarber", as: "salaries" });
+}
+
   }
 
   Barber.init(
