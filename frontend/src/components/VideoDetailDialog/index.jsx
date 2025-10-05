@@ -1,42 +1,75 @@
-// VideoDetailDialog.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./VideoDetailDialog.module.scss";
+import { likeReel, getComments, addComment, addReply } from "~/services/reelService";
 
-function VideoDetailDialog({ reel, onClose, onToggleLike }) {
-  const [comments, setComments] = useState(reel.comments || []);
+function VideoDetailDialog({ reels, currentIndex, onClose, onToggleLike, onChangeVideo, idUser }) {
+  const reel = reels[currentIndex];
+  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [activeReply, setActiveReply] = useState(null);
   const [newReply, setNewReply] = useState("");
+  const videoRef = useRef(null);
 
-  const addComment = () => {
-    if (!newComment.trim()) return;
-    const newCmt = {
-      id: Date.now(),
-      author: "Bạn",
-      content: newComment,
-      time: "vừa xong",
-      replies: [],
+  // Load comments and reset like state when reel changes
+  useEffect(() => {
+    const loadComments = async () => {
+      const data = await getComments(reel.idReel);
+
+      const commentMap = {};
+      const roots = [];
+
+      data.forEach((c) => {
+        commentMap[c.idComment] = { ...c, replies: [] };
+      });
+
+      data.forEach((c) => {
+        if (c.parentCommentId) {
+          commentMap[c.parentCommentId]?.replies.push(commentMap[c.idComment]);
+        } else {
+          roots.push(commentMap[c.idComment]);
+        }
+      });
+
+      setComments(roots);
     };
-    setComments([...comments, newCmt]);
+
+    if (reel) {
+      loadComments();
+    }
+  }, [reel]);
+
+  const handleLike = async () => {
+    try {
+      const res = await likeReel(reel.idReel, idUser);
+      onToggleLike(reel.idReel, res.liked, res.likesCount); // Update parent state
+    } catch (err) {
+      console.error("Like error:", err);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    const cmt = await addComment(reel.idReel, idUser, newComment);
+    setComments([...comments, { ...cmt, replies: [] }]);
     setNewComment("");
   };
 
-  const addReply = (commentId) => {
+  const handleAddReply = async (commentId) => {
     if (!newReply.trim()) return;
-    const updatedComments = comments.map((c) =>
-      c.id === commentId
-        ? {
-            ...c,
-            replies: [
-              ...c.replies,
-              { id: Date.now(), author: "Bạn", content: newReply },
-            ],
-          }
+    const rep = await addReply(commentId, idUser, newReply);
+    setComments(comments.map(c =>
+      c.idComment === commentId
+        ? { ...c, replies: [...(c.replies || []), rep] }
         : c
-    );
-    setComments(updatedComments);
+    ));
     setNewReply("");
     setActiveReply(null);
+  };
+
+  const handleEnded = () => {
+    if (currentIndex < reels.length - 1) {
+      onChangeVideo(currentIndex + 1);
+    }
   };
 
   return (
@@ -45,12 +78,11 @@ function VideoDetailDialog({ reel, onClose, onToggleLike }) {
         {/* Left - Video */}
         <div className={styles.videoSection}>
           <video
-            src={reel.videoUrl}
-            poster={reel.thumbnail}
+            ref={videoRef}
+            src={reel.url}
             controls
             autoPlay
-            loop
-            muted
+            onEnded={handleEnded}
           />
         </div>
 
@@ -67,41 +99,71 @@ function VideoDetailDialog({ reel, onClose, onToggleLike }) {
 
           <div className={styles.actions}>
             <button
-              className={`${styles.likeBtn} ${reel.isLiked ? styles.liked : ""}`}
-              onClick={() => onToggleLike(reel.id)}
+              className={styles.likeBtn}
+              onClick={handleLike}
             >
-              ❤️ {reel.likes}
+              <img
+                src={reel.isLiked ? "/liked.png" : "/like.png"}
+                alt="like"
+                className={styles.likeIcon}
+              />
+              <span>{reel.likesCount || 0}</span>
             </button>
-            <button className={styles.shareBtn}>🔗 Chia sẻ</button>
+            <button
+              className={styles.shareBtn}
+              onClick={() => navigator.clipboard.writeText(window.location.href)}
+            >
+              🔗 Chia sẻ
+            </button>
           </div>
 
           <div className={styles.comments}>
-            <h4>Bình luận</h4>
+            <h4>Bình luận ({reel.commentsCount})</h4>
             <div className={styles.commentList}>
               {comments.map((cmt) => (
-                <div key={cmt.id} className={styles.comment}>
+                <div key={cmt.idComment} className={styles.comment}>
                   <div className={styles.cmtHeader}>
-                    <span className={styles.author}>{cmt.author}</span>
-                    <span className={styles.time}>{cmt.time}</span>
+                    <img
+                      src={cmt.User?.image || "/user.png"}
+                      alt="avatar"
+                      className={styles.avatar}
+                    />
+                    <div className={styles.cmtInfo}>
+                      <span className={styles.author}>{cmt.User?.fullName || "Ẩn danh"}</span>
+                      <span className={styles.time}>
+                        {new Date(cmt.createdAt).toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                  <p>{cmt.content}</p>
+
+                  <p className={styles.content}>{cmt.content}</p>
+
                   <button
                     className={styles.replyBtn}
-                    onClick={() => setActiveReply(cmt.id)}
+                    onClick={() => setActiveReply(cmt.idComment)}
                   >
                     Trả lời
                   </button>
-                  {cmt.replies?.length > 0 && (
+
+                  {cmt.replies.length > 0 && (
                     <div className={styles.replies}>
                       {cmt.replies.map((rep) => (
-                        <div key={rep.id} className={styles.reply}>
-                          <span className={styles.author}>{rep.author}</span>:{" "}
-                          {rep.content}
+                        <div key={rep.idComment} className={styles.reply}>
+                          <img
+                            src={rep.User?.image || "/user.png"}
+                            alt="avatar"
+                            className={styles.avatarSmall}
+                          />
+                          <div>
+                            <span className={styles.author}>{rep.User?.fullName || "Ẩn danh"}</span>
+                            <p className={styles.replyContent}>{rep.content}</p>
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
-                  {activeReply === cmt.id && (
+
+                  {activeReply === cmt.idComment && (
                     <div className={styles.replyForm}>
                       <input
                         type="text"
@@ -109,7 +171,7 @@ function VideoDetailDialog({ reel, onClose, onToggleLike }) {
                         onChange={(e) => setNewReply(e.target.value)}
                         placeholder="Trả lời..."
                       />
-                      <button onClick={() => addReply(cmt.id)}>Gửi</button>
+                      <button onClick={() => handleAddReply(cmt.idComment)}>Gửi</button>
                     </div>
                   )}
                 </div>
@@ -123,10 +185,28 @@ function VideoDetailDialog({ reel, onClose, onToggleLike }) {
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Thêm bình luận..."
               />
-              <button onClick={addComment}>Gửi</button>
+              <button onClick={handleAddComment}>Gửi</button>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Nút chuyển video */}
+      <div className={styles.navContainer}>
+        <button
+          className={`${styles.navBtn} ${styles.prevBtn}`}
+          disabled={currentIndex === 0}
+          onClick={() => onChangeVideo(currentIndex - 1)}
+        >
+          ▲
+        </button>
+        <button
+          className={`${styles.navBtn} ${styles.nextBtn}`}
+          disabled={currentIndex === reels.length - 1}
+          onClick={() => onChangeVideo(currentIndex + 1)}
+        >
+          ▼
+        </button>
       </div>
     </div>
   );
