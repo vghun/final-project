@@ -1,3 +1,4 @@
+
 import express from "express";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
@@ -16,6 +17,8 @@ import statisticRoute from "./routes/statistics.js";
 import loyaltyRuleRoute from "./routes/loyaltyRule.js"; 
 import salaryRoute from "./routes/salary.js";
 import bonusRoutes from "./routes/bonus.js";
+import reelRoute from "./routes/reel.js"; // giữ từ nhánh barber-profile
+import reelCommentRoutes from "./routes/reelComment.js"; 
 
 dotenv.config();
 
@@ -41,6 +44,8 @@ app.use("/api/barbers", barberRoutes);
 app.use("/api/booking", bookingRoute);
 app.use("/api/statistics", statisticRoute);
 app.use("/api/bonus", bonusRoutes);
+app.use("/api/reels", reelRoute);
+app.use("/api/reels", reelCommentRoutes);
 // View engine & auth
 viewEngine(app); 
 authRoutes(app);
