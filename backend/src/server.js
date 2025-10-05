@@ -12,8 +12,10 @@ import profileRoutes from "./routes/profile.js";
 import chatRoute from "./routes/chat.js"; // <-- route chat AI
 import voucherRoutes from "./routes/voucher.js";
 import bookingRoute from "./route/booking.js";
+import statisticRoute from "./routes/statistics.js";
 import loyaltyRuleRoute from "./routes/loyaltyRule.js"; 
 import salaryRoute from "./routes/salary.js";
+import bonusRoutes from "./routes/bonus.js";
 
 dotenv.config();
 
@@ -37,6 +39,8 @@ app.use("/api/salary", salaryRoute);
 app.use("/api/barbers", barberRoutes);
 
 app.use("/api/booking", bookingRoute);
+app.use("/api/statistics", statisticRoute);
+app.use("/api/bonus", bonusRoutes);
 // View engine & auth
 viewEngine(app); 
 authRoutes(app);

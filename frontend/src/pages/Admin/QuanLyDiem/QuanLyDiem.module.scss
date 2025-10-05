@@ -4,6 +4,7 @@
   min-height: 100vh;
 }
 
+/* ========== Thanh tiêu đề và nút hành động ========== */
 .header {
   display: flex;
   justify-content: space-between;
@@ -21,10 +22,11 @@
   }
 }
 
+/* ========== Nút cơ bản ========== */
 .btn {
   padding: 6px 12px;
   border: none;
-  background: #1e90ff;
+  background: black;
   color: white;
   cursor: pointer;
   border-radius: 4px;
@@ -34,12 +36,14 @@
   }
 }
 
+/* ========== Bảng hiển thị ========== */
 .rule-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
 
-  th, td {
+  th,
+  td {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: center;
@@ -76,5 +80,87 @@
     &:hover {
       background: #b52a37;
     }
+  }
+}
+
+/* ========== Tab phụ (Tích điểm / Thưởng doanh số) ========== */
+.subTabNav {
+  display: flex;
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+}
+
+.subTabBtn {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f0f0f0;
+  }
+
+  &.active {
+    background: #0d131a;
+    color: white;
+    pointer-events: none;
+  }
+}
+
+/* ========== Phần thưởng doanh số ========== */
+.bonusSection {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+
+  h2 {
+    margin-bottom: 10px;
+  }
+
+  p {
+    margin-bottom: 20px;
+    color: #555;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background: #f9f9f9;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+  }
+}
+.bonus-table {
+  width: 100%;
+  border-collapse: collapse;
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  th {
+    background-color: #f3f3f3;
+    text-align: left;
+  }
+  td button {
+    margin-right: 5px;
   }
 }

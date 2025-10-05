@@ -9,24 +9,44 @@ const cx = classNames.bind(styles);
 
 function LuongThuong() {
   const [salaries, setSalaries] = useState([]);
+  const [overview, setOverview] = useState([]);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Load bảng lương từ API
-  const loadSalaries = async () => {
+  // Lấy dữ liệu bảng lương + overview
+  const fetchData = async (m, y) => {
     setLoading(true);
     try {
-      const data = await SalaryAPI.getSalaries(month, year);
-      setSalaries(data);
+      const overviewData = await SalaryAPI.getSalaryOverview();
+      setOverview(overviewData);
+
+      const salaryData = await SalaryAPI.getSalaries(m, y);
+
+      // Gán status từ overview
+      const monthData = overviewData.find(item => item.month === m && item.year === y);
+      const statusMap = new Map();
+      monthData?.salaries?.forEach(s => statusMap.set(s.idBarber, s.status));
+
+      const dataWithStatus = salaryData.map(s => ({
+        ...s,
+        status: statusMap.get(s.idBarber) === "Đã tính" ? "Đã tính" : "Chưa tính"
+      }));
+
+      setSalaries(dataWithStatus);
     } catch (error) {
-      console.error("Lỗi khi load bảng lương:", error);
+      console.error("Lỗi load dữ liệu:", error);
       setSalaries([]);
+      setOverview([]);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchData(month, year);
+  }, [month, year]);
 
   // Tính lương
   const calculateSalary = async () => {
@@ -34,7 +54,18 @@ function LuongThuong() {
     try {
       await SalaryAPI.calculateSalaries(month, year);
       alert(`Đã tính lương cho tháng ${month}/${year}`);
-      loadSalaries();
+
+      // Update trực tiếp status trong bảng lương
+      setSalaries(prev => prev.map(s => ({ ...s, status: "Đã tính" })));
+
+      // Update overview để disable nút tính lương
+      setOverview(prev => {
+        const newOverview = [...prev];
+        const idx = newOverview.findIndex(o => o.month === month && o.year === year);
+        if (idx >= 0) newOverview[idx].canCalculate = false;
+        else newOverview.push({ month, year, canCalculate: false });
+        return newOverview;
+      });
     } catch (error) {
       console.error("Lỗi khi tính lương:", error);
       alert("Tính lương thất bại!");
@@ -43,106 +74,93 @@ function LuongThuong() {
     }
   };
 
-  useEffect(() => {
-    loadSalaries();
-  }, [month, year]);
+  // Kiểm tra nút Tính lương: disable nếu tháng tương lai hoặc đã tính
+  const now = new Date();
+  const isFutureMonth = year > now.getFullYear() || (year === now.getFullYear() && month > now.getMonth() + 1);
+  const monthOverview = overview.find(item => item.month === month && item.year === year);
+  const canClick = !(isFutureMonth || (monthOverview && monthOverview.canCalculate === false));
 
-  // Kiểm tra xem có phải tháng cũ chưa tính lương
-  const isPastMonth = () => {
-    const now = new Date();
-    return year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1);
-  };
-
-  const canCalculate = isPastMonth() && salaries.some((s) => s.status !== "Đã tính");
-
-  // Filter theo search
-  const filteredSalaries = salaries.filter(
-    (s) =>
-      s.barberName.toLowerCase().includes(search.toLowerCase()) ||
-      (s.branchName || "").toLowerCase().includes(search.toLowerCase())
+  // Filter bảng lương theo search
+  const filteredSalaries = salaries.filter(s =>
+    (s.barberName || "").toLowerCase().includes(search.toLowerCase()) ||
+    (s.branchName || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div className={cx("salaryPage")}>
-      {/* Header */}
       <div className={cx("header")}>
         <h2>Tính lương tự động</h2>
 
-        {/* Controls */}
         <div className={cx("topControls")}>
-          <select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
+          <select value={month} onChange={e => setMonth(Number(e.target.value))}>
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i + 1} value={i + 1}>Tháng {i + 1}</option>
             ))}
           </select>
-
-          <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
+          <select value={year} onChange={e => setYear(Number(e.target.value))}>
             {Array.from({ length: 5 }, (_, i) => (
               <option key={i} value={2023 + i}>{2023 + i}</option>
             ))}
           </select>
 
-          <button className={cx("calcBtn")} onClick={loadSalaries} disabled={loading}>
+          <button className={cx("calcBtn")} onClick={() => fetchData(month, year)} disabled={loading}>
             <FontAwesomeIcon icon={faArrowTrendUp} /> Xem doanh thu
           </button>
 
           <button
             className={cx("calcBtn")}
             onClick={calculateSalary}
-            disabled={!canCalculate || loading}
+            disabled={!canClick || loading}
             style={{
-              background: canCalculate ? "#2563eb" : "#9ca3af", // xanh nếu được, xám nếu không
-              cursor: canCalculate ? "pointer" : "not-allowed",
+              background: canClick ? "#2563eb" : "#9ca3af",
+              cursor: canClick ? "pointer" : "not-allowed",
             }}
           >
             Tính lương
           </button>
         </div>
 
-        {/* Search */}
         <div className={cx("searchCenter")}>
           <input
             type="text"
             placeholder="Tìm kiếm theo tên hoặc chi nhánh..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
           />
           <FontAwesomeIcon icon={faMagnifyingGlass} />
         </div>
       </div>
 
-      {/* Salary Table */}
       <div className={cx("salaryTable")}>
         <h3>Bảng lương tháng {month}/{year}</h3>
         <p className={cx("desc")}>
-          Lương được tính dựa trên 15% doanh thu cá nhân + tip + lương cơ bản
+          Lương = Lương cơ bản + Hoa hồng (15% doanh thu) + Tip + Thưởng
         </p>
 
         {loading ? (
           <p>Đang tải dữ liệu...</p>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Thợ cắt tóc</th>
-                <th>Chi nhánh</th>
-                <th>Doanh thu</th>
-                <th>Lương cơ bản</th>
-                <th>Hoa hồng (15%)</th>
-                <th>Tip</th>
-                <th>Tổng lương</th>
-                <th>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSalaries.length > 0 ? (
-                filteredSalaries.map((s, idx) => (
+          <div className={cx("tableWrapper")}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Thợ cắt tóc</th>
+                  <th>Chi nhánh</th>
+                  <th>Doanh thu</th>
+                  <th>Lương cơ bản</th>
+                  <th>Hoa hồng (15%)</th>
+                  <th>Tip</th>
+                  <th>Thưởng</th>
+                  <th>Tổng lương</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredSalaries.length > 0 ? filteredSalaries.map((s, idx) => (
                   <tr key={idx}>
                     <td>
                       <div className={cx("employee")}>
-                        <div className={cx("avatar")}>
-                          {s.barberName.charAt(0).toUpperCase()}
-                        </div>
+                        <div className={cx("avatar")}>{(s.barberName || "").charAt(0).toUpperCase()}</div>
                         {s.barberName}
                       </div>
                     </td>
@@ -151,28 +169,22 @@ function LuongThuong() {
                     <td>{Number(s.baseSalary).toLocaleString()}đ</td>
                     <td>{Number(s.commission).toLocaleString()}đ</td>
                     <td>{Number(s.tip).toLocaleString()}đ</td>
+                    <td>{Number(s.bonus).toLocaleString()}đ</td>
                     <td className={cx("highlight")}>{Number(s.totalSalary).toLocaleString()}đ</td>
                     <td>
-                      <span
-                        className={cx(
-                          "status",
-                          s.status === "Đã tính" ? "calculated" : "pending"
-                        )}
-                      >
+                      <span className={cx("status", s.status === "Đã tính" ? "calculated" : "pending")}>
                         {s.status}
                       </span>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="8" style={{ textAlign: "center" }}>
-                    Không có dữ liệu
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )) : (
+                  <tr>
+                    <td colSpan="9" style={{ textAlign: "center" }}>Không có dữ liệu</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

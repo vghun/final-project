@@ -7,9 +7,9 @@ const cx = classNames.bind(styles);
 
 function CreateRuleModal({ onClose, onCreate, initialData }) {
   const [form, setForm] = useState({
-    money_per_point: "",
+    money_per_point: 0,
     point_multiplier: 1,
-    min_order_amount: "",
+    min_order_amount: 0,
     is_default: false,
     is_active: true,
     start_date: "",
@@ -22,45 +22,67 @@ function CreateRuleModal({ onClose, onCreate, initialData }) {
   useEffect(() => {
     if (initialData) {
       setForm({
-        money_per_point: initialData.money_per_point || "",
+        money_per_point: initialData.money_per_point || 0,
         point_multiplier: initialData.point_multiplier || 1,
-        min_order_amount: initialData.min_order_amount || "",
+        min_order_amount: initialData.min_order_amount || 0,
         is_default: initialData.is_default || false,
         is_active: initialData.is_active ?? true,
         start_date: initialData.start_date
-        ? initialData.start_date.slice(0, 10)
-        : "",
-      end_date: initialData.end_date
-        ? initialData.end_date.slice(0, 10)
-        : "",
+          ? initialData.start_date.slice(0, 10)
+          : "",
+        end_date: initialData.end_date
+          ? initialData.end_date.slice(0, 10)
+          : "",
       });
     }
   }, [initialData]);
 
+  // Format tiền hiển thị
+  const formatMoney = (val) => {
+    if (val == null) return "";
+    return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
+  // Parse từ input về số thuần
+  const parseMoney = (val) => {
+    const num = Number(val.toString().replace(/\./g, ""));
+    return isNaN(num) ? 0 : num;
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+
+    if (name === "money_per_point" || name === "min_order_amount") {
+      // chỉ giữ số
+      const raw = value.replace(/[^0-9]/g, "");
+      setForm((prev) => ({
+        ...prev,
+        [name]: parseMoney(raw),
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
   };
-const handleSubmit = () => {
-  if (!form.is_default && (!form.start_date || !form.end_date)) {
-    setError("Start Date và End Date là bắt buộc cho rule không mặc định");
-    return;
-  }
 
-  const payload = {
-    ...form,
-    start_date: form.is_default ? null : form.start_date,
-    end_date: form.is_default ? null : form.end_date,
+  const handleSubmit = () => {
+    if (!form.is_default && (!form.start_date || !form.end_date)) {
+      setError("Start Date và End Date là bắt buộc cho rule không mặc định");
+      return;
+    }
+
+    const payload = {
+      ...form,
+      start_date: form.is_default ? null : form.start_date,
+      end_date: form.is_default ? null : form.end_date,
+    };
+
+    setError("");
+    onCreate(payload);
+    onClose();
   };
-
-  setError("");
-  onCreate(payload);
-  onClose();
-};
-
 
   return (
     <div className={cx("modal-overlay")}>
@@ -70,10 +92,11 @@ const handleSubmit = () => {
         <div className={cx("field")}>
           <label>Số tiền trên 1 điểm (VND)</label>
           <input
-            type="number"
+            type="text"
             name="money_per_point"
-            value={form.money_per_point}
+            value={formatMoney(form.money_per_point)}
             onChange={handleChange}
+            placeholder="Nhập số tiền"
           />
         </div>
 
@@ -91,10 +114,11 @@ const handleSubmit = () => {
         <div className={cx("field")}>
           <label>Đơn tối thiểu (VND)</label>
           <input
-            type="number"
+            type="text"
             name="min_order_amount"
-            value={form.min_order_amount}
+            value={formatMoney(form.min_order_amount)}
             onChange={handleChange}
+            placeholder="Nhập số tiền"
           />
         </div>
 
