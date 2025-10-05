@@ -21,6 +21,10 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.STRING,
       allowNull: false,
     },
+    thumbnail: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
     description: {
       type: Sequelize.TEXT,
       allowNull: true,
@@ -35,7 +39,9 @@ export async function up(queryInterface, Sequelize) {
     },
     updatedAt: {
       type: Sequelize.DATE,
-      defaultValue: Sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+      defaultValue: Sequelize.literal(
+        "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+      ),
     },
   });
 }

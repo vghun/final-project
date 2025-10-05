@@ -11,12 +11,14 @@ import serviceRoute from "./routes/service.js";
 import profileRoutes from "./routes/profile.js";
 import chatRoute from "./routes/chat.js"; // <-- route chat AI
 import voucherRoutes from "./routes/voucher.js";
+import bookingRoute from "./route/booking.js";
+import statisticRoute from "./routes/statistics.js";
 import loyaltyRuleRoute from "./routes/loyaltyRule.js"; 
 import salaryRoute from "./routes/salary.js";
-import { sequelize } from "./config/configdb.js";
+import bonusRoutes from "./routes/bonus.js";
+import reelRoute from "./routes/reel.js"; // giữ từ nhánh barber-profile
+import reelCommentRoutes from "./routes/reelComment.js"; 
 import branchRoutes from "./routes/branch.js"; 
-
-
 dotenv.config();
 
 const app = express();
@@ -38,18 +40,21 @@ app.use("/api/salary", salaryRoute);
 
 app.use("/api/barbers", barberRoutes);
 app.use("/api/branches", branchRoutes);
+
+app.use("/api/booking", bookingRoute);
+app.use("/api/statistics", statisticRoute);
+app.use("/api/bonus", bonusRoutes);
+app.use("/api/reels", reelRoute);
+app.use("/api/reels", reelCommentRoutes);
 // View engine & auth
 viewEngine(app); 
 authRoutes(app);
 
 // Connect DB
-connectDB().then(() => {
-  sequelize.sync({ alter: true })
-    .then(() => console.log("✅ Database & tables created!"))
-    .catch(err => console.error("❌ Sync error:", err));
-});
+connectDB();
 
 const PORT = process.env.PORT || 8088;
 app.listen(PORT, () => {
   console.log(`Backend Node.js is running on port: ${PORT}`);
 });
+

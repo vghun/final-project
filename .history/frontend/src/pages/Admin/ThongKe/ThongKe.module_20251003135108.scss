@@ -1,0 +1,83 @@
+.chartBox {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  /* Filter panel */
+  .filterBox {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+
+    select,
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: #3b82f6;
+      }
+    }
+
+    button.update {
+      background: #3b82f6;
+      color: #fff;
+      font-weight: 500;
+
+      &:hover {
+        background: #2563eb;
+      }
+    }
+
+    button.excel {
+      background: #10b981;
+      color: #fff;
+      font-weight: 500;
+
+      &:hover {
+        background: #059669;
+      }
+    }
+  }
+
+  /* Content chính: Chart + AI */
+  .chartContent {
+    display: flex;
+    gap: 20px;
+    align-items: stretch; /* CHÍNH: kéo chiều cao bằng nhau */
+
+    .recharts-wrapper,
+    .aiAnalysis {
+      flex: 1; /* chia đều */
+    }
+
+    .aiAnalysis {
+      background: #f3f4f6;
+      padding: 50px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      height: 350px;
+      /* min-height bỏ đi để chiều cao theo chart */
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chartContent {
+    flex-direction: column;
+  }
+
+  .filterBox {
+    justify-content: flex-start;
+  }
+}
