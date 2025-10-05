@@ -1,4 +1,3 @@
-// salaryService.js
 import * as request from "~/apis/configs/httpRequest";
 
 /**
@@ -9,9 +8,9 @@ import * as request from "~/apis/configs/httpRequest";
  */
 export const fetchBarberSalaries = async (month, year) => {
   try {
-    const res = await request.get(`/api/salary?month=${month}&year=${year}`); // thêm /
-    console.log("API fetchBarberSalaries trả về:", res);
-    return res;
+    const res = await request.get(`/api/salary?month=${month}&year=${year}`);
+    console.log("fetchBarberSalaries trả về:", res);
+    return res; // trả về dữ liệu lương từ backend
   } catch (error) {
     console.error("Lỗi khi fetch bảng lương:", error);
     throw error.response?.data || error;
@@ -19,18 +18,33 @@ export const fetchBarberSalaries = async (month, year) => {
 };
 
 /**
- * Gửi yêu cầu tính lương cho tháng/năm
+ * Gửi yêu cầu lưu/tính lương cho tháng/năm
  * @param {number} month Tháng
  * @param {number} year Năm
  * @returns {Promise<any>}
  */
 export const calculateBarberSalaries = async (month, year) => {
   try {
-    const res = await request.post(`/api/salary`, { month, year }); // thêm /
-    console.log("API calculateBarberSalaries trả về:", res);
+    const res = await request.post(`/api/salary/confirm`, { month, year });
+    console.log("calculateBarberSalaries trả về:", res);
     return res;
   } catch (error) {
     console.error("Lỗi khi tính lương:", error);
+    throw error.response?.data || error;
+  }
+};
+
+/**
+ * Lấy tổng quan lương các tháng (cả tháng hiện tại & các tháng trước)
+ * @returns {Promise<Array>} Mảng dữ liệu tháng + status + salaries
+ */
+export const fetchSalaryOverview = async () => {
+  try {
+    const res = await request.get(`/api/salary/overview`);
+    console.log("fetchSalaryOverview trả về:", res);
+    return res;
+  } catch (error) {
+    console.error("Lỗi khi fetch salary overview:", error);
     throw error.response?.data || error;
   }
 };

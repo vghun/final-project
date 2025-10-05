@@ -5,7 +5,7 @@ export default (sequelize, DataTypes) => {
   class BookingDetail extends Model {
     static associate(models) {
       // BookingDetail thuộc về Booking
-      BookingDetail.belongsTo(models.Booking, { foreignKey: "idBooking" });
+      BookingDetail.belongsTo(models.Booking, { foreignKey: "idBooking", as: "booking" });
       // BookingDetail thuộc về Service
       BookingDetail.belongsTo(models.Service, {
         foreignKey: "idService",

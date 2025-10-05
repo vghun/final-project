@@ -1,10 +1,10 @@
 import db from "../models/index.js";
-import { Op, fn, col, literal } from "sequelize";
+import { fn, col, Op } from "sequelize";
 
+// ====================== Lấy lương real-time cho một tháng ======================
 export const getBarberSalariesOptimized = async (month, year) => {
-  // Tính ngày bắt đầu và kết thúc của tháng
-  const startDate = new Date(year, month - 1, 1);       // đầu tháng
-  const endDate = new Date(year, month, 1);             // đầu tháng tiếp theo
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 1);
 
   const salaries = await db.Barber.findAll({
     include: [
@@ -26,19 +26,11 @@ export const getBarberSalariesOptimized = async (month, year) => {
         required: false,
         where: {
           status: "Completed",
-          bookingDate: { [Op.gte]: startDate, [Op.lt]: endDate }, // Filter theo tháng
+          bookingDate: { [Op.gte]: startDate, [Op.lt]: endDate },
         },
         include: [
-          {
-            model: db.BookingDetail,
-            as: "BookingDetails",
-            attributes: [],
-          },
-          {
-            model: db.BookingTip,
-            as: "BookingTip",
-            attributes: [],
-          },
+          { model: db.BookingDetail, as: "BookingDetails", attributes: [] },
+          { model: db.BookingTip, as: "BookingTip", attributes: [] },
         ],
         attributes: [],
       },
@@ -54,14 +46,27 @@ export const getBarberSalariesOptimized = async (month, year) => {
     group: ["Barber.idBarber", "user.idUser", "branch.idBranch"],
   });
 
+  const bonusRules = await db.BonusRule.findAll({
+    where: { active: true },
+    order: [["minRevenue", "ASC"]],
+  });
+
   return salaries.map((b) => {
     const serviceRevenue = parseFloat(b.get("serviceRevenue") || 0);
     const tipAmount = parseFloat(b.get("tipAmount") || 0);
-    const baseSalary = 5000000; // Lương cơ bản
-    const commission = serviceRevenue * 0.15; // Hoa hồng 15%
-    const totalSalary = baseSalary + commission + tipAmount;
+    const baseSalary = 5000000;
+    const commission = serviceRevenue * 0.15;
+
+    const rule = bonusRules.find(
+      (r) =>
+        serviceRevenue >= parseFloat(r.minRevenue) &&
+        (r.maxRevenue == null || serviceRevenue <= parseFloat(r.maxRevenue))
+    );
+    const bonus = rule ? (commission * parseFloat(rule.bonusPercent)) / 100 : 0;
+    const totalSalary = baseSalary + commission + tipAmount + bonus;
 
     return {
+      idBarber: b.idBarber,
       barberName: b.get("barberName"),
       branchName: b.get("branchName") || "",
       branchAddress: b.get("branchAddress") || "",
@@ -69,8 +74,97 @@ export const getBarberSalariesOptimized = async (month, year) => {
       tip: tipAmount.toFixed(0),
       baseSalary: baseSalary.toFixed(0),
       commission: commission.toFixed(0),
+      bonus: bonus.toFixed(0),
       totalSalary: totalSalary.toFixed(0),
-      status: "Chưa tính", // Nếu muốn check đã tính thì join thêm bảng Salary
+      status: "Chưa tính",
     };
   });
+};
+
+// ====================== Lấy danh sách tháng + trạng thái lương ======================
+export const getSalaryOverview = async () => {
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+
+  const months = [];
+
+  for (let month = 1; month <= currentMonth; month++) {
+    let salaries = [];
+    let canCalculate = false;
+
+    // Lấy dữ liệu đã lưu từ Salary
+    const savedSalaries = await db.Salary.findAll({ where: { month, year: currentYear } });
+
+    if (month === currentMonth) {
+      // Tháng hiện tại → real-time
+      salaries = await getBarberSalariesOptimized(month, currentYear);
+      canCalculate = false;
+    } else if (savedSalaries.length > 0) {
+      // Tháng trước đã lưu
+      canCalculate = savedSalaries.some(s => !s.status);
+      salaries = savedSalaries.map(s => ({
+        barberName: s.barberName,
+        baseSalary: s.baseSalary,
+        commission: s.commission,
+        tip: s.tips,
+        bonus: s.bonus,
+        totalSalary: s.totalSalary,
+        status: s.status ? "Đã tính" : "Chưa tính",
+      }));
+    } else {
+      // Tháng trước chưa lưu → lấy snapshot real-time, status = false
+      salaries = await getBarberSalariesOptimized(month, currentYear);
+      salaries = salaries.map(s => ({ ...s, status: "Chưa tính" }));
+      canCalculate = true;
+    }
+
+    months.push({
+      month,
+      year: currentYear,
+      isCurrentMonth: month === currentMonth,
+      canCalculate,
+      salaries,
+    });
+  }
+
+  return months;
+};
+
+// ====================== Xác nhận tính lương toàn bộ thợ ======================
+export const confirmMonthlySalary = async (month, year) => {
+  try {
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentYear = today.getFullYear();
+
+    if (year > currentYear || (year === currentYear && month >= currentMonth)) {
+      return { success: false, message: "Không được tính lương tháng hiện tại hoặc tương lai" };
+    }
+
+    // Lấy dữ liệu real-time để tính chính xác
+    const salaries = await getBarberSalariesOptimized(month, year);
+
+    const salaryData = salaries.map(s => ({
+      idBarber: s.idBarber,
+      barberName: s.barberName,
+      month,
+      year,
+      baseSalary: parseFloat(s.baseSalary),
+      commission: parseFloat(s.commission),
+      tips: parseFloat(s.tip),
+      bonus: parseFloat(s.bonus),
+      totalSalary: parseFloat(s.totalSalary),
+      status: true // đã tính
+    }));
+
+    await db.Salary.bulkCreate(salaryData, {
+      updateOnDuplicate: ["baseSalary", "commission", "tips", "bonus", "totalSalary", "status"]
+    });
+
+    return { success: true, message: "Đã tính lương thành công cho tất cả thợ!" };
+  } catch (err) {
+    console.error(err);
+    return { success: false, message: "Tính lương thất bại" };
+  }
 };

@@ -1,35 +1,45 @@
-// SalaryAPI.js
 import * as salaryService from "~/services/salaryService";
 
 export const SalaryAPI = {
   /**
-   * Lấy bảng lương thợ cắt tóc theo tháng và năm
+   * Lấy bảng lương theo tháng/năm (realtime)
    * @param {number} month Tháng
    * @param {number} year Năm
    */
   getSalaries: async (month, year) => {
     try {
       const res = await salaryService.fetchBarberSalaries(month, year);
-      console.log("SalaryAPI.getSalaries trả về:", res);
-      return res; // res đã là dữ liệu từ salaryService
+      return res;
     } catch (error) {
-      console.error("Lỗi SalaryAPI.getSalaries:", error);
+      console.error("SalaryAPI.getSalaries lỗi:", error);
       throw error;
     }
   },
 
   /**
-   * Tính lương thợ cắt tóc cho tháng và năm (nếu backend có endpoint tính lương)
+   * Tính/lưu lương toàn bộ thợ cho một tháng/năm
    * @param {number} month Tháng
    * @param {number} year Năm
    */
   calculateSalaries: async (month, year) => {
     try {
-      const res = await salaryService.calculateBarberSalaries?.(month, year);
-      console.log("SalaryAPI.calculateSalaries trả về:", res);
+      const res = await salaryService.calculateBarberSalaries(month, year);
       return res;
     } catch (error) {
-      console.error("Lỗi SalaryAPI.calculateSalaries:", error);
+      console.error("SalaryAPI.calculateSalaries lỗi:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Lấy tổng quan các tháng để frontend biết tháng nào đã tính, chưa tính
+   */
+  getSalaryOverview: async () => {
+    try {
+      const res = await salaryService.fetchSalaryOverview();
+      return res;
+    } catch (error) {
+      console.error("SalaryAPI.getSalaryOverview lỗi:", error);
       throw error;
     }
   },

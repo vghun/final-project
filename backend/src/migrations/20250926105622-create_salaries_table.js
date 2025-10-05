@@ -37,10 +37,20 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: 0,
     },
+    bonus: {
+      type: Sequelize.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+    },
     totalSalary: {
       type: Sequelize.DECIMAL(10, 2),
       allowNull: false,
       defaultValue: 0,
+    },
+    status: {  // <--- thêm cột status
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
     createdAt: {
       type: Sequelize.DATE,

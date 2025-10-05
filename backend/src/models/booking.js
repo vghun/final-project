@@ -7,7 +7,7 @@ export default (sequelize, DataTypes) => {
       // Booking thuộc về Customer
       Booking.belongsTo(models.Customer, { foreignKey: "idCustomer" });
       // Booking có thể gán cho Barber
-      Booking.belongsTo(models.Barber, { foreignKey: "idBarber" });
+      Booking.belongsTo(models.Barber, { foreignKey: "idBarber", as: "barber" });
       // Booking có thể có Voucher của Customer
       Booking.belongsTo(models.CustomerVoucher, { foreignKey: "idCustomerVoucher" });
       // Booking có nhiều BookingDetail
