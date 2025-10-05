@@ -6,7 +6,15 @@ export default (sequelize, DataTypes) => {
     static associate(models) {
       ReelComment.belongsTo(models.Reel, { foreignKey: "idReel" });
       ReelComment.belongsTo(models.User, { foreignKey: "idUser" });
-    }
+      ReelComment.hasMany(models.ReelComment, {
+        foreignKey: "parentCommentId",
+        as: "replies",
+      });
+      ReelComment.belongsTo(models.ReelComment, {
+        foreignKey: "parentCommentId",
+        as: "parent",
+      });
+      }
   }
   ReelComment.init(
     {
