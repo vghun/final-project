@@ -1,22 +1,16 @@
 "use strict";
-import { Model, DataTypes } from "sequelize";
+import { Model } from "sequelize";
 
-export default (sequelize) => {
+export default (sequelize, DataTypes) => {
   class Barber extends Model {
     static associate(models) {
-      Barber.belongsTo(models.User, {
+      this.belongsTo(models.User, { foreignKey: "idBarber", as: "user" });
+      this.belongsTo(models.Branch, { foreignKey: "idBranch", as: "branch" });
+
+      this.hasMany(models.Booking, {
         foreignKey: "idBarber",
-        as: "user",
+        as: "bookings",
       });
-      // Thêm association với Branch
-      Barber.belongsTo(models.Branch, {
-        foreignKey: "idBranch",
-        as: "branch",
-      });
-      Barber.hasMany(models.Booking, {
-      foreignKey: "idBarber",
-      as: "Bookings", // Phải khớp alias khi include trong service
-    });
     }
   }
 
@@ -28,7 +22,7 @@ export default (sequelize) => {
       },
       idBranch: {
         type: DataTypes.INTEGER,
-        allowNull: true, // Nếu chưa bắt buộc
+        allowNull: true,
       },
       profileDescription: {
         type: DataTypes.TEXT,

@@ -4,14 +4,12 @@ import { Model } from "sequelize";
 export default (sequelize, DataTypes) => {
   class Service extends Model {
     static associate(models) {
-      // 1 Service có thể nằm trong nhiều BookingDetail
-      Service.hasMany(models.BookingDetail, {
+      this.hasMany(models.BookingDetail, {
         foreignKey: "idService",
         as: "bookingDetails",
       });
 
-      // 1 Service có thể thuộc nhiều Branch thông qua ServiceAssignment
-      Service.belongsToMany(models.Branch, {
+      this.belongsToMany(models.Branch, {
         through: models.ServiceAssignment,
         foreignKey: "idService",
         otherKey: "idBranch",
