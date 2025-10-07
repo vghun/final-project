@@ -1,9 +1,11 @@
 .container {
   padding: 20px;
   margin: 0 auto;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: #fffaf5;
+  border: 1px solid #e8e1dc;
   border-radius: 12px;
+  color: #2a1f1f;
+  font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
 .header {
@@ -22,7 +24,7 @@
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #d1fae5;
+  border: 3px solid #e8e1dc;
 }
 
 .changeAvatar {
@@ -30,29 +32,33 @@
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  background: #059669;
+  background: #3b2f2f;
   color: #fff;
   font-size: 12px;
   padding: 4px 8px;
   border-radius: 6px;
   cursor: pointer;
+
+  &:hover {
+    background: #1f1b1a;
+  }
 }
 
 .name {
   font-size: 22px;
   font-weight: bold;
-  color: #064e3b;
+  color: #3b2f2f;
 }
 
 .branch {
-  color: #047857;
+  color: #5c4033;
   font-size: 15px;
 }
 
 .rating {
   margin-top: 6px;
   font-size: 14px;
-  color: #6b7280;
+  color: #7a6b6b;
 }
 
 .section {
@@ -63,7 +69,7 @@
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 6px;
-  color: #111827;
+  color: #3b2f2f;
 }
 
 .specialties {
@@ -74,8 +80,8 @@
 }
 
 .badge {
-  background: #ecfdf5;
-  color: #065f46;
+  background: #fff6eb;
+  color: #3b2f2f;
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 13px;
@@ -84,11 +90,13 @@
 .input,
 .textarea {
   width: 100%;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d8cdc3;
   padding: 8px 10px;
   border-radius: 6px;
   font-size: 14px;
   margin-top: 4px;
+  background: #fffaf5;
+  color: #2a1f1f;
 }
 
 .textarea {
@@ -97,9 +105,9 @@
 }
 
 .addBtn {
-  background: #f0fdf4;
-  border: 1px dashed #059669;
-  color: #047857;
+  background: #fff6eb;
+  border: 1px dashed #3b2f2f;
+  color: #3b2f2f;
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
@@ -123,16 +131,16 @@
 }
 
 .editBtn {
-  background: #059669;
+  background: #3b2f2f;
   color: #fff;
 }
 
 .saveBtn {
-  background: #10b981;
+  background: #5c4033;
   color: #fff;
 }
 
 .cancelBtn {
-  background: #f3f4f6;
-  color: #374151;
+  background: #f2f0ed;
+  color: #2a1f1f;
 }

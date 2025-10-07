@@ -1,10 +1,16 @@
 .card {
   background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid #e8e1dc;
+  border-radius: 10px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(43, 35, 35, 0.12);
+  }
 }
 
 .imgBox {
@@ -24,7 +30,7 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(43, 35, 35, 0.4);
   color: #fff;
   border: none;
   border-radius: 50%;
@@ -32,7 +38,7 @@
   cursor: pointer;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(43, 35, 35, 0.6);
   }
 }
 
@@ -54,22 +60,22 @@
 .customer {
   font-weight: 600;
   font-size: 16px;
-  color: #111827;
+  color: #3b2f2f;
 }
 
 .barber {
   font-size: 14px;
-  color: #374151;
+  color: #5c4033;
 }
 
 .service {
   font-size: 14px;
-  color: #047857;
+  color: #5c4033;
 }
 
 .desc {
   font-size: 13px;
-  color: #4b5563;
+  color: #7a6b6b;
 }
 
 .meta {
@@ -78,7 +84,7 @@
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
-  color: #6b7280;
+  color: #7a6b6b;
 }
 
 .stats {

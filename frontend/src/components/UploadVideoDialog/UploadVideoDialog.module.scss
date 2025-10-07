@@ -1,10 +1,7 @@
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background: rgba(43, 35, 35, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,12 +9,12 @@
 }
 
 .dialog {
-  background: #fff;
-  border-radius: 10px;
-  padding: 20px;
+  background: #fffaf5;
+  border-radius: 12px;
+  padding: 24px;
   width: 500px;
   max-width: 90%;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 14px rgba(43, 35, 35, 0.25);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -30,27 +27,27 @@
 
   h2 {
     font-size: 18px;
-    font-weight: 600;
-    color: #064e3b;
+    font-weight: 700;
+    color: #3b2f2f;
   }
 }
 
 .closeBtn {
   background: transparent;
   border: none;
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
-  color: #6b7280;
+  color: #7a6b6b;
 
   &:hover {
-    color: #111827;
+    color: #3b2f2f;
   }
 }
 
 .description {
   font-size: 14px;
-  color: #065f46;
-  margin-top: -8px;
+  color: #5c4033;
+  margin-top: -6px;
 }
 
 .body {
@@ -66,22 +63,23 @@
 
   label {
     font-weight: 500;
-    color: #065f46;
+    color: #3b2f2f;
     font-size: 14px;
   }
 
   input,
   textarea {
-    border: 1px solid #d1fae5;
+    border: 1px solid #e8e1dc;
     border-radius: 6px;
     padding: 8px;
     font-size: 14px;
-    background: #f9fafb;
+    background: #fff;
+    color: #2a1f1f;
 
     &:focus {
       outline: none;
-      border-color: #059669;
-      box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+      border-color: #3b2f2f;
+      box-shadow: 0 0 0 2px rgba(59, 47, 47, 0.15);
     }
   }
 
@@ -94,7 +92,7 @@
 .fileName {
   font-size: 13px;
   margin-top: 6px;
-  color: #047857;
+  color: #5c4033;
   font-style: italic;
 }
 
@@ -106,21 +104,21 @@
 }
 
 .cancelBtn {
-  background: #e5e7eb;
+  background: #f2f0ed;
   border: none;
   padding: 8px 14px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  color: #374151;
+  color: #3b2f2f;
 
   &:hover {
-    background: #d1d5db;
+    background: #e8e1dc;
   }
 }
 
 .submitBtn {
-  background: #059669;
+  background: #3b2f2f;
   color: #fff;
   border: none;
   padding: 8px 16px;
@@ -130,6 +128,6 @@
   font-weight: 500;
 
   &:hover {
-    background: #047857;
+    background: #1f1b1a;
   }
 }

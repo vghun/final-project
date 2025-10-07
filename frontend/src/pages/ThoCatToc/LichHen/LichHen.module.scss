@@ -1,6 +1,8 @@
-/* LichHen.module.scss */
 .container {
   padding: 20px;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  color: #2a1f1f;
+  background: white;
 }
 
 .header {
@@ -12,14 +14,16 @@
 
 .title {
   font-size: 20px;
-  font-weight: 600;
-  color: #064e3b;
+  font-weight: 700;
+  color: #3b2f2f;
 }
 
 .select {
   padding: 6px 10px;
-  border: 1px solid #d1fae5;
+  border: 1px solid #d8cdc3;
   border-radius: 6px;
+  color: #3b2f2f;
+  background: #fffaf5;
 }
 
 .nav {
@@ -31,23 +35,27 @@
 }
 
 .navBtn {
-  background: #ecfdf5;
-  border: 1px solid #d1fae5;
+  background: #fff6eb;
+  border: 1px solid #e8e1dc;
   padding: 4px 8px;
   border-radius: 6px;
   cursor: pointer;
+
+  &:hover {
+    background: #f0e4dc;
+  }
 }
 
 .rangeText {
   font-weight: 500;
-  color: #065f46;
+  color: #3b2f2f;
 }
 
 .list {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 500px;   /* cho ngày */
+  max-height: 500px;
   overflow-y: auto;
 }
 
@@ -58,19 +66,21 @@
 }
 
 .weekCol {
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e8e1dc;
   border-radius: 6px;
-  background: #fff;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 2px 4px rgba(43, 35, 35, 0.08);
 }
 
 .weekHeader {
   padding: 6px;
-  background: #f0fdf4;
+  background: #fff6eb;
   font-weight: 600;
   text-align: center;
-  border-bottom: 1px solid #d1fae5;
+  border-bottom: 1px solid #e8e1dc;
+  color: #3b2f2f;
 }
 
 .weekAppts {
@@ -79,13 +89,13 @@
   flex-direction: column;
   gap: 6px;
   padding: 6px;
-  max-height: 450px;   /* giới hạn chiều cao */
-  overflow-y: auto;    /* chỉ phần danh sách này cuộn */
+  max-height: 450px;
+  overflow-y: auto;
 }
 
 .empty,
 .noAppt {
   text-align: center;
-  color: #6b7280;
+  color: #7a6b6b;
   font-size: 14px;
 }

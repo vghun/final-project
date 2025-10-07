@@ -1,26 +1,29 @@
 .container {
   padding: 20px;
-  background: #f8fcfa;
+  background: white;
   border-radius: 12px;
+  color: #2a1f1f;
+  font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
 .title {
   font-size: 22px;
   font-weight: bold;
-  color: #064e3b;
+  color: #3b2f2f;
 }
 
 .subtitle {
-  color: #047857;
+  color: #5c4033;
   margin-bottom: 20px;
 }
 
 .section {
   margin-top: 24px;
   padding: 16px;
-  border: 1px solid #d1fae5;
+  border: 1px solid #e8e1dc;
   border-radius: 10px;
-  background: #fff;
+  background: #fffaf5;
+  box-shadow: 0 2px 6px rgba(43, 35, 35, 0.08);
 }
 
 .headerRow {
@@ -33,11 +36,11 @@
 .sectionTitle {
   font-size: 18px;
   font-weight: 600;
-  color: #064e3b;
+  color: #3b2f2f;
 }
 
 .badge {
-  background: #059669;
+  background: #3b2f2f;
   color: white;
   font-size: 13px;
   padding: 4px 8px;
@@ -51,7 +54,7 @@
 .progressBar {
   width: 100%;
   height: 12px;
-  background: #d1fae5;
+  background: #efe9e5;
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -59,42 +62,28 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(to right, #10b981, #047857);
-}
-
-.progressBarYellow {
-  width: 100%;
-  height: 12px;
-  background: #fef9c3;
-  border-radius: 6px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.progressFillYellow {
-  height: 100%;
-  background: linear-gradient(to right, #facc15, #ca8a04);
+  background: linear-gradient(to right, #3b2f2f, #5c4033);
 }
 
 .row {
   display: flex;
   justify-content: space-between;
   font-size: 14px;
-  color: #065f46;
+  color: #5c4033;
   margin-top: 4px;
 }
 
 .rewardBox {
   margin-top: 16px;
   padding: 12px;
-  border: 1px solid #fde68a;
-  background: #fef9c3;
+  border: 1px solid #d9c8b4;
+  background: #fff6eb;
   border-radius: 8px;
   text-align: center;
 }
 
 .rewardLabel {
-  color: #92400e;
+  color: #5c4033;
   font-size: 14px;
   margin-bottom: 4px;
 }
@@ -102,5 +91,5 @@
 .rewardValue {
   font-size: 20px;
   font-weight: bold;
-  color: #b45309;
+  color: #3b2f2f;
 }
