@@ -1,0 +1,39 @@
+.branchList {
+  margin-top: 20px;
+}
+
+.branchTitle {
+  font-weight: 600;
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.branchCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.branchCard {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 16px;
+  width: 240px;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+
+  h4 {
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    color: #555;
+    font-size: 14px;
+  }
+}
