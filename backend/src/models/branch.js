@@ -4,8 +4,15 @@ import { Model } from "sequelize";
 export default (sequelize, DataTypes) => {
   class Branch extends Model {
     static associate(models) {
-      Branch.hasMany(models.ServiceAssignment, { foreignKey: "idBranch" });
-      Branch.hasMany(models.Barber, { foreignKey: "idBranch" }); // thêm để Sequelize hiểu relation
+      this.hasMany(models.ServiceAssignment, { foreignKey: "idBranch", as: "serviceAssignments" });
+      this.hasMany(models.Barber, { foreignKey: "idBranch", as: "barbers" });
+
+      this.belongsToMany(models.Service, {
+        through: models.ServiceAssignment,
+        foreignKey: "idBranch",
+        otherKey: "idService",
+        as: "services",
+      });
     }
   }
 
