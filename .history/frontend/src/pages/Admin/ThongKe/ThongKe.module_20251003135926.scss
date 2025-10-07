@@ -1,0 +1,89 @@
+.thongke {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 20px;
+  background: #f9fafb;
+  min-height: 100vh;
+}
+
+.chartBox {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  .chartTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .filterBox {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+
+    select, button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: #3b82f6;
+      }
+    }
+
+    button.update {
+      background: #3b82f6;
+      color: #fff;
+      font-weight: 500;
+      &:hover { background: #2563eb; }
+    }
+
+    button.excel {
+      background: #10b981;
+      color: #fff;
+      font-weight: 500;
+      &:hover { background: #059669; }
+    }
+  }
+
+  .chartContent {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+
+    .chartWrapper { flex: 2; }
+    .aiAnalysis {
+      flex: 1;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      height: 100%;
+    }
+  }
+}
+
+/* Responsive */
+@media(max-width:768px) {
+  .chartContent {
+    flex-direction: column;
+  }
+
+  .filterBox {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+
+    select, button { width: 100%; }
+  }
+}

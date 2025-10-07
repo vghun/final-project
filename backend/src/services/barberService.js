@@ -1,6 +1,6 @@
 import db from "../models/index.js";
 import { upsertBarbersTest } from "./pineconeService.js";
-
+const Barber = db.Barber;
 // Lấy toàn bộ barber từ DB
 export const getAllBarbers = async () => {
   try {
@@ -66,4 +66,28 @@ export const syncBarbersToPinecone = async () => {
     console.error("❌ Sync Barber Error:", error);
     return { message: "❌ Lỗi server", error: error.message };
   }
+};
+
+export const assignBarberToBranch = async (idBarber, idBranch) => {
+  const barber = await Barber.findByPk(idBarber);
+  if (!barber) throw new Error("Barber not found");
+  barber.idBranch = idBranch;
+  await barber.save();
+  return barber;
+};
+
+export const approveBarber = async (idBarber) => {
+  const barber = await Barber.findByPk(idBarber);
+  if (!barber) throw new Error("Barber not found");
+  barber.isApproved = true;
+  await barber.save();
+  return barber;
+};
+
+export const lockBarber = async (idBarber) => {
+  const barber = await Barber.findByPk(idBarber);
+  if (!barber) throw new Error("Barber not found");
+  barber.isLocked = true;
+  await barber.save();
+  return barber;
 };
