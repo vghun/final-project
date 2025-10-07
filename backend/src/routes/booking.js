@@ -7,7 +7,7 @@ const router = express.Router();
 router.get("/branches", getBranches);
 
 // Lấy chi tiết 1 chi nhánh (barber + dịch vụ)
-router.get("/branches/:idBranch/details", getBranchDetails);
+router.get("/branches/:idBranch", getBranchDetails);
 
 // Tạo booking
 router.post("/", createBooking);
