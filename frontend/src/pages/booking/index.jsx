@@ -86,38 +86,34 @@ function BookingPage() {
     }
   };
 
-  const handleBarberChange = (e) => {
+  const handleBarberChange = async (e) => {
     const barberId = Number(e.target.value) || null;
     const barber = barbers.find((b) => Number(b.idBarber) === barberId);
     setBooking({ ...booking, barberId, barber: barber?.user?.fullName || "" });
-  };
 
-  const handleDateChange = async (e) => {
-    const date = e.target.value;
-    setBooking((prev) => ({ ...prev, date }));
+    if (!barberId) return;
 
     try {
-      if (booking.branchId) {
-        const res = await fetch(
-          `http://localhost:8088/api/booking/booked-times?branchId=${booking.branchId}` +
-            `${booking.barberId ? `&barberId=${booking.barberId}` : ""}&date=${date}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          const timesArr = Array.isArray(data) ? data : data.times || [];
-          setBookedTimesByDate((prev) => ({ ...prev, [date]: timesArr }));
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn("Could not fetch booked times", err);
-    }
+      const res = await fetch(`http://localhost:8088/api/booking/barbers/${barberId}`);
+      const data = await res.json();
 
-    const mockBooked = {
-      "2025-10-05": ["10:00", "15:00"],
-      "2025-10-04": ["09:00", "14:00"],
-    };
-    setBookedTimesByDate((prev) => ({ ...prev, [date]: mockBooked[date] || [] }));
+      // Gom các booking theo ngày
+      const grouped = {};
+      data.forEach((item) => {
+        const date = item.bookingDate.split("T")[0];
+        if (!grouped[date]) grouped[date] = [];
+        grouped[date].push(item.bookingTime);
+      });
+
+      setBookedTimesByDate(grouped);
+    } catch (err) {
+      console.error("Error fetching barber booked times:", err);
+    }
+  };
+
+  const handleDateChange = (e) => {
+    const date = e.target.value;
+    setBooking((prev) => ({ ...prev, date }));
   };
 
   const handleTimeSelect = (time) => {
@@ -153,7 +149,7 @@ function BookingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          idCustomer: 1,
+          idCustomer: 2,
           idBranch: booking.branchId,
           idBarber: booking.barberId,
           bookingDate: booking.date,
