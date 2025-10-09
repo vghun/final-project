@@ -1,5 +1,5 @@
 import express from "express";
-import { getBranches, getBranchDetails, createBooking } from "../controllers/bookingController.js";
+import { getBranches, getBranchDetails, createBooking, getBookingsByBarber } from "../controllers/bookingController.js";
 
 const router = express.Router();
 
@@ -10,6 +10,9 @@ router.get("/branches", getBranches);
 router.get("/branches/:idBranch", getBranchDetails);
 
 // Tạo booking
-router.post("/", createBooking);
+router.post("/create", createBooking);
+
+// Lấy tất cả booking của 1 barber
+router.get("/barbers/:idBarber", getBookingsByBarber);
 
 export default router;
