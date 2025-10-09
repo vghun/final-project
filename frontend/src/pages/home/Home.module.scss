@@ -7,46 +7,7 @@
   font-family: 'Old Standard TT', serif;
 }
 
-/* Phân trang */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin: 32px 0;
-
-  button {
-    padding: 8px 16px;
-    border: 1px solid #ddd;
-    background: #f9f9f9;
-    color: #333;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: 'Old Standard TT', serif;
-    transition: all 0.2s ease;
-
-    &:hover:not(:disabled) {
-      background: #2563eb;
-      color: #fff;
-      border-color: #2563eb;
-    }
-
-    &:disabled {
-      background: #eee;
-      color: #999;
-      cursor: not-allowed;
-    }
-  }
-
-  span {
-    font-weight: 600;
-    font-size: 14px;
-    color: #333;
-  }
-}
-
-
-// Hero Section
+/* Hero Section */
 .heroSection {
   position: relative;
   width: 100%;
@@ -64,7 +25,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.3); // lớp mờ để chữ nổi bật
+  background-color: rgba(0, 0, 0, 0.3);
   z-index: 1;
 }
 
@@ -76,14 +37,14 @@
 
   h1 {
     font-size: 3rem;
-    font-weight: 700; // dùng bold để nổi bật
+    font-weight: 700;
     margin-bottom: 1rem;
   }
 
   p {
     font-size: 1.5rem;
     font-weight: 400;
-    font-style: italic; // cho mềm mại, kiểu classic
+    font-style: italic;
     margin-bottom: 2rem;
   }
 }
@@ -127,10 +88,10 @@
   }
 }
 
-// Các section sản phẩm
+/* Section chung */
 .section {
   padding: 60px 0;
-  font-family: 'Old Standard TT', serif;
+  background: #fafafa;
 }
 
 .container {
@@ -139,89 +100,92 @@
   padding: 0 16px;
 }
 
-.title {
-  font-size: 28px;
-  font-weight: 700; // bold
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.subtitle {
-  font-size: 16px;
-  color: #666;
-  text-align: center;
-  margin-bottom: 40px;
-  font-style: italic; // cho vibe cổ điển
-}
-
+/* Dịch vụ hot nhất */
 .textCenter {
   text-align: center;
-  margin-top: 20px;
-}
+  margin-bottom: 2.5rem;
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 24px;
-}
+  .title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.02em;
+  }
 
-.card {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 20px;
-  transition: box-shadow 0.2s ease;
-  font-family: 'Old Standard TT', serif;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  .subtitle {
+    color: #555;
+    font-size: 1.1rem;
+    font-style: italic;
+    opacity: 0.9;
   }
 }
 
-.cardImage {
-  width: 100%;
-  height: 130px;
-  background: #f3f4f6;
-  border-radius: 8px;
-  margin-bottom: 16px;
+.sliderWrapper {
+  overflow-x: hidden;
+  position: relative;
+  padding: 1rem 0;
 
+  &:hover .slider {
+    animation-play-state: paused; /* Dừng animation khi hover */
+  }
+}
+
+.slider {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 1.5rem;
+  width: max-content;
+  animation: slide 30s linear infinite; /* Trượt chậm hơn (30s) */
 }
 
-.icon {
-  width: 48px;
-  height: 48px;
-  color: #2563eb;
+.slideItem {
+  flex: 0 0 calc(33.333% - 1rem); /* Hiển thị khoảng 3 thẻ */
+  min-width: calc(33.333% - 1rem);
+  max-width: 200px; /* Giới hạn chiều rộng thẻ */
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+  }
 }
 
-.iconSmall {
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
+/* Animation cho trượt liên tục */
+@keyframes slide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%); /* Trượt nửa danh sách (do nhân đôi) */
+  }
 }
 
-.cardTitle {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 8px;
+/* Responsive */
+@media (max-width: 768px) {
+  .slideItem {
+    flex: 0 0 calc(50% - 1rem); /* 2 thẻ */
+    min-width: calc(50% - 1rem);
+    max-width: 280px;
+  }
 }
 
-.cardDesc {
-  font-size: 14px;
-  font-weight: 400;
-  color: #555;
-  margin-bottom: 12px;
-}
+@media (max-width: 480px) {
+  .slideItem {
+    flex: 0 0 calc(100% - 1rem); /* 1 thẻ */
+    min-width: calc(100% - 1rem);
+    max-width: 100%;
+  }
 
-.cardFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+  .textCenter {
+    .title {
+      font-size: 1.7rem;
+    }
 
-.price {
-  font-weight: 700;
-  color: #2563eb;
+    .subtitle {
+      font-size: 0.95rem;
+    }
+  }
 }
