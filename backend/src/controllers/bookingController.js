@@ -84,3 +84,24 @@ export const createBooking = async (req, res) => {
     res.status(500).json({ message: "Lỗi khi tạo booking", error });
   }
 };
+
+// Lấy danh sách các booking của 1 barber
+export const getBookingsByBarber = async (req, res) => {
+  try {
+    const { idBarber } = req.params;
+
+    const bookings = await db.Booking.findAll({
+      where: { idBarber },
+      attributes: ["idBooking", "bookingDate", "bookingTime", "status"],
+      order: [
+        ["bookingDate", "DESC"],
+        ["bookingTime", "ASC"],
+      ],
+    });
+
+    res.json(bookings);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi khi lấy thời gian booking của barber", error });
+  }
+};
