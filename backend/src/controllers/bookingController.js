@@ -17,25 +17,6 @@ export const getBranchDetails = async (req, res) => {
   try {
     const { idBranch } = req.params;
 
-<<<<<<< HEAD
-    // Tìm chi nhánh
-    const branch = await db.Branch.findByPk(idBranch);
-    if (!branch) {
-      return res.status(404).json({ message: "Không tìm thấy chi nhánh" });
-    }
-
-    // Lấy danh sách barber và dịch vụ qua bảng ServiceAssignment
-    const assignments = await db.ServiceAssignment.findAll({
-      where: { idBranch },
-      include: [
-        {
-          model: db.Barber,
-          include: [{ model: db.User, as: "user", attributes: ["idUser", "fullName", "email"] }],
-        },
-        {
-          model: db.Service,
-          attributes: ["idService", "name", "description", "price", "duration", "status"],
-=======
     const branch = await db.Branch.findByPk(idBranch, {
       include: [
         {
@@ -55,39 +36,10 @@ export const getBranchDetails = async (req, res) => {
           as: "services", // alias đúng
           attributes: ["idService", "name", "description", "price", "duration", "status"],
           through: { attributes: [] },
->>>>>>> origin/main
         },
       ],
     });
 
-<<<<<<< HEAD
-    // Gom dữ liệu lại
-    const barbers = [];
-    const services = [];
-
-    assignments.forEach((a) => {
-      if (a.Barber && !barbers.find((b) => b.idBarber === a.Barber.idBarber)) {
-        barbers.push({
-          idBarber: a.Barber.idBarber,
-          name: a.Barber.user?.fullName || "N/A",
-          profileDescription: a.Barber.profileDescription,
-        });
-      }
-      if (a.Service && !services.find((s) => s.idService === a.Service.idService)) {
-        services.push({
-          idService: a.Service.idService,
-          name: a.Service.name,
-          description: a.Service.description,
-          price: a.Service.price,
-          duration: a.Service.duration,
-          status: a.Service.status,
-        });
-      }
-    });
-
-    res.json({ branch, barbers, services });
-  } catch (error) {
-=======
     if (!branch) {
       return res.status(404).json({ message: "Không tìm thấy chi nhánh" });
     }
@@ -95,7 +47,6 @@ export const getBranchDetails = async (req, res) => {
     res.json(branch);
   } catch (error) {
     console.error(error);
->>>>>>> origin/main
     res.status(500).json({ message: "Lỗi khi lấy chi tiết chi nhánh", error });
   }
 };
@@ -133,8 +84,6 @@ export const createBooking = async (req, res) => {
     res.status(500).json({ message: "Lỗi khi tạo booking", error });
   }
 };
-<<<<<<< HEAD
-=======
 
 // Lấy danh sách các booking của 1 barber
 export const getBookingsByBarber = async (req, res) => {
@@ -170,4 +119,3 @@ export const getBookingsByBarber = async (req, res) => {
     });
   }
 };
->>>>>>> origin/main

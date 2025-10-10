@@ -9,15 +9,6 @@ export default (sequelize, DataTypes) => {
   }
   BarberUnavailability.init(
     {
-<<<<<<< HEAD
-      id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-      idBarber: DataTypes.INTEGER,
-      startDate: DataTypes.DATE,
-      endDate: DataTypes.DATE,
-      description: DataTypes.TEXT,
-    },
-    { sequelize, modelName: "BarberUnavailability", tableName: "barber_unavailabilities" }
-=======
       idUnavailable: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -45,7 +36,6 @@ export default (sequelize, DataTypes) => {
       tableName: "barber_unavailabilities",
       timestamps: true,
     }
->>>>>>> origin/main
   );
   return BarberUnavailability;
 };
