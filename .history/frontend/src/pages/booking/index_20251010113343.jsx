@@ -17,6 +17,17 @@ function BookingPage() {
   });
 
   const [showVoucherList, setShowVoucherList] = useState(false);
+<<<<<<< HEAD
+  const [branches, setBranches] = useState([]); // lấy từ API
+  const [barbers, setBarbers] = useState([]);
+  const [services, setServices] = useState([]);
+  const [times, setTimes] = useState([]);
+
+  // Danh sách giờ đã đặt theo ngày (map: { "YYYY-MM-DD": ["09:00", "10:00"] })
+  const [bookedTimesByDate, setBookedTimesByDate] = useState({});
+
+  // voucher
+=======
   const [branches, setBranches] = useState([]);
   const [barbers, setBarbers] = useState([]);
   const [services, setServices] = useState([]);
@@ -24,6 +35,7 @@ function BookingPage() {
   const [bookedTimesByDate, setBookedTimesByDate] = useState({});
   const [unavailableDates, setUnavailableDates] = useState([]); // ✅ thêm state ngày nghỉ
 
+>>>>>>> origin/main
   const vouchers = [
     { code: "SALE10", description: "Giảm 10% dịch vụ", discount: 10, exchanged: true, expireDate: "31/12/2025" },
     {
@@ -37,10 +49,16 @@ function BookingPage() {
     { code: "FREESHIP", description: "Miễn phí gội đầu", discount: 5, exchanged: true, expireDate: "01/01/2026" },
   ];
 
+<<<<<<< HEAD
+  // ================= CALL API =================
+  useEffect(() => {
+    // Gọi API lấy danh sách chi nhánh
+=======
   const today = new Date();
 
   // ================= CALL API =================
   useEffect(() => {
+>>>>>>> origin/main
     fetch("http://localhost:8088/api/booking/branches")
       .then((res) => res.json())
       .then((data) => setBranches(data || []))
@@ -49,6 +67,10 @@ function BookingPage() {
 
   const handleBranchChange = async (e) => {
     const branchId = Number(e.target.value) || null;
+<<<<<<< HEAD
+    // giữ nguyên giao diện: reset tên branch/barber/services/time khi đổi chi nhánh
+=======
+>>>>>>> origin/main
     setBooking({ ...booking, branchId, branch: "", barber: "", barberId: null, services: [], time: "", date: "" });
 
     if (!branchId) {
@@ -58,6 +80,27 @@ function BookingPage() {
       return;
     }
 
+<<<<<<< HEAD
+    // Gọi API chi tiết chi nhánh
+    try {
+      const res = await fetch(`http://localhost:8088/api/booking/branches/${branchId}/details`);
+      const data = await res.json();
+
+      // data.branch, data.barbers, data.services kỳ vọng từ backend
+      setBooking((prev) => ({ ...prev, branch: data.branch?.name || "" }));
+      setBarbers(data.barbers || []);
+      setServices(data.services || []);
+
+      // tạo danh sách times từ openTime-closeTime theo slotDuration
+      if (data.branch && data.branch.openTime && data.branch.closeTime && data.branch.slotDuration) {
+        const start = new Date(`2000-01-01T${data.branch.openTime}`);
+        const end = new Date(`2000-01-01T${data.branch.closeTime}`);
+        const slot = Number(data.branch.slotDuration) || 60;
+        const slots = [];
+        // dùng copy vì setMinutes thay đổi đối tượng Date
+        for (let t = new Date(start); t < end; t = new Date(t.getTime() + slot * 60000)) {
+          const hhmm = t.toTimeString().slice(0, 5); // HH:mm
+=======
     try {
       const res = await fetch(`http://localhost:8088/api/booking/branches/${branchId}`);
       const data = await res.json();
@@ -73,6 +116,7 @@ function BookingPage() {
         const slots = [];
         for (let t = new Date(start); t < end; t = new Date(t.getTime() + slot * 60000)) {
           const hhmm = t.toTimeString().slice(0, 5);
+>>>>>>> origin/main
           slots.push(hhmm);
         }
         setTimes(slots);
@@ -87,6 +131,48 @@ function BookingPage() {
     }
   };
 
+<<<<<<< HEAD
+  const handleBarberChange = (e) => {
+    const barberId = Number(e.target.value) || null;
+    const barber = barbers.find((b) => Number(b.idBarber) === barberId);
+    setBooking({ ...booking, barberId, barber: barber?.name || "" });
+  };
+
+  // Khi chọn ngày: cập nhật booking.date và load booked times từ backend (nếu có)
+  const handleDateChange = async (e) => {
+    const date = e.target.value; // "YYYY-MM-DD"
+    setBooking((prev) => ({ ...prev, date }));
+
+    // Nếu bạn có API để lấy giờ đã đặt theo branch + barber + date thì gọi ở đây
+    // Ví dụ endpoint giả: /api/booking/booked-times?branchId=1&barberId=2&date=2025-10-05
+    try {
+      if (booking.branchId) {
+        const res = await fetch(
+          `http://localhost:8088/api/booking/booked-times?branchId=${booking.branchId}` +
+            `${booking.barberId ? `&barberId=${booking.barberId}` : ""}&date=${date}`
+        );
+        if (res.ok) {
+          const data = await res.json(); // kỳ vọng trả về { times: ["09:00","10:00"] } hoặc ["09:00",...]
+          const timesArr = Array.isArray(data) ? data : data.times || [];
+          setBookedTimesByDate((prev) => ({ ...prev, [date]: timesArr }));
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn("Could not fetch booked times, fallback to mock if any", err);
+    }
+
+    // fallback demo (nếu backend không có): ví dụ mock
+    const mockBooked = {
+      "2025-10-05": ["10:00", "15:00"],
+      "2025-10-04": ["09:00", "14:00"],
+    };
+    setBookedTimesByDate((prev) => ({ ...prev, [date]: mockBooked[date] || [] }));
+  };
+
+  const handleTimeSelect = (time) => {
+    // nếu time đã bị booked thì không chọn
+=======
   const handleBarberChange = async (e) => {
     const barberId = Number(e.target.value) || null;
     const barber = barbers.find((b) => Number(b.idBarber) === barberId);
@@ -135,6 +221,7 @@ function BookingPage() {
   };
 
   const handleTimeSelect = (time) => {
+>>>>>>> origin/main
     const bookedTimes = booking.date ? bookedTimesByDate[booking.date] || [] : [];
     if (bookedTimes.includes(time)) return;
     setBooking({ ...booking, time });
@@ -162,11 +249,23 @@ function BookingPage() {
     const discountAmount = (totalPrice * booking.discount) / 100;
     const finalPrice = totalPrice - discountAmount;
 
+<<<<<<< HEAD
+    // Gọi API tạo booking
+=======
+>>>>>>> origin/main
     try {
       const res = await fetch("http://localhost:8088/api/booking/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+<<<<<<< HEAD
+          idCustomer: 1, // TODO: lấy từ user login
+          idBranch: booking.branchId,
+          idBarber: booking.barberId,
+          bookingDate: booking.date, // dùng date user chọn
+          bookingTime: booking.time,
+          services: booking.services.map((s) => ({ idService: s.idService, price: s.price, quantity: 1 })),
+=======
           idCustomer: 2,
           idBranch: booking.branchId,
           idBarber: booking.barberId,
@@ -177,13 +276,17 @@ function BookingPage() {
             price: s.price,
             quantity: 1,
           })),
+>>>>>>> origin/main
           description: booking.services.map((s) => s.name).join(", "),
         }),
       });
       const result = await res.json();
       if (res.ok) {
         alert(`Đặt lịch thành công!\nThành tiền: ${finalPrice.toLocaleString()}đ`);
+<<<<<<< HEAD
+=======
         window.location.reload(); // ✅ Load lại giao diện
+>>>>>>> origin/main
       } else {
         alert("Lỗi đặt lịch: " + (result.message || "Unknown error"));
       }
@@ -193,9 +296,17 @@ function BookingPage() {
     }
   };
 
+<<<<<<< HEAD
+  // ================= RENDER =================
   const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
   const discountAmount = (totalPrice * booking.discount) / 100;
   const finalPrice = totalPrice - discountAmount;
+
+=======
+  const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
+  const discountAmount = (totalPrice * booking.discount) / 100;
+  const finalPrice = totalPrice - discountAmount;
+>>>>>>> origin/main
   const bookedTimes = booking.date ? bookedTimesByDate[booking.date] || [] : [];
 
   return (
@@ -208,7 +319,11 @@ function BookingPage() {
         <div className={styles.bookingContainer}>
           <h2>Đặt lịch Barber</h2>
           <form onSubmit={handleSubmit}>
+<<<<<<< HEAD
+            {/* Chọn cơ sở */}
+=======
             {/* Cơ sở */}
+>>>>>>> origin/main
             <div className={styles.formGroup}>
               <label>Cơ sở:</label>
               <select value={booking.branchId || ""} onChange={handleBranchChange}>
@@ -221,19 +336,56 @@ function BookingPage() {
               </select>
             </div>
 
+<<<<<<< HEAD
+            {/* Chọn barber */}
+=======
             {/* Barber */}
+>>>>>>> origin/main
             <div className={styles.formGroup}>
               <label>Kỹ thuật viên:</label>
               <select value={booking.barberId || ""} onChange={handleBarberChange} disabled={!barbers.length}>
                 <option value="">-- Chọn barber --</option>
                 {barbers.map((barber) => (
                   <option key={barber.idBarber} value={barber.idBarber}>
+<<<<<<< HEAD
+                    {barber.name}
+=======
                     {barber.user?.fullName}
+>>>>>>> origin/main
                   </option>
                 ))}
               </select>
             </div>
 
+<<<<<<< HEAD
+            {/* Chọn ngày */}
+            <div className={styles.formGroup}>
+              <label>Ngày:</label>
+              <input type="date" value={booking.date} onChange={handleDateChange} />
+            </div>
+
+            {/* Chọn thời gian */}
+            <div className={styles.formGroup}>
+              <label>Thời gian:</label>
+              <div className={styles.timeGrid}>
+                {times.map((time, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`${styles.timeSlot} ${bookedTimes.includes(time) ? styles.booked : ""} ${
+                      booking.time === time ? styles.selected : ""
+                    }`}
+                    onClick={() => handleTimeSelect(time)}
+                    disabled={bookedTimes.includes(time) || !booking.date}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Chọn dịch vụ */}
+=======
             {/* Ngày */}
             <div className={styles.formGroup}>
               <label>Ngày:</label>
@@ -298,6 +450,7 @@ function BookingPage() {
             </div>
 
             {/* Dịch vụ */}
+>>>>>>> origin/main
             <div className={styles.formGroup}>
               <label>Dịch vụ:</label>
               <select onChange={handleServiceAdd} value="">
@@ -320,7 +473,11 @@ function BookingPage() {
               </ul>
             </div>
 
+<<<<<<< HEAD
+            {/* Tổng giá + giảm giá */}
+=======
             {/* Tổng giá */}
+>>>>>>> origin/main
             <div className={styles.summary}>
               <p>Tạm tính: {totalPrice.toLocaleString()}đ</p>
               <p>Giảm giá: -{discountAmount.toLocaleString()}đ</p>

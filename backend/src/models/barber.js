@@ -1,4 +1,5 @@
 "use strict";
+<<<<<<< HEAD
 import { Model, DataTypes } from "sequelize";
 
 export default (sequelize) => {
@@ -12,6 +13,31 @@ export default (sequelize) => {
 
 }
 
+=======
+import { Model } from "sequelize";
+
+export default (sequelize, DataTypes) => {
+  class Barber extends Model {
+    static associate(models) {
+      // Quan hệ với User (1-1)
+      this.belongsTo(models.User, { foreignKey: "idBarber", as: "user" });
+
+      // Quan hệ với Branch (nhiều thợ thuộc 1 chi nhánh)
+      this.belongsTo(models.Branch, { foreignKey: "idBranch", as: "branch" });
+
+      // Quan hệ với Booking (1 thợ có nhiều booking)
+      this.hasMany(models.Booking, {
+        foreignKey: "idBarber",
+        as: "bookings",
+      });
+
+      // Quan hệ với Salary (1 thợ có nhiều lương)
+      this.hasMany(models.Salary, {
+        foreignKey: "idBarber",
+        as: "salaries",
+      });
+    }
+>>>>>>> origin/main
   }
 
   Barber.init(

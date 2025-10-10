@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
 import * as BarberService from "../services/barberService.js";
 
 // Lấy tất cả barber
@@ -22,26 +25,50 @@ const syncBarbers = async (req, res) => {
     return res.status(500).json({ message: "Lỗi server" });
   }
 };
+<<<<<<< HEAD
 const assignBarberToBranch = async (req, res) => {
   try {
     const { idBarber, idBranch } = req.body;
     const barber = await barberService.assignBarberToBranch(idBarber, idBranch);
     res.json({ message: "Barber assigned to branch", barber });
   } catch (error) {
+=======
+
+// Gán barber vào chi nhánh
+const assignBarberToBranch = async (req, res) => {
+  try {
+    const { idBarber, idBranch } = req.body;
+    const barber = await BarberService.assignBarberToBranch(idBarber, idBranch);
+    res.json({ message: "Barber assigned to branch", barber });
+  } catch (error) {
+    console.error("Lỗi assignBarberToBranch:", error);
+>>>>>>> origin/main
     res.status(404).json({ error: error.message });
   }
 };
 
+<<<<<<< HEAD
 const approveBarber = async (req, res) => {
   try {
     const { idBarber } = req.body;
     const barber = await barberService.approveBarber(idBarber);
     res.json({ message: "Barber approved", barber });
   } catch (error) {
+=======
+// Duyệt barber
+const approveBarber = async (req, res) => {
+  try {
+    const { idBarber } = req.body;
+    const barber = await BarberService.approveBarber(idBarber);
+    res.json({ message: "Barber approved", barber });
+  } catch (error) {
+    console.error("Lỗi approveBarber:", error);
+>>>>>>> origin/main
     res.status(404).json({ error: error.message });
   }
 };
 
+<<<<<<< HEAD
 const lockBarber = async (req, res) => {
   try {
     const { idBarber } = req.body;
@@ -58,3 +85,19 @@ export default {
   approveBarber,
   lockBarber,
 };
+=======
+// Khóa barber
+const lockBarber = async (req, res) => {
+  try {
+    const { idBarber } = req.body;
+    const barber = await BarberService.lockBarber(idBarber);
+    res.json({ message: "Barber locked", barber });
+  } catch (error) {
+    console.error("Lỗi lockBarber:", error);
+    res.status(404).json({ error: error.message });
+  }
+};
+
+// ✅ Named export
+export { getAllBarbers, syncBarbers, assignBarberToBranch, approveBarber, lockBarber };
+>>>>>>> origin/main
