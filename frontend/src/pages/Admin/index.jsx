@@ -15,7 +15,11 @@ import TongQuan from "./TongQuan"; // 🆕 Thêm dòng này
 const cx = classNames.bind(styles);
 
 const tabs = [
+<<<<<<< HEAD
   { id: "tongquan", label: "Tổng Quan" }, 
+=======
+  { id: "tongquan", label: "Tổng Quan" }, // 🆕 Thêm tab mới
+>>>>>>> origin/main
   { id: "thongke", label: "Thống kê" },
   { id: "chinhanh", label: "Chi nhánh" },
   { id: "tho", label: "Thợ cắt tóc" },
