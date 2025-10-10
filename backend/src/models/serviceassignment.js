@@ -17,6 +17,5 @@ export default (sequelize, DataTypes) => {
     },
     { sequelize, modelName: "ServiceAssignment", tableName: "service_assignments" }
   );
-
   return ServiceAssignment;
 };
