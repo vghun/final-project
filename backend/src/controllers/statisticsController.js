@@ -21,6 +21,8 @@ const getBarberRevenue = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
+=======
  * Lấy doanh thu theo chi nhánh
  * Query params: month, year
  */
@@ -39,6 +41,7 @@ const getBranchRevenue = async (req, res) => {
 };
 
 /**
+>>>>>>> origin/main
  * Lấy tổng doanh thu từng tháng của các chi nhánh trong năm
  * Query param: year
  */

@@ -20,53 +20,36 @@ export const getBranchDetails = async (req, res) => {
   try {
     const { idBranch } = req.params;
 
-    // Tìm chi nhánh
-    const branch = await db.Branch.findByPk(idBranch);
-    if (!branch) {
-      return res.status(404).json({ message: "Không tìm thấy chi nhánh" });
-    }
-
-    // Lấy danh sách barber và dịch vụ qua bảng ServiceAssignment
-    const assignments = await db.ServiceAssignment.findAll({
-      where: { idBranch },
+    const branch = await db.Branch.findByPk(idBranch, {
       include: [
         {
           model: db.Barber,
-          include: [{ model: db.User, as: "user", attributes: ["idUser", "fullName", "email"] }],
+          as: "barbers", // dùng đúng alias đã định nghĩa
+          attributes: ["idBarber", "profileDescription"],
+          include: [
+            {
+              model: db.User,
+              as: "user", // alias đúng
+              attributes: ["idUser", "fullName", "email"],
+            },
+          ],
         },
         {
           model: db.Service,
+          as: "services", // alias đúng
           attributes: ["idService", "name", "description", "price", "duration", "status"],
+          through: { attributes: [] },
         },
       ],
     });
 
-    // Gom dữ liệu lại
-    const barbers = [];
-    const services = [];
+    if (!branch) {
+      return res.status(404).json({ message: "Không tìm thấy chi nhánh" });
+    }
 
-    assignments.forEach((a) => {
-      if (a.Barber && !barbers.find((b) => b.idBarber === a.Barber.idBarber)) {
-        barbers.push({
-          idBarber: a.Barber.idBarber,
-          name: a.Barber.user?.fullName || "N/A",
-          profileDescription: a.Barber.profileDescription,
-        });
-      }
-      if (a.Service && !services.find((s) => s.idService === a.Service.idService)) {
-        services.push({
-          idService: a.Service.idService,
-          name: a.Service.name,
-          description: a.Service.description,
-          price: a.Service.price,
-          duration: a.Service.duration,
-          status: a.Service.status,
-        });
-      }
-    });
-
-    res.json({ branch, barbers, services });
+    res.json(branch);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Lỗi khi lấy chi tiết chi nhánh", error });
   }
 };
@@ -172,5 +155,39 @@ export const completeBooking = async (req, res) => {
   } catch (err) {
     console.error("Lỗi hoàn tất lịch hẹn:", err);
     return res.status(500).json({ error: err.message });
+  }
+};
+// Lấy danh sách các booking của 1 barber
+export const getBookingsByBarber = async (req, res) => {
+  try {
+    const { idBarber } = req.params;
+
+    // Lấy danh sách booking
+    const bookings = await db.Booking.findAll({
+      where: { idBarber },
+      attributes: ["idBooking", "bookingDate", "bookingTime", "status"],
+      order: [
+        ["bookingDate", "DESC"],
+        ["bookingTime", "ASC"],
+      ],
+    });
+
+    // Lấy danh sách ngày nghỉ
+    const unavailabilities = await db.BarberUnavailability.findAll({
+      where: { idBarber },
+      attributes: ["idUnavailable", "startDate", "endDate", "reason"],
+      order: [["startDate", "DESC"]],
+    });
+
+    res.json({
+      bookings,
+      unavailabilities,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Lỗi khi lấy thời gian booking và ngày nghỉ của barber",
+      error,
+    });
   }
 };
