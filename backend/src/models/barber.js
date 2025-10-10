@@ -1,27 +1,17 @@
 "use strict";
-import { Model } from "sequelize";
+import { Model, DataTypes } from "sequelize";
 
-export default (sequelize, DataTypes) => {
+export default (sequelize) => {
   class Barber extends Model {
     static associate(models) {
-      // Quan hệ với User (1-1)
-      this.belongsTo(models.User, { foreignKey: "idBarber", as: "user" });
+  Barber.belongsTo(models.User, { foreignKey: "idBarber", as: "user" });
+  Barber.belongsTo(models.Branch, { foreignKey: "idBranch", as: "branch" });
+  Barber.hasMany(models.Booking, { foreignKey: "idBarber", as: "Bookings" });
+  Barber.hasMany(models.Salary, { foreignKey: "idBarber", as: "salaries" });
+  Barber.hasOne(models.BarberRatingSummary, { foreignKey: "idBarber",as: "ratingSummary",});
 
-      // Quan hệ với Branch (nhiều thợ thuộc 1 chi nhánh)
-      this.belongsTo(models.Branch, { foreignKey: "idBranch", as: "branch" });
+}
 
-      // Quan hệ với Booking (1 thợ có nhiều booking)
-      this.hasMany(models.Booking, {
-        foreignKey: "idBarber",
-        as: "bookings",
-      });
-
-      // Quan hệ với Salary (1 thợ có nhiều lương)
-      this.hasMany(models.Salary, {
-        foreignKey: "idBarber",
-        as: "salaries",
-      });
-    }
   }
 
   Barber.init(

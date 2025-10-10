@@ -59,4 +59,4 @@ const lockBarber = async (req, res) => {
 };
 
 // ✅ Named export
-export { getAllBarbers, syncBarbers, assignBarberToBranch, approveBarber, lockBarber };
+export default { getAllBarbers, syncBarbers, assignBarberToBranch, approveBarber, lockBarber };
