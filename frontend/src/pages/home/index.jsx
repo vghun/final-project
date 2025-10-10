@@ -11,6 +11,7 @@ import {
 
 const Home = () => {
   const chatRef = useRef(null);
+  const sliderRef = useRef(null); // Thêm ref cho slider
 
   const scrollToChat = () => {
     chatRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -32,7 +33,31 @@ const Home = () => {
       }
     };
     loadHot();
-  }, [page]);    
+  }, [page]);
+
+  // Tự động trượt slider
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    const slideWidth = slider.querySelector(`.${styles.slideItem}`)?.offsetWidth || 280;
+    const totalWidth = slideWidth * hot.length;
+    let scrollPosition = 0;
+
+    const scrollSlider = () => {
+      scrollPosition += slideWidth;
+      if (scrollPosition >= totalWidth) {
+        scrollPosition = 0; // Quay về đầu để tạo vòng lặp vô hạn
+        slider.scrollTo({ left: 0, behavior: "auto" }); // Reset không animation
+      } else {
+        slider.scrollTo({ left: scrollPosition, behavior: "smooth" });
+      }
+    };
+
+    const interval = setInterval(scrollSlider, 3000); // Trượt mỗi 3 giây
+
+    return () => clearInterval(interval); // Dọn dẹp interval khi component unmount
+  }, [hot]);
 
   return (
     <div className={styles.home}>
@@ -69,43 +94,41 @@ const Home = () => {
           <div className={styles.textCenter}>
             <h3 className={styles.title}>Dịch vụ hot nhất</h3>
             <p className={styles.subtitle}>
-              Những dịch vụ được khách hàng đặt nhiều nhất
+              Những dịch vụ được khách hàng yêu thích và đặt nhiều nhất
             </p>
           </div>
-          <div className={styles.grid}>
-            {hot.map((s) => (
-              <ServiceCard
-                key={s.idService}
-                id={s.idService}
-                image={s.image}
-                name={s.name}
-                description={s.description}
-                price={s.price}
-                duration={s.duration}
-              />
-            ))}
+
+          <div className={styles.sliderWrapper} ref={sliderRef}>
+            <div className={styles.slider}>
+              {hot.slice(0, 6).map((s) => (
+                <div key={s.idService} className={styles.slideItem}>
+                  <ServiceCard
+                    id={s.idService}
+                    image={s.image}
+                    name={s.name}
+                    description={s.description}
+                    price={s.price}
+                    duration={s.duration}
+                  />
+                </div>
+              ))}
+              {/* Nhân đôi danh sách để tạo hiệu ứng lặp vô hạn */}
+              {hot.slice(0, 6).map((s) => (
+                <div key={`duplicate-${s.idService}`} className={styles.slideItem}>
+                  <ServiceCard
+                    id={s.idService}
+                    image={s.image}
+                    name={s.name}
+                    description={s.description}
+                    price={s.price}
+                    duration={s.duration}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
-      <div className={styles.pagination}>
-        <button
-          disabled={page === 1}
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-        >
-          Trang trước
-        </button>
-        <span>
-          {page} / {Math.ceil(total / limit)}
-        </span>
-        <button
-          disabled={page >= Math.ceil(total / limit)}
-          onClick={() => setPage((p) => p + 1)}
-        >
-          Trang sau
-        </button>
-      </div>
-
-
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import bookingApi from "~/apis/bookingAPI";
 
-const bookingService = {
+export const bookingService = {
   getBooking: async () => {
     try {
       const response = await bookingApi.getBooking();
@@ -10,6 +10,14 @@ const bookingService = {
       throw error;
     }
   },
+  
+};
+export const fetchBookingsForBarber = async (idBarber, start, end) => {
+  const res = await bookingApi.getForBarber(idBarber, start, end);
+  return res.data;
 };
 
-export default bookingService;
+export const completeBooking = async (idBooking, formData) => {
+  const res = await bookingApi.completeBooking(idBooking, formData);
+  return res.data;
+};
