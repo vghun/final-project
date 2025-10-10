@@ -1,5 +1,14 @@
 import React from "react";
 import classNames from "classnames/bind";
+import {
+  DollarSign,
+  Users,
+  CalendarDays,
+  Star,
+  TrendingUp,
+  Scissors,
+  Crown,
+} from "lucide-react";
 import styles from "./TongQuan.module.scss";
 
 const cx = classNames.bind(styles);
@@ -17,68 +26,108 @@ function TongQuan() {
     { id: 3, name: "Pompadour", popularity: "💈 Được ưa chuộng", img: "/styles/pompadour.jpg" },
   ];
 
+  const stats = [
+    {
+      icon: <DollarSign size={26} />,
+      title: "Doanh thu tháng",
+      value: "115.000.000đ",
+      sub: "+12.5% so với tháng trước",
+    },
+    {
+      icon: <Users size={26} />,
+      title: "Tổng khách hàng",
+      value: "1.247",
+      sub: "Khách hàng đã phục vụ",
+    },
+    {
+      icon: <CalendarDays size={26} />,
+      title: "Lịch hẹn tháng",
+      value: "2.156",
+      sub: "Tổng số lịch hẹn",
+    },
+    {
+      icon: <Star size={26} />,
+      title: "Đánh giá trung bình",
+      value: "4.8 ⭐",
+      sub: "Từ tất cả chi nhánh",
+    },
+  ];
+
   return (
     <div className={cx("tongQuan")}>
-      {/* ====== Thống kê nhanh ====== */}
+      {/* ====== THỐNG KÊ NHANH ====== */}
       <div className={cx("cardGrid")}>
-        <div className={cx("card")}>
-          <h3>Doanh thu tháng</h3>
-          <p className={cx("value")}>115.000.000đ</p>
-          <span>+12.5% so với tháng trước</span>
-        </div>
-        <div className={cx("card")}>
-          <h3>Tổng khách hàng</h3>
-          <p className={cx("value")}>1247</p>
-          <span>Khách hàng đã phục vụ</span>
-        </div>
-        <div className={cx("card")}>
-          <h3>Lịch hẹn tháng</h3>
-          <p className={cx("value")}>2156</p>
-          <span>Tổng số lịch hẹn</span>
-        </div>
-        <div className={cx("card")}>
-          <h3>Đánh giá trung bình</h3>
-          <p className={cx("value")}>4.8 ⭐</p>
-          <span>Từ tất cả chi nhánh</span>
-        </div>
+        {stats.map((s, i) => (
+          <div key={i} className={cx("card")}>
+            <div className={cx("iconBox")}>{s.icon}</div>
+            <div>
+              <h3>{s.title}</h3>
+              <p className={cx("value")}>{s.value}</p>
+              <span>{s.sub}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* ====== Top khách hàng tiềm năng ====== */}
+      {/* ====== TOP KHÁCH HÀNG ====== */}
       <div className={cx("section")}>
-        <h2>Top khách hàng tiềm năng</h2>
-        <table className={cx("customerTable")}>
-          <thead>
-            <tr>
-              <th>Tên khách hàng</th>
-              <th>Số lần đến</th>
-              <th>Tổng chi tiêu</th>
-            </tr>
-          </thead>
-          <tbody>
-            {topCustomers.map((c) => (
-              <tr key={c.id}>
-                <td>{c.name}</td>
-                <td>{c.visits}</td>
-                <td>{c.totalSpent}</td>
+        <div className={cx("sectionHeader")}>
+          <Crown size={22} />
+          <h2>Top khách hàng tiềm năng</h2>
+        </div>
+        <div className={cx("tableWrapper")}>
+          <table className={cx("customerTable")}>
+            <thead>
+              <tr>
+                <th>Tên khách hàng</th>
+                <th>Số lần đến</th>
+                <th>Tổng chi tiêu</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {topCustomers.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.name}</td>
+                  <td>{c.visits}</td>
+                  <td>{c.totalSpent}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* ====== Xu hướng cắt tóc ====== */}
+      {/* ====== XU HƯỚNG CẮT TÓC ====== */}
       <div className={cx("section")}>
-        <h2>Xu hướng cắt tóc hiện tại</h2>
+        <div className={cx("sectionHeader")}>
+          <Scissors size={22} />
+          <h2>Xu hướng cắt tóc hiện tại</h2>
+        </div>
         <div className={cx("trendGrid")}>
           {trends.map((trend) => (
             <div key={trend.id} className={cx("trendCard")}>
-              <img src={trend.img} alt={trend.name} />
+              <div className={cx("trendImageBox")}>
+                <img src={trend.img} alt={trend.name} />
+                <div className={cx("overlay")}></div>
+              </div>
               <div className={cx("trendInfo")}>
                 <h4>{trend.name}</h4>
                 <span>{trend.popularity}</span>
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ====== TĂNG TRƯỞNG ====== */}
+      <div className={cx("section", "growth")}>
+        <div className={cx("growthCard")}>
+          <TrendingUp size={28} className={cx("growthIcon")} />
+          <div>
+            <h3>Tăng trưởng doanh thu</h3>
+            <p className={cx("growthValue")}>+18% trong 3 tháng gần nhất</p>
+            <span>Xu hướng tích cực</span>
+          </div>
         </div>
       </div>
     </div>
