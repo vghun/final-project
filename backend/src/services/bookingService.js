@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { Op } from "sequelize";
 
 // Lấy tất cả chi nhánh
 export const getAllBranches = async () => {
@@ -116,4 +117,70 @@ export const createBookingService = async ({
   }
 
   return booking;
+};
+
+// Lấy danh sách booking theo id thợ và khoảng ngày
+export const getBarberBookings = async (barberId, startDate, endDate) => {
+  return await db.Booking.findAll({
+    where: {
+      idBarber: barberId,
+      bookingDate: { [Op.between]: [startDate, endDate] },
+    },
+    include: [
+      {
+        model: db.Customer,
+        include: [
+          {
+            model: db.User,
+            as: "user",
+            attributes: ["fullName", "phoneNumber", "image"],
+          },
+        ],
+        attributes: ["idCustomer"], // Chỉ lấy idCustomer từ Customer
+      },
+      {
+        model: db.BookingDetail,
+        as: "BookingDetails",
+        include: [
+          {
+            model: db.Service,
+            as: "service",
+            attributes: ["name", "duration", "price"],
+          },
+        ],
+        attributes: ["idBookingDetail", "quantity", "price"],
+      },
+    ],
+    order: [
+      ["bookingDate", "ASC"],
+      ["bookingTime", "ASC"],
+    ],
+  });
+};
+
+export const completeBooking = async (idBooking, idBarber, uploadedImages, description) => {
+  const booking = await db.Booking.findByPk(idBooking);
+  if (!booking) throw new Error("Không tìm thấy lịch hẹn");
+
+  // Lưu ảnh vào bảng CustomerGallery
+  for (const img of uploadedImages) {
+    await db.CustomerGallery.create({
+      idBooking,
+      uploadBy: idBarber,
+      imageUrl: img.url,
+      description: description || null,
+    });
+  }
+
+  // Cập nhật trạng thái
+  await booking.update({
+    status: "Completed",
+    description,
+  });
+
+  return {
+    idBooking,
+    status: "Completed",
+    uploadedCount: uploadedImages.length,
+  };
 };
