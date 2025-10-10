@@ -1,3 +1,5 @@
+// Giữ nguyên phần .card
+
 .card {
   background: #fff;
   border: 1px solid #e8e1dc;
@@ -13,18 +15,32 @@
   }
 }
 
+// Cần thiết lập overflow: hidden để chỉ hiển thị một ảnh
 .imgBox {
   position: relative;
   width: 100%;
   aspect-ratio: 3 / 4;
-  overflow: hidden;
+  overflow: hidden; /* QUAN TRỌNG: Ẩn các ảnh không ở vị trí hiện tại */
 }
 
+/* Vùng chứa các ảnh, cần rộng bằng Tổng số ảnh * 100% để hiển thị chúng trên 1 hàng */
+.photoContainer {
+  display: flex; /* Đặt các ảnh cạnh nhau */
+  width: 100%;
+  height: 100%;
+  /* Hiệu ứng trượt mượt mà */
+  transition: transform 0.4s ease-in-out; 
+}
+
+/* Mỗi ảnh sẽ rộng 100% của imgBox (vì photoContainer có display: flex) */
 .photo {
+  flex-shrink: 0; /* KHÔNG cho ảnh bị co lại */
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
+// Giữ nguyên .navBtn, .left, .right
 
 .navBtn {
   position: absolute;
@@ -36,7 +52,8 @@
   border-radius: 50%;
   padding: 6px;
   cursor: pointer;
-
+  z-index: 10; /* Đảm bảo nút nằm trên ảnh */
+  
   &:hover {
     background: rgba(43, 35, 35, 0.6);
   }
@@ -48,6 +65,31 @@
 
 .right {
   right: 8px;
+}
+
+/* --- Thêm Dot Indicators (Dấu chấm chỉ báo) --- */
+.dotIndicators {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 10; /* Đảm bảo nằm trên ảnh */
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  background-color: rgba(255, 255, 255, 0.6); /* Màu trắng mờ cho chấm không hoạt động */
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.dot.active {
+  background-color: #fff; /* Màu trắng đậm cho chấm hoạt động */
+  transform: scale(1.15);
 }
 
 .info {
