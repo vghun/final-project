@@ -9,13 +9,33 @@ export default (sequelize, DataTypes) => {
   }
   BarberUnavailability.init(
     {
-      id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-      idBarber: DataTypes.INTEGER,
-      startDate: DataTypes.DATE,
-      endDate: DataTypes.DATE,
-      description: DataTypes.TEXT,
+      idUnavailable: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      idBarber: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      startDate: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      endDate: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      reason: {
+        type: DataTypes.TEXT,
+      },
     },
-    { sequelize, modelName: "BarberUnavailability", tableName: "barber_unavailabilities" }
+    {
+      sequelize,
+      modelName: "BarberUnavailability",
+      tableName: "barber_unavailabilities",
+      timestamps: true,
+    }
   );
   return BarberUnavailability;
 };

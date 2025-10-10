@@ -22,6 +22,7 @@ function BookingPage() {
   const [services, setServices] = useState([]);
   const [times, setTimes] = useState([]);
   const [bookedTimesByDate, setBookedTimesByDate] = useState({});
+  const [unavailableDates, setUnavailableDates] = useState([]); // ✅ thêm state ngày nghỉ
 
   const vouchers = [
     { code: "SALE10", description: "Giảm 10% dịch vụ", discount: 10, exchanged: true, expireDate: "31/12/2025" },
@@ -97,19 +98,36 @@ function BookingPage() {
       const res = await fetch(`http://localhost:8088/api/booking/barbers/${barberId}`);
       const data = await res.json();
 
-      // Gom các booking theo ngày
+      // ✅ Gom booking theo ngày
       const grouped = {};
-      data.forEach((item) => {
+      data.bookings.forEach((item) => {
         const date = item.bookingDate.split("T")[0];
         if (!grouped[date]) grouped[date] = [];
         grouped[date].push(item.bookingTime);
       });
-
       setBookedTimesByDate(grouped);
+
+      // ✅ Lưu ngày nghỉ
+      const unava = [];
+      data.unavailabilities.forEach((u) => {
+        const start = new Date(u.startDate);
+        const end = new Date(u.endDate);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          unava.push(d.toISOString().split("T")[0]);
+        }
+      });
+      setUnavailableDates(unava);
     } catch (err) {
       console.error("Error fetching barber booked times:", err);
     }
   };
+
+  // ✅ Reset ngày nếu đang chọn vào ngày nghỉ
+  useEffect(() => {
+    if (unavailableDates.includes(booking.date)) {
+      setBooking((prev) => ({ ...prev, date: "" }));
+    }
+  }, [unavailableDates]);
 
   const handleDateChange = (e) => {
     const date = e.target.value;
@@ -154,13 +172,18 @@ function BookingPage() {
           idBarber: booking.barberId,
           bookingDate: booking.date,
           bookingTime: booking.time,
-          services: booking.services.map((s) => ({ idService: s.idService, price: s.price, quantity: 1 })),
+          services: booking.services.map((s) => ({
+            idService: s.idService,
+            price: s.price,
+            quantity: 1,
+          })),
           description: booking.services.map((s) => s.name).join(", "),
         }),
       });
       const result = await res.json();
       if (res.ok) {
         alert(`Đặt lịch thành công!\nThành tiền: ${finalPrice.toLocaleString()}đ`);
+        window.location.reload(); // ✅ Load lại giao diện
       } else {
         alert("Lỗi đặt lịch: " + (result.message || "Unknown error"));
       }
@@ -226,9 +249,10 @@ function BookingPage() {
                     month: "2-digit",
                     year: "numeric",
                   });
+                  const isUnavailable = unavailableDates.includes(value);
                   return (
-                    <option key={i} value={value}>
-                      {label}
+                    <option key={i} value={value} disabled={isUnavailable}>
+                      {label} {isUnavailable ? "(Nghỉ)" : ""}
                     </option>
                   );
                 })}

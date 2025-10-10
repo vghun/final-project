@@ -90,6 +90,7 @@ export const getBookingsByBarber = async (req, res) => {
   try {
     const { idBarber } = req.params;
 
+    // Lấy danh sách booking
     const bookings = await db.Booking.findAll({
       where: { idBarber },
       attributes: ["idBooking", "bookingDate", "bookingTime", "status"],
@@ -99,9 +100,22 @@ export const getBookingsByBarber = async (req, res) => {
       ],
     });
 
-    res.json(bookings);
+    // Lấy danh sách ngày nghỉ
+    const unavailabilities = await db.BarberUnavailability.findAll({
+      where: { idBarber },
+      attributes: ["idUnavailable", "startDate", "endDate", "reason"],
+      order: [["startDate", "DESC"]],
+    });
+
+    res.json({
+      bookings,
+      unavailabilities,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Lỗi khi lấy thời gian booking của barber", error });
+    res.status(500).json({
+      message: "Lỗi khi lấy thời gian booking và ngày nghỉ của barber",
+      error,
+    });
   }
 };
