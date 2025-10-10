@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/", barberController.syncBarbers);
 router.get("/", barberController.getAllBarbers);
-router.post("/assign-branch",  barberController.assignBarberToBranch);
+router.post("/assign-branch", barberController.assignBarberToBranch);
 router.post("/approve", barberController.approveBarber);
 router.post("/lock", barberController.lockBarber);
 export default router;

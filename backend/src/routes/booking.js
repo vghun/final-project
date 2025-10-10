@@ -1,12 +1,29 @@
 import express from "express";
 import * as bookingController from "../controllers/bookingController.js";
-import { getBranches, getBranchDetails, createBooking, completeBooking, upload} from "../controllers/bookingController.js";
-
+import {
+  getBranches,
+  getBranchDetails,
+  createBooking,
+  completeBooking,
+  getBookingsByBarber,
+  upload,
+} from "../controllers/bookingController.js";
 
 const router = express.Router();
-// GET /api/bookings/barber?start=2025-10-06&end=2025-10-12
+
+// 🧾 Lấy tất cả chi nhánh
+router.get("/branches", getBranches);
+
+// 🧩 Lấy chi tiết 1 chi nhánh (barber + dịch vụ)
+router.get("/branches/:idBranch/details", getBranchDetails);
+
+// 🧑‍💼 Lấy tất cả booking của 1 barber (theo id)
+router.get("/barbers/:idBarber", getBookingsByBarber);
+
+// 📅 Lấy booking của barber theo ngày (tùy query start-end)
 router.get("/barber", bookingController.getBookingsForBarber);
 
+// ✅ Hoàn tất booking (upload ảnh 4 góc)
 router.post(
   "/:id/complete",
   upload.fields([
@@ -18,12 +35,7 @@ router.post(
   completeBooking
 );
 
-router.get("/branches", getBranches);
-
-// Lấy chi tiết 1 chi nhánh (barber + dịch vụ)
-router.get("/branches/:idBranch/details", getBranchDetails);
-
-// Tạo booking
-router.post("/", createBooking);
+// ✍️ Tạo booking mới
+router.post("/create", createBooking);
 
 export default router;

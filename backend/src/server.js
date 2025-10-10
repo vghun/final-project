@@ -20,7 +20,8 @@ import reelRoute from "./routes/reel.js"; // giữ từ nhánh barber-profile
 import reelCommentRoutes from "./routes/reelComment.js"; 
 import branchRoutes from "./routes/branch.js"; 
 import customerGalleryRoutes from "./routes/customerGallery.js";
-
+import ratingRoutes from "./routes/rating.js";
+import summaryRoutes from "./routes/summaryStatistics.js";
 dotenv.config();
 
 const app = express();
@@ -42,6 +43,7 @@ app.use("/api/salary", salaryRoute);
 
 app.use("/api/barbers", barberRoutes);
 app.use("/api/branches", branchRoutes);
+app.use("/api/", ratingRoutes);
 
 app.use("/api/bookings", bookingRoute);
 app.use("/api/statistics", statisticRoute);
@@ -50,6 +52,7 @@ app.use("/api/reels", reelRoute);
 app.use("/api/reels", reelCommentRoutes);
 
 app.use("/api/customer-gallery", customerGalleryRoutes);
+app.use("/api/statistics/summary", summaryRoutes);
 // View engine & auth
 viewEngine(app); 
 authRoutes(app);
@@ -61,4 +64,3 @@ const PORT = process.env.PORT || 8088;
 app.listen(PORT, () => {
   console.log(`Backend Node.js is running on port: ${PORT}`);
 });
-
