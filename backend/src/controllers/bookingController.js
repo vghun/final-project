@@ -1,5 +1,8 @@
 import db from "../models/index.js";
-
+import * as bookingService from "../services/bookingService.js";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
+import multer from "multer";
 // Lấy danh sách chi nhánh
 export const getBranches = async (req, res) => {
   try {
@@ -85,6 +88,75 @@ export const createBooking = async (req, res) => {
   }
 };
 
+export const getBookingsForBarber = async (req, res) => {
+  try {
+    const { idBarber, start, end } = req.query;
+
+    if (!idBarber || !start || !end) {
+      return res.status(400).json({ error: "Thiếu idBarber, start hoặc end" });
+    }
+
+    const bookings = await bookingService.getBarberBookings(
+      parseInt(idBarber),
+      start,
+      end
+    );
+    return res.status(200).json(bookings);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async () => ({
+    folder: "customer-gallery",
+    resource_type: "image",
+  }),
+});
+
+export const upload = multer({ storage });
+
+export const completeBooking = async (req, res) => {
+  try {
+    const idBooking = req.params.id;
+    const { description } = req.body;
+    const idBarber = 7; // ⚓️ fix cứng cho test
+
+    const files = req.files || {};
+    const uploadedImages = [];
+
+    // Lưu vị trí ảnh (front, left, right, back)
+    for (const pos of ["front", "left", "right", "back"]) {
+      const file = files[pos]?.[0];
+      if (file) {
+        uploadedImages.push({
+          position: pos,
+          url: file.path,
+        });
+      }
+    }
+
+    if (uploadedImages.length === 0)
+      return res.status(400).json({ error: "Cần upload ít nhất 1 ảnh" });
+
+    const result = await bookingService.completeBooking(
+      idBooking,
+      idBarber,
+      uploadedImages,
+      description
+    );
+
+    return res.status(200).json({
+      message: "Đã hoàn tất lịch hẹn và lưu ảnh vào gallery khách hàng",
+      ...result,
+      uploadedImages,
+    });
+  } catch (err) {
+    console.error("Lỗi hoàn tất lịch hẹn:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
 // Lấy danh sách các booking của 1 barber
 export const getBookingsByBarber = async (req, res) => {
   try {

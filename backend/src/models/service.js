@@ -38,6 +38,10 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+       image: {
+        type: DataTypes.STRING(255), 
+        allowNull: true, 
+      },
       status: {
         type: DataTypes.ENUM("Active", "Inactive"),
         defaultValue: "Active",

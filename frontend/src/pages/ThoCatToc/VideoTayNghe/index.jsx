@@ -24,14 +24,14 @@ function VideoTayNghe() {
   }, []);
 
   const toggleLike = (idReel, isLiked, likesCount) => {
-  setReels((prev) =>
-    prev.map((r) =>
-      r.idReel === idReel
-        ? { ...r, isLiked: isLiked, likesCount: likesCount } // Đảm bảo cập nhật cả isLiked và likesCount
-        : r
-    )
-  );
-};
+    setReels((prev) =>
+      prev.map((r) =>
+        r.idReel === idReel
+          ? { ...r, isLiked: isLiked, likesCount: likesCount } // Đảm bảo cập nhật cả isLiked và likesCount
+          : r
+      )
+    );
+  };
 
   const handleUpload = (newReel) => {
     setReels([newReel, ...reels]);
@@ -54,7 +54,7 @@ function VideoTayNghe() {
             key={reel.idReel}
             reel={reel}
             onToggleLike={toggleLike}
-            onOpenDetail={() => openDetail(idx)} 
+            onOpenDetail={() => openDetail(idx)}
             idUser={idUser}// mở theo index
           />
         ))}

@@ -1,47 +1,50 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./SanPham.module.scss";
 import WorkCard from "~/components/CustomerGalleryCard";
+import { fetchBarberGallery } from "~/services/customerGalleryService";
 
 function SanPham() {
-  const [works] = useState([
-    {
-      id: 1,
-      customerName: "Nguyễn Văn A",
-      barberName: "Thợ Tuấn",
-      service: "Classic Cut",
-      description: "Kiểu tóc cổ điển gọn gàng.",
-      photos: ["/completed-haircut-1.jpg", "/completed-haircut-2.jpg"],
-      date: "2025-01-14",
-      likes: 23,
-      comments: 5,
-    },
-    {
-      id: 2,
-      customerName: "Trần Minh B",
-      barberName: "Thợ Dũng",
-      service: "Fade + Beard",
-      description: "Fade kết hợp tạo kiểu râu.",
-      photos: [
-        "/completed-haircut-3.jpg",
-        "/completed-haircut-4.jpg",
-        "/completed-haircut-5.jpg",
-      ],
-      date: "2025-01-13",
-      likes: 45,
-      comments: 8,
-    },
-    {
-      id: 3,
-      customerName: "Lê Thị C",
-      barberName: "Thợ Hạnh",
-      service: "Layer nữ",
-      description: "Kiểu layer cho tóc nữ dài.",
-      photos: ["/completed-haircut-6.jpg"],
-      date: "2025-01-12",
-      likes: 30,
-      comments: 2,
-    },
-  ]);
+  const [works, setWorks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const idBarber = 7; // 👈 fix cứng tạm
+        const data = await fetchBarberGallery(idBarber);
+
+        // ✅ Gom nhóm theo idbooking (mỗi booking có tối đa 4 ảnh)
+        const grouped = {};
+        data.forEach((item) => {
+          const id = item.idbooking;
+          if (!grouped[id]) {
+            grouped[id] = {
+              idBooking: id,
+              customerName: item.customerName,
+              barberName: item.barberName,
+              service: item.service,
+              description: item.description || "",
+              date: item.date,
+              photos: [],
+            };
+          }
+          grouped[id].photos.push(item.photo);
+        });
+
+        setWorks(Object.values(grouped));
+      } catch (err) {
+        console.error("Lỗi khi tải gallery:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return <p className={styles.loading}>Đang tải...</p>;
+  }
 
   return (
     <div className={styles.container}>
@@ -53,7 +56,7 @@ function SanPham() {
       {works.length > 0 ? (
         <div className={styles.grid}>
           {works.map((work) => (
-            <WorkCard key={work.id} work={work} />
+            <WorkCard key={work.idBooking} work={work} />
           ))}
         </div>
       ) : (
