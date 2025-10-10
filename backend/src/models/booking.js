@@ -4,15 +4,11 @@ import { Model } from "sequelize";
 export default (sequelize, DataTypes) => {
   class Booking extends Model {
     static associate(models) {
-      // Booking thuộc về Customer
       Booking.belongsTo(models.Customer, { foreignKey: "idCustomer" });
-      // Booking có thể gán cho Barber
       Booking.belongsTo(models.Barber, { foreignKey: "idBarber", as: "barber" });
-      // Booking có thể có Voucher của Customer
       Booking.belongsTo(models.CustomerVoucher, { foreignKey: "idCustomerVoucher" });
-      // Booking có nhiều BookingDetail
       Booking.hasMany(models.BookingDetail, { foreignKey: "idBooking" });
-       Booking.hasOne(models.BookingTip, { foreignKey: "idBooking", as: "BookingTip" });
+      Booking.hasOne(models.BookingTip, { foreignKey: "idBooking", as: "BookingTip" });
     }
   }
 
@@ -46,6 +42,20 @@ export default (sequelize, DataTypes) => {
         defaultValue: "Pending",
       },
       description: DataTypes.TEXT,
+
+      // 💰 Tổng tiền booking
+      total: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0.0,
+      },
+
+      // 💳 Thanh toán: true = đã thanh toán, false = chưa thanh toán
+      isPaid: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       sequelize,

@@ -14,7 +14,7 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
     },
-     idBarber: {
+    idBarber: {
       type: Sequelize.INTEGER,
       allowNull: true,
       references: { model: "barbers", key: "idBarber" },
@@ -48,6 +48,21 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.TEXT,
       allowNull: true,
     },
+
+    // 💰 Tổng tiền booking
+    total: {
+      type: Sequelize.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.0,
+    },
+
+    // 💳 Thanh toán: true = đã thanh toán, false = chưa thanh toán
+    isPaid: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+
     createdAt: {
       type: Sequelize.DATE,
       defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
