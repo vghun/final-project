@@ -19,6 +19,8 @@ import bonusRoutes from "./routes/bonus.js";
 import reelRoute from "./routes/reel.js"; // giữ từ nhánh barber-profile
 import reelCommentRoutes from "./routes/reelComment.js"; 
 import branchRoutes from "./routes/branch.js"; 
+import ratingRoutes from "./routes/rating.js";
+import summaryRoutes from "./routes/summaryStatistics.js";
 dotenv.config();
 
 const app = express();
@@ -40,12 +42,14 @@ app.use("/api/salary", salaryRoute);
 
 app.use("/api/barbers", barberRoutes);
 app.use("/api/branches", branchRoutes);
+app.use("/api/", ratingRoutes);
 
 app.use("/api/booking", bookingRoute);
 app.use("/api/statistics", statisticRoute);
 app.use("/api/bonus", bonusRoutes);
 app.use("/api/reels", reelRoute);
 app.use("/api/reels", reelCommentRoutes);
+app.use("/api/statistics/summary", summaryRoutes);
 // View engine & auth
 viewEngine(app); 
 authRoutes(app);
