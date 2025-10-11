@@ -31,6 +31,9 @@ const reelApi = {
 
   deleteComment: (idComment) =>
     axios.delete(`${API_URL}/comment/${idComment}`),
+
+   trackView: (idReel, idUser) =>
+    axios.post(`${API_URL}/${idReel}/view`, { idUser }),
 };
 
 export default reelApi;

@@ -44,3 +44,9 @@ export const deleteComment = async (idComment) => {
   const res = await reelApi.deleteComment(idComment);
   return res.data;
 };
+
+export const trackReelView = async (idReel, idUser) => {
+  // Không cần trả về data, chỉ cần đảm bảo API call thành công
+  const res = await reelApi.trackView(idReel, idUser);
+  return res.data; 
+};
