@@ -1,113 +1,107 @@
-.card {
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
+/* VideoCard.module.scss */
+
+/* Thay đổi .card thành .reelCard */
+.reelCard {
+  /* Loại bỏ các style card cũ */
+  background: #000;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  display: block;
 
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* Áp dụng hiệu ứng hover vào đây */
+  &:hover .hoverOverlay {
+    opacity: 1; /* Hiển thị overlay khi hover */
   }
 }
 
 .videoBox {
   position: relative;
   width: 100%;
-  aspect-ratio: 9/16;
+  /* Tỷ lệ 9:16 */
+  padding-top: 177.77%; 
   background: #000;
   overflow: hidden;
+}
 
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+.videoThumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- 1. VIEW COUNT (Cố định, góc dưới trái) --- */
+.viewCountFixed {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #fff;
+    /* Hiệu ứng đổ bóng nhẹ cho chữ nổi bật trên nền tối */
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5); 
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.viewIcon {
+    width: 16px;
+    height: 16px;
+}
+
+.viewCountText {
+    // Giữ font-size nhỏ
+}
+
+/* --- 2. HOVER OVERLAY (Like & Comment) --- */
+.hoverOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.4); /* Lớp phủ đen mờ */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    color: #fff;
+    opacity: 0; /* Mặc định ẩn */
+    transition: opacity 0.2s ease;
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column; /* Đặt icon và số liệu theo chiều dọc */
+    align-items: center;
+    gap: 4px;
+}
+
+.statCount {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
 }
 
 .duration {
+  /* Di chuyển duration ra khỏi khu vực hover overlay (thường nằm ở góc trên phải trên Reels) */
   position: absolute;
-  bottom: 8px;
+  top: 8px;
   right: 8px;
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
   font-size: 12px;
   padding: 2px 6px;
   border-radius: 4px;
+  z-index: 11;
 }
 
-.info {
-  padding: 12px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 4px;
-}
-
-.videoThumb {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.desc {
-  font-size: 13px;
-  color: #444;
-  margin-bottom: 6px;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.meta {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 6px;
-}
-
-.actions {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.likeBtn,
-.shareBtn,
-.commentBtn {
-  border: none;
-  cursor: pointer;
-  background: transparent;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  span {
-    font-size: 13px;
-    color: #444;
-  }
-}
-
-.likeIcon {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
-
-.commentBtn,
-.shareBtn {
-  color: #444;
-
-  &:hover {
-    color: #222;
-  }
+/* Đảm bảo các style cũ không cần thiết bị loại bỏ */
+.card, .videoBox, .videoThumb, .info, .title, .desc, .meta, .actions, .likeBtn, .shareBtn, .commentBtn {
+  /* Đảm bảo không còn các định nghĩa CSS xung đột */
 }

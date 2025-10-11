@@ -1,63 +1,47 @@
+// src/components/VideoCard/index.jsx
+
 import React from "react";
 import styles from "./VideoCard.module.scss";
-import { likeReel } from "~/services/reelService";
+import { Heart, MessageCircle, Eye } from "lucide-react"; 
 
 function VideoCard({ reel, onToggleLike, onOpenDetail, idUser }) {
-  const handleLike = async (e) => {
-    e.stopPropagation();
-    try {
-      const res = await likeReel(reel.idReel, idUser);
-      onToggleLike(reel.idReel, res.liked, res.likesCount); // Pass backend response
-    } catch (err) {
-      console.error("Like error:", err);
-    }
+  // Gán trực tiếp reel vào onOpenDetail vì nó đã được bọc bằng () => openDetail(idx) ở parent
+  const handleOpenDetail = () => {
+    onOpenDetail();
   };
 
   return (
-    <div className={styles.card} onClick={() => onOpenDetail(reel)}>
+    // Thêm class styles.reelCard cho container ngoài để áp dụng hover
+    <div className={styles.reelCard} onClick={handleOpenDetail}>
       <div className={styles.videoBox}>
+        {/* Thumbnail video */}
         <img src={reel.thumbnail} alt={reel.title} className={styles.videoThumb} />
+        
+        {/* 1. VIEW COUNT (Mặc định hiển thị, ở góc dưới trái) */}
+        <div className={styles.viewCountFixed}>
+            <Eye size={14} className={styles.viewIcon} />
+            <span className={styles.viewCountText}>{reel.viewCount || 0}</span>
+        </div>
+
+        {/* 2. HOVER OVERLAY: LIKE & COMMENT COUNT (Ẩn mặc định) */}
+        <div className={styles.hoverOverlay}>
+            
+            {/* LƯỢT THÍCH */}
+            <div className={styles.statItem}>
+                {/* Dùng Heart icon */}
+                <Heart size={24} fill="currentColor" strokeWidth={1} /> 
+                <span className={styles.statCount}>{reel.likesCount || 0}</span>
+            </div>
+            
+            {/* LƯỢT BÌNH LUẬN */}
+            <div className={styles.statItem}>
+                <MessageCircle size={24} fill="currentColor" strokeWidth={1} />
+                <span className={styles.statCount}>{reel.commentsCount || 0}</span>
+            </div>
+        </div>
+
+        {/* Duration (Tùy chọn, có thể giữ hoặc bỏ) */}
         {reel.duration && <span className={styles.duration}>{reel.duration}</span>}
-      </div>
-
-      <div className={styles.info}>
-        <h3 className={styles.title}>{reel.title}</h3>
-        <p className={styles.desc}>{reel.description}</p>
-        <div className={styles.meta}>
-          <span>{reel.viewCount} lượt xem</span> •{" "}
-          <span>{new Date(reel.createdAt).toLocaleDateString()}</span>
-        </div>
-
-        <div className={styles.actions}>
-          <button className={styles.likeBtn} onClick={handleLike}>
-            <img
-              src={reel.isLiked ? "/liked.png" : "/like.png"}
-              alt="like"
-              className={styles.likeIcon}
-            />
-            <span>{reel.likesCount || 0}</span>
-          </button>
-
-          <button
-            className={styles.commentBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenDetail(reel);
-            }}
-          >
-            💬 {reel.commentsCount || 0}
-          </button>
-
-          <button
-            className={styles.shareBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigator.clipboard.writeText(window.location.href);
-            }}
-          >
-            🔗 Chia sẻ
-          </button>
-        </div>
       </div>
     </div>
   );
