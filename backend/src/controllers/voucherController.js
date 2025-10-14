@@ -1,6 +1,7 @@
 import voucherService from "../services/voucherService.js";
-
+import db from "../models/index.js";
 class VoucherController {
+  // --- CRUD cơ bản ---
   async create(req, res) {
     try {
       const voucher = await voucherService.createVoucher(req.body);
@@ -32,7 +33,6 @@ class VoucherController {
     }
   }
 
-  // Cập nhật voucher
   async update(req, res) {
     try {
       const { id } = req.params;
@@ -43,7 +43,6 @@ class VoucherController {
     }
   }
 
-  // Xoá voucher (soft delete)
   async delete(req, res) {
     try {
       const { id } = req.params;
@@ -53,6 +52,78 @@ class VoucherController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  // --- Voucher khách đã đổi nhưng chưa áp dụng ---
+  async getCustomerVouchers(req, res) {
+    try {
+      const idCustomer = req.user.idUser; // lấy từ token
+      const vouchers = await voucherService.getCustomerVouchers(idCustomer);
+      res.status(200).json({ success: true, data: vouchers });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // --- Voucher khách có thể đổi bằng point ---
+async getAvailableVouchersByPoint(req, res) {
+  try {
+    const idCustomer = req.user.idUser; // lấy từ token
+
+    // Lấy điểm khách hàng từ database
+    const customerPoint = await voucherService.getCustomerPoints(idCustomer);
+    if (customerPoint === null) {
+      return res.status(404).json({ success: false, message: "Customer not found" });
+    }
+
+    // Lấy voucher có thể đổi dựa trên điểm khách
+    const vouchers = await voucherService.getAvailableVouchersByPoint(idCustomer, customerPoint);
+
+    res.status(200).json({ success: true, data: vouchers });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+
+  // --- Đổi voucher ---
+  async exchangeVoucher(req, res) {
+  const t = await db.sequelize.transaction(); // bắt đầu transaction
+  try {
+    const idCustomer = req.user.idUser; // lấy từ token
+    const { idVoucher } = req.body;
+
+    // 1. Lấy voucher trước để kiểm tra tồn tại và điểm
+    const voucher = await voucherService.getVoucherById(idVoucher);
+    if (!voucher) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: "Voucher not found" });
+    }
+
+    // 2. Lấy điểm khách
+    const points = await voucherService.getCustomerPoints(idCustomer);
+    if (points === null) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: "Customer not found" });
+    }
+
+    if (points < voucher.pointCost) {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: "Not enough points" });
+    }
+
+    // 3. Gọi service để đổi voucher và trừ điểm (trong transaction)
+    const { customerVoucher } = await voucherService.exchangeVoucherForCustomer(idCustomer, idVoucher, t);
+
+    // 4. Commit transaction
+    await t.commit();
+
+    res.status(200).json({ success: true, data: customerVoucher });
+  } catch (error) {
+    await t.rollback(); // rollback nếu lỗi
+    console.error('ExchangeVoucher error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
 }
 
 export default new VoucherController();
