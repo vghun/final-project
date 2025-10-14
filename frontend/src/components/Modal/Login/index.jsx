@@ -12,42 +12,47 @@ import styles from "./Login.module.scss";
 
 const cx = classNames.bind(styles);
 
-function Login({ onSwitch, onClose }) {
+function Login({ onSwitch, onClose, onLoginSuccess }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
   const { login } = useAuth();
   const { showToast } = useToast();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  // ✅ Đảm bảo event có name/value dù Input là custom
+  const handleChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submit form data:", formData); // 👈 Kiểm tra
+
+    if (!formData.email || !formData.password) {
+      showToast({ text: "Vui lòng nhập đầy đủ thông tin", type: "error" });
+      return;
+    }
 
     try {
       const result = await AuthAPI.login(formData);
 
       if (result.accessToken && result.refreshToken && result.user) {
-        // Map image -> avatar
         const userWithAvatar = {
           ...result.user,
           avatar: result.user.image || "/user.png",
         };
 
-        // Lưu vào context
         login(userWithAvatar, result.accessToken, result.refreshToken);
+
+        if (onLoginSuccess) onLoginSuccess();
 
         showToast({
           text: result.message || "Đăng nhập thành công",
           type: "success",
         });
 
-        navigate("/"); 
-
-        onClose();
+        if (onClose) onClose();
+        navigate("/");
       } else {
         showToast({
           text: result.message || "Tài khoản hoặc mật khẩu không chính xác",
@@ -57,7 +62,9 @@ function Login({ onSwitch, onClose }) {
     } catch (err) {
       console.error("Login error:", err);
       showToast({
-        text: err.response?.data?.message || "Đăng nhập không thành công, vui lòng thử lại sau",
+        text:
+          err.response?.data?.message ||
+          "Đăng nhập không thành công, vui lòng thử lại sau",
         type: "error",
       });
     }
@@ -74,8 +81,17 @@ function Login({ onSwitch, onClose }) {
               đăng ký ngay
             </a>
           </p>
+
           <form onSubmit={handleSubmit}>
-            <Input primary name="email" required placeholder="Email" value={formData.email} onChange={handleChange} />
+            <Input
+              primary
+              name="email"
+              required
+              placeholder="Email"
+              value={formData.email}
+              // ✅ Sửa cách truyền event
+              onChange={(e) => handleChange("email", e.target.value)}
+            />
             <Input
               primary
               name="password"
@@ -84,13 +100,18 @@ function Login({ onSwitch, onClose }) {
               placeholder="Mật khẩu"
               showToggleIcon
               value={formData.password}
-              onChange={handleChange}
+              onChange={(e) => handleChange("password", e.target.value)}
             />
+
             <div className={cx("forgetpass-wrapper")}>
-              <div className={cx("forgetpass")} onClick={() => onSwitch("forgetpass")}>
+              <div
+                className={cx("forgetpass")}
+                onClick={() => onSwitch("forgetpass")}
+              >
                 Quên mật khẩu ?
               </div>
             </div>
+
             <Button primary type="submit">
               Đăng nhập
             </Button>

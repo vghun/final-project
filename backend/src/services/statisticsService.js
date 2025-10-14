@@ -3,7 +3,7 @@ import db from "../models/index.js";
 import { Sequelize } from "sequelize";
 
 /**
- * Thống kê doanh thu tất cả thợ
+ * Thống kê doanh thu tất cả thợ theo chi nhánh
  * @param {Object} filter - { month, year, branchId }
  * @returns {Array} danh sách thợ và tổng doanh thu
  */
@@ -54,40 +54,33 @@ export const getBarberRevenue = async (filter = {}) => {
 
 
 export const getBranchMonthlyBookingRevenue = async (year) => {
-  const revenue = await db.BookingDetail.findAll({
+  const revenue = await db.Booking.findAll({
     attributes: [
-      [Sequelize.col("booking->barber->branch.idBranch"), "branchId"],
-      [Sequelize.col("booking->barber->branch.name"), "branchName"],
-      [Sequelize.literal("MONTH(`booking`.`bookingDate`)"), "month"],
-      [Sequelize.literal("SUM(`BookingDetail`.`price` * `BookingDetail`.`quantity`)"), "totalRevenue"],
+      [Sequelize.col("barber->branch.idBranch"), "branchId"],
+      [Sequelize.col("barber->branch.name"), "branchName"],
+      [Sequelize.literal("MONTH(`bookingDate`)"), "month"],
+      [Sequelize.literal("SUM(`total`)"), "totalRevenue"], // dùng total từ Booking
     ],
+    where: {
+      isPaid: true, // chỉ lấy booking đã thanh toán
+      [Sequelize.Op.and]: Sequelize.where(Sequelize.fn("YEAR", Sequelize.col("bookingDate")), year),
+    },
     include: [
       {
-        model: db.Booking,
-        as: "booking", // alias đúng với BookingDetail.belongsTo
+        model: db.Barber,
+        as: "barber",
         attributes: [],
-        where: Sequelize.where(
-          Sequelize.fn("YEAR", Sequelize.col("booking.bookingDate")),
-          year
-        ),
         include: [
           {
-            model: db.Barber,
-            as: "barber", // alias đúng với Booking.belongsTo
+            model: db.Branch,
+            as: "branch",
             attributes: [],
-            include: [
-              {
-                model: db.Branch,
-                as: "branch", // alias đúng với Barber.belongsTo
-                attributes: [],
-              },
-            ],
           },
         ],
       },
     ],
-    group: ["booking->barber->branch.idBranch", "booking->barber->branch.name", Sequelize.literal("MONTH(`booking`.`bookingDate`)")],
-    order: [["booking", "barber", "branch", "idBranch", "ASC"], [Sequelize.literal("MONTH(`booking`.`bookingDate`)"), "ASC"]],
+    group: ["barber->branch.idBranch", "barber->branch.name", Sequelize.literal("MONTH(`bookingDate`)")],
+    order: [["barber", "branch", "idBranch", "ASC"], [Sequelize.literal("MONTH(`bookingDate`)"), "ASC"]],
     raw: true,
   });
 

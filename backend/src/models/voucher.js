@@ -10,6 +10,10 @@ export default (sequelize, DataTypes) => {
         otherKey: "idCustomer",
         as: "customers",
       });
+      Voucher.hasMany(models.CustomerVoucher, {
+      foreignKey: "idVoucher",
+      as: "customerVouchers",
+    });
     }
   }
 
