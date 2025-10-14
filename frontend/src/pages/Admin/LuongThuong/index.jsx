@@ -15,26 +15,16 @@ function LuongThuong() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Lấy dữ liệu bảng lương + overview
+  // ----------------- Lấy dữ liệu bảng lương + overview -----------------
   const fetchData = async (m, y) => {
     setLoading(true);
     try {
       const overviewData = await SalaryAPI.getSalaryOverview();
       setOverview(overviewData);
 
-      const salaryData = await SalaryAPI.getSalaries(m, y);
-
-      // Gán status từ overview
+      // Lấy bảng lương từ backend → backend trả đầy đủ barberName, branchName, status, ...
       const monthData = overviewData.find(item => item.month === m && item.year === y);
-      const statusMap = new Map();
-      monthData?.salaries?.forEach(s => statusMap.set(s.idBarber, s.status));
-
-      const dataWithStatus = salaryData.map(s => ({
-        ...s,
-        status: statusMap.get(s.idBarber) === "Đã tính" ? "Đã tính" : "Chưa tính"
-      }));
-
-      setSalaries(dataWithStatus);
+      setSalaries(monthData?.salaries || []);
     } catch (error) {
       console.error("Lỗi load dữ liệu:", error);
       setSalaries([]);
@@ -48,39 +38,39 @@ function LuongThuong() {
     fetchData(month, year);
   }, [month, year]);
 
-  // Tính lương
+  // ----------------- Tính lương -----------------
   const calculateSalary = async () => {
     setLoading(true);
     try {
-      await SalaryAPI.calculateSalaries(month, year);
-      alert(`Đã tính lương cho tháng ${month}/${year}`);
+      const result = await SalaryAPI.calculateSalaries(month, year);
+      alert(result.message);
 
-      // Update trực tiếp status trong bảng lương
-      setSalaries(prev => prev.map(s => ({ ...s, status: "Đã tính" })));
+      // Lấy overview mới nhất từ backend → status sẽ đúng
+      const overviewData = await SalaryAPI.getSalaryOverview();
+      setOverview(overviewData);
 
-      // Update overview để disable nút tính lương
-      setOverview(prev => {
-        const newOverview = [...prev];
-        const idx = newOverview.findIndex(o => o.month === month && o.year === year);
-        if (idx >= 0) newOverview[idx].canCalculate = false;
-        else newOverview.push({ month, year, canCalculate: false });
-        return newOverview;
-      });
-    } catch (error) {
-      console.error("Lỗi khi tính lương:", error);
+      const monthData = overviewData.find(item => item.month === month && item.year === year);
+      setSalaries(monthData?.salaries || []);
+    } catch (err) {
+      console.error(err);
       alert("Tính lương thất bại!");
     } finally {
       setLoading(false);
     }
   };
 
-  // Kiểm tra nút Tính lương: disable nếu tháng tương lai hoặc đã tính
+  // ----------------- Kiểm tra nút Tính lương -----------------
   const now = new Date();
-  const isFutureMonth = year > now.getFullYear() || (year === now.getFullYear() && month > now.getMonth() + 1);
   const monthOverview = overview.find(item => item.month === month && item.year === year);
-  const canClick = !(isFutureMonth || (monthOverview && monthOverview.canCalculate === false));
 
-  // Filter bảng lương theo search
+  let canClick = false;
+  if (monthOverview) {
+    if (!monthOverview.isCurrentMonth && monthOverview.canCalculate) {
+      canClick = true; // Tháng trước chưa tính → bật nút
+    }
+  }
+
+  // ----------------- Filter bảng lương theo search -----------------
   const filteredSalaries = salaries.filter(s =>
     (s.barberName || "").toLowerCase().includes(search.toLowerCase()) ||
     (s.branchName || "").toLowerCase().includes(search.toLowerCase())

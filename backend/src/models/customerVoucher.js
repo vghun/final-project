@@ -30,8 +30,27 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      status: {
+      voucherCode: {
         type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      obtainedAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+      },
+      usedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      expiredAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      status: {
+        type: DataTypes.ENUM("unused", "used", "expired"),
+        allowNull: false,
         defaultValue: "unused",
       },
     },

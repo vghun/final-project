@@ -19,13 +19,14 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
       },
       startDate: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      endDate: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    endDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+
       reason: {
         type: DataTypes.TEXT,
       },
