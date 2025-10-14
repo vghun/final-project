@@ -1,12 +1,19 @@
 import db from "../models/index.js";
 import { Op } from "sequelize";
+import moment from "moment";
+
 
 // Lấy tất cả chi nhánh
-export const getAllBranches = async () => {
-  const branches = await db.Branch.findAll({
-    attributes: ["idBranch", "name", "address", "openTime", "closeTime", "status", "slotDuration"],
-  });
-  return branches;
+export const getBranches = async (req, res) => {
+  try {
+    const branches = await db.Branch.findAll({
+      where: { status: "Active" },
+      attributes: ["idBranch", "name", "address", "openTime", "closeTime", "status", "slotDuration"],
+    });
+    res.json(branches);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy danh sách chi nhánh", error });
+  }
 };
 
 // Lấy chi tiết chi nhánh (barbers + services)
@@ -183,4 +190,72 @@ export const completeBooking = async (idBooking, idBarber, uploadedImages, descr
     status: "Completed",
     uploadedCount: uploadedImages.length,
   };
+};
+
+export const getBookedSlotsByBarber = async (idBranch, idBarber, bookingDate) => {
+  try {
+    // 🔧 Chuẩn hóa ngày về dạng 'YYYY-MM-DD' để so sánh đúng
+    const normalizedDate = moment(bookingDate).format("YYYY-MM-DD");
+
+    // 1️⃣ Kiểm tra thợ có nghỉ trong ngày không
+    const isUnavailable = await db.BarberUnavailability.findOne({
+      where: {
+        idBarber,
+        startDate: { [Op.lte]: normalizedDate },
+        endDate: { [Op.gte]: normalizedDate },
+      },
+    });
+
+    // 2️⃣ Lấy thông tin chi nhánh
+    const branch = await db.Branch.findByPk(idBranch);
+    if (!branch) throw new Error("Không tìm thấy chi nhánh");
+
+    const openTime = moment(branch.openTime, "HH:mm");
+    const closeTime = moment(branch.closeTime, "HH:mm");
+    const slotDuration = branch.slotDuration || 60; // bạn muốn mỗi slot 1 tiếng
+
+    // Sinh toàn bộ slot trong ngày
+    const allSlots = [];
+    let current = openTime.clone();
+    while (current.isBefore(closeTime)) {
+      allSlots.push(current.format("HH:mm"));
+      current.add(slotDuration, "minutes");
+    }
+
+    // 3️⃣ Nếu thợ nghỉ → tất cả slot đều unavailable
+    if (isUnavailable) {
+      return {
+        barberId: idBarber,
+        branchId: idBranch,
+        date: normalizedDate,
+        isUnavailable: true,
+        bookedSlots: allSlots,
+        availableSlots: [],
+      };
+    }
+
+    // 4️⃣ Nếu không nghỉ → lấy slot đã có booking
+    const bookings = await db.Booking.findAll({
+      where: {
+        idBarber,
+        bookingDate: normalizedDate,
+        status: { [Op.not]: "Cancelled" },
+      },
+      attributes: ["bookingTime"],
+    });
+
+    const bookedSlots = bookings.map((b) => b.bookingTime);
+
+    return {
+      barberId: idBarber,
+      branchId: idBranch,
+      date: normalizedDate,
+      isUnavailable: false,
+      bookedSlots,
+      availableSlots: allSlots.filter((s) => !bookedSlots.includes(s)),
+    };
+  } catch (error) {
+    console.error("Lỗi khi lấy khung giờ booking:", error);
+    throw error;
+  }
 };
