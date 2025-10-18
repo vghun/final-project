@@ -31,4 +31,19 @@ export const StatisticsAPI = {
       throw error;
     }
   },
+
+  /**
+   * Lấy toàn bộ số liệu dashboard
+   * @param {Object} params - { month, year }
+   */
+  getDashboardOverview: async (params = {}) => {
+    try {
+      const res = await statisticsService.getDashboardOverview(params);
+      console.log("StatisticsAPI.getDashboardOverview trả về:", res);
+      return res;
+    } catch (error) {
+      console.error("Lỗi StatisticsAPI.getDashboardOverview:", error);
+      throw error;
+    }
+  },
 };
