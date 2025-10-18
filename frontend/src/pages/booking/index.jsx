@@ -5,8 +5,6 @@ import VoucherPopup from "../../components/VoucherPopup";
 import { useAuth } from "~/context/AuthContext";
 
 import { 
-  getBooking, 
-  fetchBookingsForBarber, 
   fetchBookedSlots, 
   createBooking 
 } from "~/services/bookingService";
