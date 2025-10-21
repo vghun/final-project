@@ -3,7 +3,7 @@ import styles from "./Home.module.scss";
 import { Link } from "react-router-dom";
 import { useAuth } from "~/context/AuthContext";
 import Button from "~/components/Button";
-import ServiceCard from "~/components/ServiceCard"; 
+import ServiceCard from "~/components/ServiceCard";
 import AIChat from "../../components/AIChat/AIChat";
 import Modal from "~/components/Modal";
 import { fetchHotServicesPaged } from "~/services/serviceService";
@@ -25,12 +25,14 @@ const Home = () => {
     const loadHot = async () => {
       try {
         const data = await fetchHotServicesPaged(page, limit);
+        console.log("API fetchHotServicesPaged result:", data);
         setHot(data.data);
         setTotal(data.total);
       } catch (err) {
         console.error("Lỗi load dịch vụ hot:", err);
       }
     };
+
     loadHot();
   }, [page]);
 
@@ -39,7 +41,8 @@ const Home = () => {
     const slider = sliderRef.current;
     if (!slider) return;
 
-    const slideWidth = slider.querySelector(`.${styles.slideItem}`)?.offsetWidth || 280;
+    const slideWidth =
+      slider.querySelector(`.${styles.slideItem}`)?.offsetWidth || 280;
     const totalWidth = slideWidth * hot.length;
     let scrollPosition = 0;
 
@@ -124,7 +127,10 @@ const Home = () => {
                 </div>
               ))}
               {hot.slice(0, 6).map((s) => (
-                <div key={`duplicate-${s.idService}`} className={styles.slideItem}>
+                <div
+                  key={`duplicate-${s.idService}`}
+                  className={styles.slideItem}
+                >
                   <ServiceCard
                     id={s.idService}
                     image={s.image}

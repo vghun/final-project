@@ -1,20 +1,32 @@
 import express from "express";
-import * as serviceController from "../controllers/serviceController.js";
-import { 
+import {
+  getHot, 
+  getById,
   assignServiceToBranch,   
   createService,
   updateService,
   deleteService,
-  getAllServices, } from "../controllers/serviceController.js";
+  getAllServices,
+  unassignServiceFromBranch,
+  uploadServiceImage } from "../controllers/serviceController.js";
 
 const router = express.Router();
 
-router.get("/hot", serviceController.getHot);
-router.get("/:id", serviceController.getById);
+router.get("/hot", getHot);
+router.get("/:id", getById);
 router.post("/assign-branch", assignServiceToBranch);
+router.delete("/unassign-branch", unassignServiceFromBranch);
+router.post(
+  "/",
+  uploadServiceImage.single("image"), // 👈 xử lý upload field "image"
+  createService
+);
 
-router.post("/", createService);
-router.put("/:id", updateService);
+router.put(
+  "/:id",
+  uploadServiceImage.single("image"), // 👈 thêm dòng này
+  updateService
+);
 router.delete("/:id", deleteService);
 router.get("/", getAllServices);
 export default router;

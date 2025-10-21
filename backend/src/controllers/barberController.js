@@ -76,6 +76,35 @@ const unlockBarber = async (req, res) => {
   }
 };
 
+// 🔹 Tạo user + barber cùng lúc
+const createBarberWithUser = async (req, res) => {
+  try {
+    const { email, password, fullName, phoneNumber, idBranch, profileDescription } = req.body;
+
+    // Gọi xuống service xử lý logic
+    const result = await BarberService.createBarberWithUser({
+      email,
+      password,
+      fullName,
+      phoneNumber,
+      idBranch,
+      profileDescription,
+    });
+
+    return res.status(201).json({
+      message: "Tạo thợ cắt tóc thành công!",
+      user: result.user,
+      barber: result.barber,
+    });
+    } catch (error) {
+      await t.rollback();
+      console.error("❌ Lỗi khi tạo barber mới (chi tiết):", error.errors || error);
+      throw new Error("Lỗi khi tạo barber mới: " + (error.message || "Không rõ"));
+    }
+
+};
+
+
 export default {
   getAllBarbers,
   syncBarbers,
@@ -84,4 +113,5 @@ export default {
   lockBarber,
   unlockBarber,
   assignUserAsBarber,
+  createBarberWithUser
 };
