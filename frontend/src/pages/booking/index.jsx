@@ -52,7 +52,7 @@ function BookingPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:8088/api/bookings/branches/${branchId}/details`);
+      const res = await fetch(`http://localhost:8088/api/bookings/branches/${branchId}`);
       const data = await res.json();
 
       setBooking((prev) => ({ ...prev, branch: data.name || "" }));
@@ -85,8 +85,8 @@ function BookingPage() {
     if (!barberId || !booking.branchId || !booking.date) return;
 
     try {
-      // ✅ Gọi API từ service
-      const data = await fetchBookedSlots(barberId, booking.branchId, booking.date);
+      const res = await fetch(`http://localhost:8088/api/bookings/barbers/${barberId}`);
+      const data = await res.json();
 
       // Gom booking theo ngày
       const grouped = {};
@@ -174,14 +174,22 @@ function BookingPage() {
     const finalPrice = totalPrice - discountAmount;
 
     try {
-      await createBooking({
-        idCustomer: 2,
-        idBranch: booking.branchId,
-        idBarber: booking.barberId,
-        bookingDate: booking.date,
-        bookingTime: booking.time,
-        services: booking.services.map((s) => ({ idService: s.idService, price: s.price, quantity: 1 })),
-        description: booking.services.map((s) => s.name).join(", "),
+      const res = await fetch("http://localhost:8088/api/bookings/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idCustomer: 2,
+          idBranch: booking.branchId,
+          idBarber: booking.barberId,
+          bookingDate: booking.date,
+          bookingTime: booking.time,
+          services: booking.services.map((s) => ({
+            idService: s.idService,
+            price: s.price,
+            quantity: 1,
+          })),
+          description: booking.services.map((s) => s.name).join(", "),
+        }),
       });
       alert(`Đặt lịch thành công!\nThành tiền: ${finalPrice.toLocaleString()}đ`);
       window.location.reload();
