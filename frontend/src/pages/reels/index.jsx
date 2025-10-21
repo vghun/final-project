@@ -66,8 +66,11 @@ function Reel() {
   };
 
   const handleChangeVideo = (newIndex) => {
+  if (newIndex >= 0 && newIndex < reels.length) {
     setDetailIndex(newIndex);
-  };
+    setCurrentIndex(newIndex); // ✅ Đồng bộ lại index chính
+  }
+};
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
