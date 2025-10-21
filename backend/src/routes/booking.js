@@ -7,6 +7,8 @@ import {
   completeBooking,
   getBookingsByBarber,
   upload,
+  getAllBookingDetails,
+  payBooking,
 } from "../controllers/bookingController.js";
 
 const router = express.Router();
@@ -15,10 +17,14 @@ const router = express.Router();
 router.get("/branches", getBranches);
 
 // 🧩 Lấy chi tiết 1 chi nhánh (barber + dịch vụ)
-router.get("/branches/:idBranch/details", getBranchDetails);
+router.get("/branches/:idBranch", getBranchDetails);
 
 // 🧑‍💼 Lấy tất cả booking của 1 barber (theo id)
 router.get("/barbers/:idBarber", getBookingsByBarber);
+
+router.get("/details", getAllBookingDetails);
+
+router.put("/:idBooking/pay", payBooking);
 
 // 📅 Lấy booking của barber theo ngày (tùy query start-end)
 router.get("/barber", bookingController.getBookingsForBarber);

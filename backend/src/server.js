@@ -43,7 +43,7 @@ app.use("/api/salary", salaryRoute);
 
 app.use("/api/barbers", barberRoutes);
 app.use("/api/branches", branchRoutes);
-app.use("/api/", ratingRoutes);
+app.use("/api/ratings", ratingRoutes);
 
 app.use("/api/bookings", bookingRoute);
 app.use("/api/statistics", statisticRoute);
