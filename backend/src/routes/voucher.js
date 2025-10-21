@@ -1,21 +1,21 @@
 import express from "express";
 import voucherController from "../controllers/voucherController.js";
+import { authenticate } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-// POST /api/vouchers - tạo voucher
+// --- CRUD voucher (admin) ---
 router.post("/", voucherController.create);
-
-// GET /api/vouchers - lấy tất cả voucher
 router.get("/", voucherController.getAll);
 
-// GET /api/vouchers/:id - lấy voucher theo id
+// --- Voucher khách (cần authenticate) ---
+router.get("/customer/me", authenticate, voucherController.getCustomerVouchers);
+router.get("/available", authenticate, voucherController.getAvailableVouchersByPoint);
+router.post("/exchange", authenticate, voucherController.exchangeVoucher);
+
+// --- Route động ở cuối cùng ---
 router.get("/:id", voucherController.getById);
-
-// PUT /api/vouchers/:id - cập nhật voucher
 router.put("/:id", voucherController.update);
-
-// DELETE /api/vouchers/:id - xoá voucher (soft delete)
 router.delete("/:id", voucherController.delete);
 
 export default router;

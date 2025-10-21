@@ -46,20 +46,78 @@ export async function createEmbedding(text) {
 }
 
 // Test upsert barbers bằng text, Pinecone tự sinh vector
-export async function upsertBarbersTest(barbers) {
-  const records = barbers.map(b => ({
-    id: b.idBarber.toString(),
-    text: b.profileDescription || b.fullName || b.branchName || "",
-    metadata: JSON.stringify({
-      idBarber: b.idBarber,
-      idBranch: b.idBranch,
-      fullName: b.fullName || "",
-      branchName: b.branchName || ""
-    })
-  }));
+export async function upsertBarbers(barbers) {
+  try {
+    const records = barbers.map((b) => ({
+      id: b.idBarber.toString(),
+      text: `
+        Tên barber: ${b.fullName || "Chưa có tên"}.
+        Chi nhánh: ${b.branchName || "Chưa có chi nhánh"}.
+        Mô tả: ${b.profileDescription || "Không có mô tả"}.
+        Đánh giá trung bình: ${b.avgRate ?? 0}.
+      `.trim(),
+      metadata: JSON.stringify({
+        idBarber: b.idBarber,
+        idBranch: b.idBranch,
+        fullName: b.fullName || "",
+        branchName: b.branchName || "",
+        profileDescription: b.profileDescription || "",
+        avgRate: b.avgRate ?? 0,
+      }),
+    }));
 
-  console.log("Records ready to upsert:", records);
+    console.log("📦 Records ready to upsert:", records.length);
+    console.dir(records, { depth: null });
 
-  await index.upsertRecords(records, "__default__"); 
-  console.log("✅ Barber data upserted into Pinecone (test text).");
+    // Đẩy dữ liệu vào Pinecone
+    const namespaceIndex = index.namespace("barbers");
+    await namespaceIndex.upsertRecords(records);
+
+  } catch (error) {
+    console.error("Upsert Barber Error:", error);
+    throw new Error("Không thể upsert dữ liệu vào Pinecone");
+  }
 }
+export async function upsertBranches(branches) {
+  try {
+    const records = branches.map((b) => {
+      const statusRaw = (b.status || "").trim().toLowerCase();
+      const isActive =
+        statusRaw === "active" ||
+        statusRaw === "true" ||
+        statusRaw === "1" ||
+        statusRaw === "đang hoạt động";
+
+      return {
+        id: b.idBranch.toString(),
+        text: `
+Chi nhánh: ${b.name || "Chưa có tên"}.
+Địa chỉ: ${b.address || "Không có địa chỉ"}.
+Trạng thái: ${isActive ? "Đang hoạt động" : "Ngừng hoạt động"}.
+Giờ mở cửa: ${b.openTime || "N/A"}.
+Giờ đóng cửa: ${b.closeTime || "N/A"}.
+Dịch vụ: ${b.displayText || "Chưa có thông tin"}.
+        `.trim(),
+        metadata: JSON.stringify({
+          idBranch: b.idBranch,
+          name: b.name || "",
+          address: b.address || "",
+          isActive,
+          openTime: b.openTime || "",
+          closeTime: b.closeTime || "",
+        }),
+      };
+    });
+
+    const namespaceIndex = index.namespace("branches");
+    await namespaceIndex.upsertRecords(records);
+
+
+    console.log(`✅ Upserted ${records.length} branches into Pinecone (namespace: branches)`);
+  } catch (error) {
+    console.error("❌ Lỗi upsert Pinecone:", error);
+    throw new Error("Không thể upsert dữ liệu chi nhánh vào Pinecone");
+  }
+}
+
+

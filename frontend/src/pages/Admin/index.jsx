@@ -11,11 +11,12 @@ import LuongThuong from "./LuongThuong";
 import QuanLyDiem from "./QuanLyDiem";
 import DatLichThanhToan from "./DatLichThanhToan";
 import TongQuan from "./TongQuan"; // 🆕 Thêm dòng này
+import ChiNhanh from "./ChiNhanh";
 
 const cx = classNames.bind(styles);
 
 const tabs = [
-  { id: "tongquan", label: "Tổng Quan" }, 
+  { id: "tongquan", label: "Tổng Quan" },
   { id: "thongke", label: "Thống kê" },
   { id: "chinhanh", label: "Chi nhánh" },
   { id: "tho", label: "Thợ cắt tóc" },
@@ -44,7 +45,7 @@ function Admin() {
       <div className={cx("tabContent")}>
         {activeTab === "tongquan" && <TongQuan />} {/* 🆕 Tab tổng quan */}
         {activeTab === "thongke" && <ThongKe />}
-        {activeTab === "chinhanh" && <></>}
+        {activeTab === "chinhanh" && <ChiNhanh />}
         {activeTab === "tho" && <ThoCatToc />}
         {activeTab === "voucher" && <Voucher />}
         {activeTab === "luong" && <LuongThuong />}

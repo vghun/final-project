@@ -1,14 +1,18 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { AuthAPI } from "~/apis/AuthAPI";
 
+
+
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
+  const [loading, setLoading] = useState(true); // trạng thái load auth khi app start
 
-  // Load dữ liệu từ localStorage khi app khởi chạy
+  // Load auth từ localStorage khi app khởi chạy
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedAccessToken = localStorage.getItem("accessToken");
@@ -19,6 +23,8 @@ export function AuthProvider({ children }) {
       setAccessToken(storedAccessToken);
       setRefreshToken(storedRefreshToken);
     }
+
+    setLoading(false); // load xong
   }, []);
 
   // LOGIN
@@ -36,11 +42,12 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       if (refreshToken) {
-        await AuthAPI.logout({ refreshToken }); // <-- phải là object
+        await AuthAPI.logout({ refreshToken }); // gọi API logout nếu có
       }
     } catch (err) {
       console.error("Logout API error:", err);
     } finally {
+      // Xóa localStorage và state
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
@@ -61,6 +68,7 @@ export function AuthProvider({ children }) {
         logout,
         setUser,
         isLogin: !!user,
+        loading, // expose loading để ProtectedRoute chờ load xong
       }}
     >
       {children}
@@ -68,6 +76,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// Hook tiện lợi
 export function useAuth() {
   return useContext(AuthContext);
 }
