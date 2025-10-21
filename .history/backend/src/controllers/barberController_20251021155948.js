@@ -124,5 +124,6 @@ export default {
   unlockBarber,
   assignUserAsBarber,
   getBarberReward,
-  createBarberWithUser,
+};
+  createBarberWithUser
 };
