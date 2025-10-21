@@ -67,3 +67,19 @@ export const trackView = async (req, res) => {
         res.status(500).json({ error: "Lỗi khi ghi nhận lượt xem." });
     }
 };
+
+export const searchReels = async (req, res) => {
+  try {
+    const { q, idUser } = req.query;
+
+    if (!q || q.trim() === "") {
+      return res.status(400).json({ message: "Thiếu từ khóa tìm kiếm." });
+    }
+
+    const reels = await searchReelsService(q.trim(), idUser);
+    res.json(reels);
+  } catch (error) {
+    console.error("Lỗi tại searchReels:", error);
+    res.status(500).json({ message: "Lỗi server khi tìm kiếm video." });
+  }
+};

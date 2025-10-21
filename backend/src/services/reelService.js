@@ -73,6 +73,20 @@ export const getAllReels = async (page = 1, limit = 10, idUser) => {
     },
     include: [
       {
+        model: Barber, 
+        required: true,
+        attributes: ["idBarber"], // Chỉ cần lấy idBarber, các trường khác là từ User
+        
+        include: [
+          {
+            model: User, 
+            as: "user", 
+            attributes: ["fullName", "image"], // Lấy thông tin cần thiết
+            required: true,
+          },
+        ],
+      },
+      {
         model: ReelLike,
         as: "ReelLikes",
         attributes: ["idUser"],
@@ -172,3 +186,4 @@ export const toggleLikeReel = async (idReel, idUser) => {
     likesCount: count,
   };
 };
+
