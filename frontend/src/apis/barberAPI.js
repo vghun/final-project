@@ -21,4 +21,8 @@ export const BarberAPI = {
   unlock: async (idBarber) => {
     return await barberService.unlockBarber({ idBarber });
   },
+
+  createBarber: async (payload) => {
+    return await barberService.createBarberWithUser(payload);
+  },
 };
