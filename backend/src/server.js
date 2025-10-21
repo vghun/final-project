@@ -38,7 +38,8 @@ app.use("/user/profile", profileRoutes);
 app.use("/api/chat", chatRoute);
 app.use("/api/barbers", barberRoutes);
 app.use("/api/branches", branchRoutes);
-app.use("/api/", ratingRoutes);
+app.use("/api/ratings", ratingRoutes);
+
 app.use("/api/bookings", bookingRoute);
 app.use("/api/reels", reelRoute);
 app.use("/api/reels", reelCommentRoutes);
