@@ -25,7 +25,10 @@ function ThoCatToc() {
   const [showChangeBranch, setShowChangeBranch] = useState(false);
 
   const [formData, setFormData] = useState({
-    idUser: "",
+    email: "",
+    password: "",
+    fullName: "",
+    phoneNumber: "",
     idBranch: "",
     profileDescription: "",
   });
@@ -78,7 +81,14 @@ function ThoCatToc() {
 
   // 🔹 Mở modal thêm thợ
   const openAddModal = () => {
-    setFormData({ idUser: "", idBranch: "", profileDescription: "" });
+    setFormData({
+      email: "",
+      password: "",
+      fullName: "",
+      phoneNumber: "",
+      idBranch: "",
+      profileDescription: "",
+    });
     setShowModal(true);
   };
 
@@ -91,13 +101,13 @@ function ThoCatToc() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await BarberAPI.assignUser(formData);
-      alert("✅ Thêm thợ thành công!");
+      await BarberAPI.createBarber(formData);
+      alert("✅ Tạo thợ cắt tóc thành công!");
       setShowModal(false);
       await fetchBarbers();
     } catch (error) {
-      console.error("Lỗi khi thêm thợ:", error);
-      alert("❌ Không thể thêm thợ!");
+      console.error("Lỗi khi tạo thợ:", error);
+      alert(error?.response?.data?.message || "❌ Không thể tạo thợ mới!");
     }
   };
 
@@ -148,7 +158,6 @@ function ThoCatToc() {
             <tr>
               <th>Thợ cắt tóc</th>
               <th>Chi nhánh</th>
-              <th>Kinh nghiệm</th>
               <th>Đánh giá</th>
               <th>Khách hàng</th>
               <th>Trạng thái</th>
@@ -182,7 +191,6 @@ function ThoCatToc() {
                   </button>
                 </td>
 
-                <td>{b.exp || "—"}</td>
                 <td className={cx("rating")}>
                   <FontAwesomeIcon icon={faStar} className={cx("star")} />{" "}
                   {b.rating || "0.0"}
@@ -228,29 +236,59 @@ function ThoCatToc() {
       )}
 
       {/* =============== MODAL THÊM THỢ =============== */}
+      {/* =============== MODAL THÊM THỢ =============== */}
       {showModal && (
         <div className={cx("modalOverlay")}>
           <div className={cx("modal")}>
             <h3>Thêm thợ cắt tóc mới</h3>
             <form onSubmit={handleSubmit}>
-              <label>ID người dùng (User ID)</label>
+              <label>Email</label>
               <input
-                type="number"
-                name="idUser"
-                value={formData.idUser}
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
                 required
-                placeholder="Nhập ID user cần gán"
+                placeholder="Nhập email thợ"
               />
 
-              <label>Chi nhánh làm việc</label>
+              <label>Mật khẩu</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                placeholder="Nhập mật khẩu"
+              />
+
+              <label>Họ và tên</label>
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                required
+                placeholder="Nhập họ và tên"
+              />
+
+              <label>Số điện thoại</label>
+              <input
+                type="text"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                required
+                placeholder="Nhập số điện thoại"
+              />
+
+              <label>Chi nhánh làm việc (tùy chọn)</label>
               <select
                 name="idBranch"
                 value={formData.idBranch}
                 onChange={handleChange}
-                required
               >
-                <option value="">-- Chọn chi nhánh --</option>
+                <option value="">-- Không chọn --</option>
                 {branches.map((br) => (
                   <option key={br.idBranch} value={br.idBranch}>
                     {br.name}
@@ -258,13 +296,13 @@ function ThoCatToc() {
                 ))}
               </select>
 
-              <label>Mô tả hồ sơ (Profile Description)</label>
+              <label>Mô tả hồ sơ</label>
               <textarea
                 name="profileDescription"
                 value={formData.profileDescription}
                 onChange={handleChange}
                 rows="3"
-                placeholder="VD: 5 năm kinh nghiệm cắt tóc nam, chuyên fade..."
+                placeholder="VD: 5 năm kinh nghiệm, chuyên fade, uốn tóc..."
               />
 
               <div className={cx("modalActions")}>

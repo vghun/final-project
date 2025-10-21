@@ -1,4 +1,17 @@
 import * as serviceService from "../services/serviceService.js";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
+import multer from "multer";
+
+const serviceStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => ({
+    folder: "service-images",
+    resource_type: "image",
+    public_id: `service_${Date.now()}`,
+  }),
+});
+export const uploadServiceImage = multer({ storage: serviceStorage });
 
 // Dịch vụ hot nhất (nhiều booking nhất)
 export const getHot = async (req, res) => {
@@ -37,19 +50,58 @@ export const assignServiceToBranch = async (req, res) => {
 
 export const createService = async (req, res) => {
   try {
-    const service = await serviceService.createService(req.body);
-    res.status(201).json(service);
+    // Lấy thông tin form
+    const { name, description, price, duration, status } = req.body;
+
+    let imageUrl = null;
+
+    // Nếu có upload ảnh thì lấy link cloudinary
+    if (req.file) {
+      imageUrl = req.file.path;
+    }
+
+    const newService = await serviceService.createService({
+      name,
+      description,
+      price,
+      duration,
+      status: status || "Active",
+      image: imageUrl,
+    });
+
+    res.status(201).json({
+      message: "Tạo dịch vụ thành công!",
+      service: newService,
+    });
   } catch (error) {
+    console.error("❌ Lỗi khi tạo dịch vụ:", error);
     res.status(500).json({ error: error.message });
   }
 };
 
+
 export const updateService = async (req, res) => {
   try {
-    const service = await serviceService.updateService(req.params.id, req.body);
-    res.json(service);
+    const idService = req.params.id;
+    const updateData = req.body;
+
+    // Nếu có ảnh mới → upload lên Cloudinary
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "service-images",
+        resource_type: "image",
+      });
+      updateData.image = result.secure_url;
+    }
+
+    const updated = await serviceService.updateService(idService, updateData);
+    res.json({
+      message: "Cập nhật dịch vụ thành công!",
+      service: updated,
+    });
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    console.error("❌ Lỗi khi cập nhật dịch vụ:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -66,6 +118,16 @@ export const getAllServices = async (req, res) => {
   try {
     const services = await serviceService.getAllServices();
     res.json(services);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const unassignServiceFromBranch = async (req, res) => {
+  try {
+    const { idService, idBranch } = req.body;
+    await serviceService.unassignServiceFromBranch(idService, idBranch);
+    res.json({ message: "Unassigned branch successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

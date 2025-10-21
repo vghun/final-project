@@ -12,4 +12,5 @@ router.post("/lock", barberController.lockBarber);
 router.post("/unlock", barberController.unlockBarber);
 router.get("/reward/:idBarber", barberController.getBarberReward);
 
+router.post("/create", barberController.createBarberWithUser);
 export default router;
