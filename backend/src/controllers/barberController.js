@@ -22,7 +22,15 @@ const syncBarbers = async (req, res) => {
   }
 };
 
-// Gán barber vào chi nhánh
+const assignUserAsBarber = async (req, res) => {
+  try {
+    const result = await BarberService.assignUserAsBarber(req.body);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const assignBarberToBranch = async (req, res) => {
   try {
     const { idBarber, idBranch } = req.body;
@@ -34,7 +42,6 @@ const assignBarberToBranch = async (req, res) => {
   }
 };
 
-// Duyệt barber
 const approveBarber = async (req, res) => {
   try {
     const { idBarber } = req.body;
@@ -57,6 +64,24 @@ const lockBarber = async (req, res) => {
     res.status(404).json({ error: error.message });
   }
 };
+// Mở khóa barber
+const unlockBarber = async (req, res) => {
+  try {
+    const { idBarber } = req.body;
+    const barber = await BarberService.unlockBarber(idBarber);
+    res.json({ message: "Barber unlocked", barber });
+  } catch (error) {
+    console.error("Lỗi unlockBarber:", error);
+    res.status(404).json({ error: error.message });
+  }
+};
 
-// ✅ Named export
-export default { getAllBarbers, syncBarbers, assignBarberToBranch, approveBarber, lockBarber };
+export default {
+  getAllBarbers,
+  syncBarbers,
+  assignBarberToBranch,
+  approveBarber,
+  lockBarber,
+  unlockBarber,
+  assignUserAsBarber,
+};

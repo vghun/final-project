@@ -1,17 +1,74 @@
 import db from "../models/index.js"; 
-import { upsertBranches } from "./pineconeService.js"; // Tạo file riêng giống upsertBarbersTest
-// Sửa lại import này
+import { upsertBranches } from "./pineconeService.js";
+
 const Branch = db.Branch;
 
 const createBranch = async (data) => {
-  return await Branch.create(data);
+  try {
+    const { name, address, openTime, closeTime, slotDuration, managerId } = data;
+
+    if (!name || !address || !openTime || !closeTime || !slotDuration || !managerId) {
+      throw new Error("Thiếu thông tin bắt buộc khi tạo chi nhánh!");
+    }
+
+    const manager = await db.User.findByPk(managerId);
+    if (!manager) {
+      throw new Error(`Không tìm thấy người quản lý với ID = ${managerId}`);
+    }
+
+    const newBranch = await Branch.create({
+      name,
+      address,
+      openTime,
+      closeTime,
+      slotDuration,
+      managerId,
+      status: "Active",
+    });
+
+    return newBranch;
+  } catch (error) {
+    console.error("Lỗi createBranch:", error);
+    throw error;
+  }
 };
 
 const updateBranch = async (id, data) => {
-  const branch = await Branch.findByPk(id);
-  if (!branch) throw new Error("Branch not found");
-  return await branch.update(data);
+  try {
+    const branch = await Branch.findByPk(id);
+    if (!branch) throw new Error("Không tìm thấy chi nhánh để cập nhật!");
+
+    const { name, address, openTime, closeTime, slotDuration, managerId, status } = data;
+
+    // 🔹 Kiểm tra dữ liệu bắt buộc
+    if (!name || !address || !openTime || !closeTime || !slotDuration || !managerId) {
+      throw new Error("Thiếu thông tin bắt buộc khi cập nhật chi nhánh!");
+    }
+
+    // 🔹 Kiểm tra manager tồn tại
+    const manager = await db.User.findByPk(managerId);
+    if (!manager) {
+      throw new Error(`Không tìm thấy người quản lý với ID = ${managerId}`);
+    }
+
+    // 🔹 Cập nhật các trường hợp lệ
+    await branch.update({
+      name,
+      address,
+      openTime,
+      closeTime,
+      slotDuration,
+      managerId,
+      status: status || branch.status, // giữ nguyên nếu không truyền
+    });
+
+    return branch;
+  } catch (error) {
+    console.error("Lỗi updateBranch:", error);
+    throw error;
+  }
 };
+
 
 const deleteBranch = async (id) => {
   const branch = await Branch.findByPk(id);
@@ -23,14 +80,55 @@ const deleteBranch = async (id) => {
 const toggleBranchStatus = async (id) => {
   const branch = await Branch.findByPk(id);
   if (!branch) throw new Error("Branch not found");
-  branch.isActive = !branch.isActive;
+  branch.status = branch.status === "Active" ? "Inactive" : "Active";
   await branch.save();
   return branch;
 };
 
+
 const getAllBranches = async () => {
-  return await Branch.findAll();
+  try {
+    const branches = await db.Branch.findAll({
+      attributes: [
+        "idBranch",
+        "name",
+        "address",
+        "openTime",
+        "closeTime",
+        "status",
+        "slotDuration",
+        "managerId",
+        // 👇 tính tổng số thợ
+        [
+          db.Sequelize.literal(`(
+            SELECT COUNT(*) 
+            FROM barbers AS b 
+            WHERE b.idBranch = Branch.idBranch
+          )`),
+          "totalBarbers",
+        ],
+      ],
+      include: [
+        {
+          model: db.User,
+          as: "manager",
+          attributes: ["idUser", "fullName", "email", "phoneNumber"],
+        },
+      ],
+      order: [["idBranch", "ASC"]],
+    });
+
+    if (!branches.length) {
+      return { message: "Không có chi nhánh nào trong hệ thống" };
+    }
+
+    return branches;
+  } catch (error) {
+    console.error("Lỗi getAllBranches:", error);
+    throw error;
+  }
 };
+
 const syncBranchesToPinecone = async () => {
   try {
     // 🔹 Lấy danh sách chi nhánh kèm thông tin dịch vụ

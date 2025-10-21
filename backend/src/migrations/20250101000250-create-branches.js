@@ -31,6 +31,10 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.ENUM("Active", "Inactive"),
       defaultValue: "Active",
     },
+    managerId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
     createdAt: {
       type: Sequelize.DATE,
       defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
