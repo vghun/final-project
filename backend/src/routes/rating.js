@@ -3,9 +3,8 @@ import ratingController from "../controllers/ratingController.js";
 
 const router = express.Router();
 
-router.get("/ratings/barber/:idBarber", ratingController.getRatingSummaryByBarber);
-router.post("/ratings/barber/:idBarber", ratingController.updateRating);
-router.get("/ratings/branch/:idBranch", ratingController.getAllRatingsByBranch);
-
+router.get("/barber/:idBarber", ratingController.getRatingSummaryByBarber);
+router.post("/barber/:idBarber", ratingController.updateRating);
+router.get("/branch/:idBranch", ratingController.getAllRatingsByBranch);
 
 export default router;

@@ -41,7 +41,7 @@ function BookingPage() {
 
   // ================= CALL API =================
   useEffect(() => {
-    fetch("http://localhost:8088/api/booking/branches")
+    fetch("http://localhost:8088/api/bookings/branches")
       .then((res) => res.json())
       .then((data) => setBranches(data || []))
       .catch((err) => console.error("Error fetch branches:", err));
@@ -59,7 +59,7 @@ function BookingPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:8088/api/booking/branches/${branchId}`);
+      const res = await fetch(`http://localhost:8088/api/bookings/branches/${branchId}`);
       const data = await res.json();
 
       setBooking((prev) => ({ ...prev, branch: data.name || "" }));
@@ -95,7 +95,7 @@ function BookingPage() {
     if (!barberId) return;
 
     try {
-      const res = await fetch(`http://localhost:8088/api/booking/barbers/${barberId}`);
+      const res = await fetch(`http://localhost:8088/api/bookings/barbers/${barberId}`);
       const data = await res.json();
 
       // ✅ Gom booking theo ngày
@@ -163,7 +163,7 @@ function BookingPage() {
     const finalPrice = totalPrice - discountAmount;
 
     try {
-      const res = await fetch("http://localhost:8088/api/booking/create", {
+      const res = await fetch("http://localhost:8088/api/bookings/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

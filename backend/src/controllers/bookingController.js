@@ -96,11 +96,7 @@ export const getBookingsForBarber = async (req, res) => {
       return res.status(400).json({ error: "Thiếu idBarber, start hoặc end" });
     }
 
-    const bookings = await bookingService.getBarberBookings(
-      parseInt(idBarber),
-      start,
-      end
-    );
+    const bookings = await bookingService.getBarberBookings(parseInt(idBarber), start, end);
     return res.status(200).json(bookings);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -137,15 +133,9 @@ export const completeBooking = async (req, res) => {
       }
     }
 
-    if (uploadedImages.length === 0)
-      return res.status(400).json({ error: "Cần upload ít nhất 1 ảnh" });
+    if (uploadedImages.length === 0) return res.status(400).json({ error: "Cần upload ít nhất 1 ảnh" });
 
-    const result = await bookingService.completeBooking(
-      idBooking,
-      idBarber,
-      uploadedImages,
-      description
-    );
+    const result = await bookingService.completeBooking(idBooking, idBarber, uploadedImages, description);
 
     return res.status(200).json({
       message: "Đã hoàn tất lịch hẹn và lưu ảnh vào gallery khách hàng",
@@ -189,5 +179,151 @@ export const getBookingsByBarber = async (req, res) => {
       message: "Lỗi khi lấy thời gian booking và ngày nghỉ của barber",
       error,
     });
+  }
+};
+
+//  Danh sách lịch hẹn bên Admin
+export const getAllBookingDetails = async (req, res) => {
+  try {
+    const bookings = await db.Booking.findAll({
+      include: [
+        {
+          model: db.Customer,
+          include: [
+            {
+              model: db.User,
+              as: "user",
+              attributes: ["idUser", "fullName", "email", "phoneNumber"],
+            },
+          ],
+          attributes: ["idCustomer", "address", "loyaltyPoint"],
+        },
+        {
+          model: db.Barber,
+          as: "barber",
+          include: [
+            {
+              model: db.User,
+              as: "user",
+              attributes: ["idUser", "fullName", "email", "phoneNumber"],
+            },
+            {
+              model: db.Branch,
+              as: "branch",
+              attributes: ["idBranch", "name", "address"],
+            },
+          ],
+          attributes: ["idBarber"],
+        },
+        {
+          model: db.BookingDetail,
+          include: [
+            {
+              model: db.Service,
+              as: "service",
+              attributes: ["idService", "name", "price", "duration"],
+            },
+          ],
+          attributes: ["idBookingDetail", "quantity", "price"],
+        },
+        {
+          model: db.BookingTip,
+          as: "BookingTip",
+          attributes: ["tipAmount"],
+        },
+      ],
+      order: [["bookingDate", "DESC"]],
+    });
+
+    // ✅ Format dữ liệu trả về cho frontend
+    const result = bookings.map((booking) => {
+      const details = booking.BookingDetails || [];
+      const subTotal = details.reduce((sum, item) => sum + parseFloat(item.price) * (item.quantity || 1), 0);
+
+      const tip = parseFloat(booking.BookingTip?.tipAmount || 0);
+      const total = subTotal + tip;
+
+      // ✅ Tách thêm 2 trường mới:
+      // - isPaid: kiểm tra thanh toán
+      // - status: vẫn giữ để biết trạng thái dịch vụ
+      const isPaid =
+        booking.isPaid !== undefined ? Boolean(booking.isPaid) : booking.status?.toLowerCase() === "completed"; // fallback nếu DB chưa có cột isPaid
+
+      return {
+        idBooking: booking.idBooking,
+        bookingDate: booking.bookingDate,
+        bookingTime: booking.bookingTime,
+        status: booking.status || "Pending", // ví dụ: Pending / Completed / Cancelled
+        isPaid, // ✅ thêm trường thanh toán
+        description: booking.description || "",
+
+        customer: booking.Customer
+          ? {
+              id: booking.Customer.idCustomer,
+              name: booking.Customer.user?.fullName,
+              email: booking.Customer.user?.email,
+              phone: booking.Customer.user?.phoneNumber,
+            }
+          : null,
+
+        barber: booking.barber
+          ? {
+              id: booking.barber.idBarber,
+              name: booking.barber.user?.fullName,
+              branch: booking.barber.branch?.name,
+            }
+          : null,
+
+        branch: booking.barber?.branch
+          ? {
+              id: booking.barber.branch.idBranch,
+              name: booking.barber.branch.name,
+              address: booking.barber.branch.address,
+            }
+          : null,
+
+        services: details.map((d) => ({
+          id: d.service?.idService,
+          name: d.service?.name,
+          price: parseFloat(d.service?.price),
+          quantity: d.quantity,
+        })),
+
+        subTotal: subTotal.toFixed(2),
+        tip: tip.toFixed(2),
+        total: total.toFixed(2),
+      };
+    });
+
+    res.status(200).json({ message: "Lấy danh sách booking thành công", data: result });
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy danh sách booking chi tiết:", error);
+    res.status(500).json({ message: "Lỗi khi lấy danh sách booking chi tiết", error });
+  }
+};
+
+// ✅ Thanh toán booking (chỉ cập nhật isPaid)
+export const payBooking = async (req, res) => {
+  try {
+    const { idBooking } = req.params;
+
+    const booking = await db.Booking.findByPk(idBooking);
+    if (!booking) {
+      return res.status(404).json({ message: "Không tìm thấy booking" });
+    }
+
+    if (booking.isPaid) {
+      return res.status(400).json({ message: "Lịch hẹn này đã được thanh toán" });
+    }
+
+    await booking.update({ isPaid: true });
+
+    return res.status(200).json({
+      message: "Thanh toán thành công",
+      booking: { idBooking: booking.idBooking, isPaid: true },
+    });
+  } catch (error) {
+    console.error("❌ Lỗi thanh toán:", error);
+    res.status(500).json({ message: "Lỗi khi thanh toán", error: error.message });
   }
 };
