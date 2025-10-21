@@ -44,3 +44,12 @@ export const getAllBranches = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const syncBranchesToPinecone = async (req, res) => {
+  try {
+    const result = await branchService.syncBranchesToPinecone();
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

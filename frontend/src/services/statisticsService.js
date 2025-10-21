@@ -25,3 +25,16 @@ export const getMonthlyBranchRevenue = async (year) => {
     throw error.response?.data || error;
   }
 };
+
+// 🔥 Lấy tổng quan dashboard (monthlyRevenue, servedCustomerCount, totalBookings, avgRating, topCustomers)
+// params = { month, year }
+export const getDashboardOverview = async (params = {}) => {
+  try {
+    const res = await request.get("/api/statistics/overview", { params });
+    console.log("API getDashboardOverview trả về:", res);
+    return res;
+  } catch (error) {
+    console.error("Lỗi khi gọi API getDashboardOverview:", error.response?.data || error);
+    throw error.response?.data || error;
+  }
+};

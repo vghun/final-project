@@ -28,14 +28,14 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      isApproved: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-      },
-      isLocked: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-      },
+      // isApproved: {
+      //   type: DataTypes.BOOLEAN,
+      //   defaultValue: false,
+      // },
+      // isLocked: {
+      //   type: DataTypes.BOOLEAN,
+      //   defaultValue: false,
+      // },
     },
     {
       sequelize,

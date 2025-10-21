@@ -5,6 +5,7 @@ import {
   deleteBranch,
   toggleBranchStatus,
   getAllBranches,
+  syncBranchesToPinecone,
 } from "../controllers/branchController.js";
 
 const router = express.Router();
@@ -14,5 +15,5 @@ router.put("/:id", updateBranch);
 router.delete("/:id", deleteBranch);
 router.patch("/:id/toggle", toggleBranchStatus);
 router.get("/", getAllBranches);
-
+router.post("/sync-pinecone", syncBranchesToPinecone);
 export default router;
