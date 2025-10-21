@@ -1,47 +1,49 @@
-"use strict";
+'use strict';
 
 export async function up(queryInterface, Sequelize) {
+  const now = new Date();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const customers = [2, 3, 4, 5, 6]; // danh sách id customer
+  const barbers = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; // danh sách thợ
   const bookings = [];
 
-  const barberIds = [7,8,9,10,11,12,13,14,15,16];
- const bookingDates = [
-    "2025-09-01","2025-09-02","2025-09-03","2025-09-04",
-    "2025-09-05","2025-09-06","2025-09-07","2025-09-08",
-    "2025-09-09","2025-09-10"
-];
+  for (const barberId of barbers) {
+    // random số booking của mỗi thợ (2–3 khung giờ)
+    const numBookings = 2 + Math.floor(Math.random() * 2);
 
+    // random giờ bắt đầu (ví dụ: 9 -> 17)
+    const startHour = 9 + Math.floor(Math.random() * (18 - numBookings));
 
-  let idBooking = 1;
+    for (let j = 0; j < numBookings; j++) {
+      const bookingHour = startHour + j; // cách nhau 1 tiếng
+      const bookingTime = `${bookingHour.toString().padStart(2, '0')}:00`;
 
-  for(let date of bookingDates){
-    for(let barberId of barberIds){
-      const randomGuests = Math.floor(Math.random() * 3) + 1; // 1 → 3
-      const randomHour = Math.floor(Math.random() * 12) + 9; // 9 → 20 giờ
-      const randomMinute = Math.random() < 0.5 ? "00" : "30";
-      const description = `Dịch vụ mẫu cho barber ${barberId}`;
+      const customerId = customers[Math.floor(Math.random() * customers.length)];
 
       bookings.push({
-        idBooking: idBooking++,
-        idCustomer: 2 + Math.floor(Math.random() * 5), // customer id từ 2 → 6
+        idCustomer: customerId,
         idBarber: barberId,
-        idCustomerVoucher: null,
-        guestCount: 1,
-        bookingDate: new Date(date),
-        bookingTime: `${randomHour}:${randomMinute}`,
-        status:"Completed",
-        description: description,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        bookingDate: today,
+        bookingTime,
+        status: ["Pending", "Completed", "Cancelled"][Math.floor(Math.random() * 3)],
+        description: `Booking ${bookingTime} ngày ${today.toISOString().split('T')[0]} - Barber ${barberId}`,
+        total: 0,
+        isPaid: Math.random() > 0.5,
+        createdAt: now,
+        updatedAt: now,
       });
-
-      if(idBooking > 40) break; // tạo khoảng 40 booking
     }
-    if(idBooking > 40) break;
   }
 
-  await queryInterface.bulkInsert("bookings", bookings);
+  await queryInterface.bulkInsert('bookings', bookings);
 }
 
 export async function down(queryInterface, Sequelize) {
-  await queryInterface.bulkDelete("bookings", null, {});
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  await queryInterface.bulkDelete('bookings', {
+    bookingDate: today,
+  });
 }
