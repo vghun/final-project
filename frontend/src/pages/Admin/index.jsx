@@ -12,6 +12,7 @@ import QuanLyDiem from "./QuanLyDiem";
 import DatLichThanhToan from "./DatLichThanhToan";
 import TongQuan from "./TongQuan"; // 🆕 Thêm dòng này
 import ChiNhanh from "./ChiNhanh";
+import DichVu from "./DichVu";
 
 const cx = classNames.bind(styles);
 
@@ -19,6 +20,7 @@ const tabs = [
   { id: "tongquan", label: "Tổng Quan" },
   { id: "thongke", label: "Thống kê" },
   { id: "chinhanh", label: "Chi nhánh" },
+  { id: "dichvu", label: "Dịch vụ" },
   { id: "tho", label: "Thợ cắt tóc" },
   { id: "voucher", label: "Quản lý voucher" },
   { id: "luong", label: "Lương thưởng" },
@@ -46,6 +48,7 @@ function Admin() {
         {activeTab === "tongquan" && <TongQuan />} {/* 🆕 Tab tổng quan */}
         {activeTab === "thongke" && <ThongKe />}
         {activeTab === "chinhanh" && <ChiNhanh />}
+        {activeTab === "dichvu" && <DichVu />}
         {activeTab === "tho" && <ThoCatToc />}
         {activeTab === "voucher" && <Voucher />}
         {activeTab === "luong" && <LuongThuong />}

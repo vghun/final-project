@@ -252,3 +252,64 @@ export const calculateBarberReward = async (idBarber) => {
     rewardRules,
   };
 };
+// 🔹 Admin tạo mới barber (tự tạo user + barber cùng lúc)
+export const createBarberWithUser = async (data) => {
+  const t = await db.sequelize.transaction();
+  try {
+    const { email, password, fullName, phoneNumber, idBranch, profileDescription } = data;
+
+    // 1️⃣ Kiểm tra email trùng
+    const existed = await db.User.findOne({ where: { email } });
+    if (existed) {
+      throw new Error("Email đã tồn tại trong hệ thống!");
+    }
+
+    // 2️⃣ Hash password
+    const bcrypt = await import("bcrypt");
+    const hashedPassword = await bcrypt.default.hash(password, 10);
+
+    // 3️⃣ Tạo user mới với role = barber
+    const newUser = await db.User.create(
+      {
+        email,
+        password: hashedPassword,
+        fullName,
+        phoneNumber,
+        role: "barber",
+        isStatus: true,
+      },
+      { transaction: t }
+    );
+
+    // 4️⃣ Tạo bản ghi barber — cho phép idBranch = null
+    const newBarber = await db.Barber.create(
+      {
+        idBarber: newUser.idUser,
+        idBranch: idBranch || null, // ✅ Cho phép null
+        profileDescription: profileDescription || "Chưa có mô tả",
+        isLocked: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      { transaction: t }
+    );
+
+    await t.commit();
+
+    return {
+      message: "Tạo thợ cắt tóc mới thành công!",
+      user: {
+        idUser: newUser.idUser,
+        email: newUser.email,
+        fullName: newUser.fullName,
+        phoneNumber: newUser.phoneNumber,
+        role: newUser.role,
+      },
+      barber: newBarber,
+    };
+  } catch (error) {
+    await t.rollback();
+    console.error("Lỗi khi tạo barber mới:", error);
+    throw new Error("Lỗi khi tạo barber mới: " + error.message);
+  }
+};
