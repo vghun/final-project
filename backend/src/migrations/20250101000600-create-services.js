@@ -24,7 +24,7 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
     },
     image: {
-        type: DataTypes.STRING(255), 
+        type: Sequelize.STRING(255), 
         allowNull: true, 
       },
     status: {
