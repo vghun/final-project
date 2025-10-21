@@ -76,6 +76,16 @@ const unlockBarber = async (req, res) => {
   }
 };
 
+export const getBarberReward = async (req, res) => {
+  try {
+    const { idBarber } = req.params;
+    const rewardData = await BarberService.calculateBarberReward(idBarber);
+    res.json(rewardData);
+  } catch (error) {
+    console.error("Error calculating reward:", error);
+    res.status(500).json({ message: error.message || "Lỗi khi tính thưởng." });
+  }
+};
 // 🔹 Tạo user + barber cùng lúc
 const createBarberWithUser = async (req, res) => {
   try {
@@ -113,5 +123,7 @@ export default {
   lockBarber,
   unlockBarber,
   assignUserAsBarber,
+  getBarberReward,
+};
   createBarberWithUser
 };
