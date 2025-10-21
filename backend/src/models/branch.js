@@ -29,11 +29,6 @@ export default (sequelize, DataTypes) => {
       closeTime: DataTypes.TIME,
       status: DataTypes.ENUM("Active", "Inactive"),
       slotDuration: DataTypes.INTEGER,
-
-      managerId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
     },
     
     { sequelize, modelName: "Branch", tableName: "branches" }
