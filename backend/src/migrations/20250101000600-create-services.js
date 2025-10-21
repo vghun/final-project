@@ -23,6 +23,10 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.INTEGER, 
       allowNull: false,
     },
+    image: {
+        type: DataTypes.STRING(255), 
+        allowNull: true, 
+      },
     status: {
       type: Sequelize.ENUM("Active", "Inactive"),
       defaultValue: "Active",

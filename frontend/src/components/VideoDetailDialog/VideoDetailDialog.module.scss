@@ -8,333 +8,333 @@
   z-index: 50;
 }
 
+// ... (Phần .overlay giữ nguyên)
+
 .dialog {
-  background: #fff;
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 0;
-  border-radius: 12px;
-  overflow: hidden;
-  max-width: 1000px;
-  width: 100%;
-  height: 90vh;
+    background: var(--ig-primary-background, #FFFFFF); // Dùng màu trắng chuẩn của Insta
+    display: grid;
+    // Tỷ lệ thường thấy: video khoảng 60-65% và info 35-40%
+    grid-template-columns: 3fr 2fr; 
+    gap: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 1050px; // Kích thước phổ biến trên desktop
+    width: 90%;
+    height: 90vh;
+    max-height: 800px;
 }
 
+// VIDEO SECTION
 .videoSection {
-  background: black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  video {
-    max-height: 100%;
-    max-width: 100%;
-    border-radius: 0;
-  }
-}
-
-.infoSection {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  h2 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
-  }
+    background: var(--ig-primary-background, #000000); // Nền đen cho video
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative; 
+    
+    video {
+        max-height: 100%;
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover;
+    }
 }
 
 .closeBtn {
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  color: #666;
+    position: fixed; // Cố định, không nằm trong dialog
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: var(--ig-text-on-media, #FFFFFF); // Màu trắng
+    cursor: pointer;
+    z-index: 60; // Đảm bảo nằm trên nav container
+}
 
-  &:hover {
-    color: #444;
-  }
+// INFO SECTION (Vùng thông tin và bình luận)
+.infoSection {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; 
+    height: 100%;
+    border-left: 1px solid var(--ig-separator, #DBDBDB); // Đường chia ngăn mỏng
+}
+
+// 1. Header (Avatar, Tên, Nút More)
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--ig-separator, #DBDBDB);
+    flex-shrink: 0; // Không co lại
+}
+
+.reelMeta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.authorAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--ig-stroke, #DBDBDB); // Thêm viền nhẹ
+}
+
+.authorName {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ig-primary-text, #262626);
+}
+
+.postTime {
+    display: none; // Thường không hiển thị trong header Reel/Post Insta
+}
+
+// 2. Description (Mô tả) & Primary Content
+.descriptionBox {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--ig-separator, #DBDBDB);
+    flex-shrink: 0; // Không co lại
 }
 
 .desc {
-  font-size: 14px;
-  color: #444;
-  margin: 6px 0;
-}
-
-.meta {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 10px;
-}
-
-.actions {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 12px;
-  align-items: center;
-
-  button {
-    border: none;
-    cursor: pointer;
-    background: transparent;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-
-    span {
-      font-size: 14px;
-      color: #444;
-    }
-  }
-}
-
-.likeIcon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-
-.likeBtn.liked .likeIcon {
-  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));
-}
-
-.shareBtn {
-  font-size: 14px;
-  color: #444;
-
-  &:hover {
-    color: #222;
-  }
-}
-
-.likeBtn.liked {
-  background: #666;
-  color: white;
-}
-
-.comments {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-
-  h4 {
     font-size: 14px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 8px;
-  }
+    color: var(--ig-primary-text, #262626);
+    margin: 0;
+}
+
+// 3. Comment List: Vùng cuộn chính
+.commentsContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .commentList {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 4px;
-  margin-bottom: 10px;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 4px;
-  }
+    flex: 1;
+    overflow-y: auto; // Chỉ vùng này được cuộn
+    padding: 10px 16px; 
+    margin-bottom: 0; 
+    
+    // Cuộn nhẹ hơn
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--scroll-thumb, #BCC0C4); 
+        border-radius: 3px;
+    }
 }
 
 .comment {
-  background: #f5f5f5;
-  border-radius: 8px;
-  padding: 8px 10px;
-  margin-bottom: 8px;
+    padding: 8px 0;
+    margin-bottom: 0;
 }
 
 .cmtHeader {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 2px;
-}
-
-.author {
-  font-size: 13px;
-  font-weight: 600;
-  color: #222;
-}
-
-.time {
-  font-size: 11px;
-  color: #666;
-}
-
-.replyBtn {
-  font-size: 12px;
-  color: #555;
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
-  transition: color 0.2s;
-
-  &:hover {
-    color: #333;
-    text-decoration: underline;
-  }
-}
-
-.replies {
-  margin-left: 12px;
-  margin-top: 4px;
-
-  .reply {
-    font-size: 12px;
-    color: #444;
-    padding: 4px 8px;
-    background: #eee;
-    border-radius: 6px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
     margin-bottom: 4px;
-  }
-}
-
-.replyForm {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-
-  input {
-    flex: 1;
-    border: 1px solid #e5e5e5;
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 12px;
-    outline: none;
-
-    &:focus {
-      border-color: #555;
-      box-shadow: 0 0 0 2px rgba(85, 85, 85, 0.2);
-    }
-  }
-
-  button {
-    padding: 4px 8px;
-    font-size: 12px;
-    background: #555;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-
-    &:hover {
-      background: #333;
-    }
-  }
-}
-
-.addComment {
-  display: flex;
-  gap: 6px;
-
-  input {
-    flex: 1;
-    border: 1px solid #e5e5e5;
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 13px;
-    outline: none;
-
-    &:focus {
-      border-color: #555;
-      box-shadow: 0 0 0 2px rgba(85, 85, 85, 0.2);
-    }
-  }
-
-  button {
-    padding: 6px 12px;
-    font-size: 13px;
-    background: #555;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-
-    &:hover {
-      background: #333;
-    }
-  }
-}
-
-.navContainer {
-  position: absolute;
-  right: 300px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  z-index: 60;
-}
-
-.navBtn {
-  width: 80px;
-  height: 48px;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid #e5e5e5;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 24px;
-  color: #444;
-
-  &:hover:not(:disabled) {
-    background: #555;
-    border-color: #555;
-    transform: scale(1.1);
-    color: #ffffff;
-  }
-
-  &:disabled {
-    background: #f5f5f5;
-    border-color: #ccc;
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-}
-
-.prevBtn, .nextBtn {
-  /* Có thể thêm style riêng nếu cần */
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.avatarSmall {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 6px;
+    width: 32px; 
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .cmtInfo {
-  display: flex;
-  flex-direction: column;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.cmtAuthorTime {
+    display: inline; // Hiển thị tên và thời gian trên cùng 1 dòng
+}
+
+.author {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ig-primary-text, #262626);
+    margin-right: 6px;
+}
+
+.time {
+    font-size: 12px;
+    color: var(--ig-secondary-text, #8E8E8E);
+}
+
+.content {
+    font-size: 14px;
+    color: var(--ig-primary-text, #262626);
+    margin: 4px 0 0;
+}
+
+.replyBtn {
+    font-size: 12px;
+    color: var(--ig-secondary-text, #8E8E8E);
+    margin-left: 40px; 
+    margin-top: 4px;
+    padding: 0;
+}
+
+.replies {
+    margin-left: 40px;
+    margin-top: 4px;
+
+    .reply {
+        padding: 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
+.avatarSmall {
+    width: 24px;
+    height: 24px;
+}
+
+.replyText {
+    // Dùng cho container của tên và nội dung reply
+    display: flex;
+    flex-direction: column;
 }
 
 .replyContent {
-  font-size: 13px;
-  color: #444;
+    font-size: 13px;
+    color: var(--ig-primary-text, #262626);
+    margin: 0;
+}
+
+.replyForm {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    margin-left: 40px; // Căn chỉnh
+    
+    input {
+        border-radius: 18px;
+        background: var(--ig-secondary-background, #FAFAFA);
+        border: 1px solid var(--ig-stroke, #DBDBDB);
+    }
+    button {
+        background: transparent;
+        color: var(--accent, #0095F6);
+        padding: 0 8px;
+    }
+}
+
+// 4. Footer (Actions + Add Comment)
+.footerActions {
+    padding: 10px 16px;
+    border-top: 1px solid var(--ig-separator, #DBDBDB);
+    flex-shrink: 0; // Không co lại
+}
+
+.reelActions {
+    display: flex;
+    align-items: center;
+    gap: 12px; // Giảm khoảng cách
+    margin-bottom: 10px;
+
+    button {
+        color: var(--ig-primary-icon, #262626);
+        transition: transform 0.1s ease-out;
+        
+        &:active {
+            transform: scale(0.9);
+        }
+    }
+}
+
+.likeBtn {
+    color: var(--ig-primary-icon, #262626);
+
+    // Chỉnh lại màu icon Like nếu isLiked
+    &.liked {
+        color: var(--ig-red-5, #ED4956); 
+    }
+}
+
+.shareBtn {
+    margin-left: auto;
+    span {
+        display: none; // Ẩn chữ 'Chia sẻ', chỉ giữ icon
+    }
+}
+
+.addComment {
+    display: flex;
+    align-items: center;
+
+    input {
+        flex: 1;
+        border: none; // Insta input comment thường không có viền
+        border-radius: 0;
+        padding: 8px 0;
+        font-size: 14px;
+        background: transparent;
+        outline: none;
+    }
+
+    button {
+        background: transparent;
+        color: var(--accent, #0095F6); // Màu xanh Insta
+        font-weight: 600;
+        padding: 0 5px;
+        margin-left: 10px;
+        
+        // Dùng chữ "Post" thay vì icon
+        span {
+             font-size: 14px;
+        }
+
+        &:disabled {
+            color: var(--disabled-button-background, rgba(0, 149, 246, 0.3));
+            cursor: not-allowed;
+        }
+    }
+}
+
+// NAV BUTTONS (Chuyển video)
+.navContainer {
+    // Di chuyển sát mép trái của dialog (bên cạnh video)
+    position: absolute;
+    right: auto;
+    left: calc(50% + 525px + 30px); /* Max width dialog 1050px / 2 = 525px + center */
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 60;
+}
+
+.navBtn {
+    width: 36px; 
+    height: 36px;
+    background: var(--always-white, #FFFFFF); // Nền trắng
+    border: 1px solid var(--ig-separator, #DBDBDB);
+    color: var(--ig-primary-icon, #262626); 
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+
+    &:hover:not(:disabled) {
+        background: var(--ig-tertiary-button-hover, #F5F5F5);
+        transform: scale(1.05);
+    }
 }

@@ -7,6 +7,7 @@ export default (sequelize, DataTypes) => {
       Reel.belongsTo(models.Barber, { foreignKey: "idBarber" });
       Reel.hasMany(models.ReelComment, { foreignKey: "idReel" });
       Reel.hasMany(models.ReelLike, { foreignKey: "idReel" });
+      Reel.hasMany(models.ReelView, { foreignKey: "idReel" }); 
     }
   }
   Reel.init(
@@ -18,7 +19,6 @@ export default (sequelize, DataTypes) => {
       thumbnail: DataTypes.STRING,
       description: DataTypes.TEXT,
       createdAt: DataTypes.DATE,
-      viewCount: DataTypes.INTEGER,
     },
     { sequelize, modelName: "Reel", tableName: "reels" }
   );
