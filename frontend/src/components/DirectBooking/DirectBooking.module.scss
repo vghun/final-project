@@ -101,3 +101,22 @@ $text: #fff;
     background-color: darken($accent, 10%);
   }
 }
+
+//
+.radioGroup {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+
+    input[type="radio"] {
+      accent-color: $accent;
+      transform: scale(1.1);
+    }
+  }
+}

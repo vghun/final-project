@@ -3,11 +3,11 @@ import { Sequelize } from "sequelize";
 
 const sequelize = new Sequelize("account", "root", "xuandung", {
   host: "localhost",
-  port: 3306,              
+  port: 3306,
   dialect: "mysql",
   logging: console.log,
   dialectOptions: {
-    connectTimeout: 5000, 
+    connectTimeout: 5000,
   },
 });
 

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import styles from "./BookingList.module.scss";
 
-export default function BookingList({ onSelect, date }) {
+export default function BookingList({ onSelect, onReload, date }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Tải danh sách booking
   const fetchBookings = async () => {
     try {
       const res = await fetch("http://localhost:8088/api/bookings/details");
@@ -13,24 +12,38 @@ export default function BookingList({ onSelect, date }) {
 
       if (data?.data) {
         const mapped = data.data
-          .filter((b) => b.bookingDate.startsWith(date))
-          .map((b) => ({
-            id: b.idBooking,
-            time: b.bookingTime,
-            customer: b.customer?.name || "Khách lẻ",
-            barber: b.barber?.name || "Chưa chỉ định",
-            services: b.services?.map((s) => s.name) || [],
-            branch: b.branch?.name || "",
-            total: parseFloat(b.total),
-            isPaid: b.isPaid,
-            status: b.status,
-            raw: b,
-          }));
+          .filter((booking) => booking.bookingDate.startsWith(date))
+          .map((booking) => {
+            const serviceTotal =
+              booking.services?.reduce((sum, s) => sum + (parseFloat(s.price) || 0) * (s.quantity || 1), 0) || 0;
+            const tipAmount = parseFloat(booking.tip || 0);
+            const subTotal = serviceTotal + tipAmount;
+
+            return {
+              id: booking.idBooking,
+              time: booking.bookingTime,
+              customer: booking.customer?.name || "Khách lẻ",
+              barber: booking.barber?.name || "Chưa chỉ định",
+              services: booking.services?.map((s) => s.name) || [],
+              branch: booking.branch?.name || "",
+              total: parseFloat(booking.total),
+              tip: tipAmount,
+              subTotal,
+              isPaid: booking.isPaid,
+              status: booking.status,
+              raw: booking,
+            };
+          })
+          // ✅ Sắp xếp theo thời gian (giờ giảm dần)
+          .sort((a, b) => {
+            const timeA = a.time ? a.time.localeCompare(b.time) : 0;
+            return -timeA; // đảo ngược để được từ cao đến thấp
+          });
 
         setBookings(mapped);
       }
     } catch (err) {
-      console.error("Lỗi khi tải booking:", err);
+      console.error("❌ Lỗi khi tải booking:", err);
     } finally {
       setLoading(false);
     }
@@ -43,21 +56,19 @@ export default function BookingList({ onSelect, date }) {
   // ✅ Hủy đặt lịch
   const handleCancel = async (id) => {
     if (!window.confirm("Bạn có chắc muốn hủy lịch hẹn này không?")) return;
-
     try {
       const res = await fetch(`http://localhost:8088/api/bookings/${id}/cancel`, {
         method: "PUT",
       });
-
       const data = await res.json();
       if (res.ok) {
         alert("Đã hủy lịch hẹn thành công!");
-        fetchBookings(); // reload lại danh sách
+        fetchBookings();
       } else {
         alert(data.message || "Hủy lịch thất bại!");
       }
     } catch (err) {
-      console.error("Lỗi khi hủy booking:", err);
+      console.error("❌ Lỗi khi hủy booking:", err);
       alert("Có lỗi xảy ra khi hủy lịch!");
     }
   };
@@ -90,51 +101,44 @@ export default function BookingList({ onSelect, date }) {
               </td>
             </tr>
           ) : (
-            bookings.map((b) => {
-              // ✅ Xử lý hiển thị dịch vụ gọn gàng
+            bookings.map((booking) => {
               const displayedServices =
-                b.services.length > 2
-                  ? `${b.services.slice(0, 2).join(", ")} (+${b.services.length - 2})`
-                  : b.services.join(", ");
+                booking.services.length > 2
+                  ? `${booking.services.slice(0, 2).join(", ")} (+${booking.services.length - 2})`
+                  : booking.services.join(", ");
 
               return (
-                <tr key={b.id}>
-                  <td>{b.time}</td>
-                  <td>{b.customer}</td>
-                  <td>{b.barber}</td>
-
-                  {/* ✅ Dịch vụ ngắn gọn, hover xem chi tiết */}
-                  <td title={b.services.join(", ")}>{displayedServices || "—"}</td>
-
-                  <td>{b.branch}</td>
-                  <td>{b.total.toLocaleString()}đ</td>
-
-                  {/* ✅ Tiến trình */}
+                <tr key={booking.id}>
+                  <td>{booking.time}</td>
+                  <td>{booking.customer}</td>
+                  <td>{booking.barber}</td>
+                  <td title={booking.services.join(", ")}>{displayedServices || "—"}</td>
+                  <td>{booking.branch}</td>
+                  <td>{booking.subTotal.toLocaleString("vi-VN")}đ</td>
                   <td
                     className={
-                      b.status === "Completed"
+                      booking.status === "Completed"
                         ? styles.completed
-                        : b.status === "Cancelled"
+                        : booking.status === "Cancelled"
                         ? styles.cancelled
                         : styles.pending
                     }
                   >
-                    {b.status === "Completed" ? "Đã cắt xong" : b.status === "Cancelled" ? "Đã hủy" : "Đang chờ"}
+                    {booking.status === "Completed"
+                      ? "Đã cắt xong"
+                      : booking.status === "Cancelled"
+                      ? "Đã hủy"
+                      : "Đang chờ"}
                   </td>
-
-                  {/* ✅ Thanh toán */}
-                  <td className={b.isPaid ? styles.paid : styles.unpaid}>
-                    {b.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
+                  <td className={booking.isPaid ? styles.paid : styles.unpaid}>
+                    {booking.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
                   </td>
-
-                  {/* ✅ Thao tác */}
                   <td style={{ display: "flex", gap: "6px" }}>
-                    {!b.isPaid && b.status !== "Cancelled" && (
-                      <button onClick={() => onSelect(b.raw)}>Thanh toán</button>
+                    {!booking.isPaid && booking.status !== "Cancelled" && (
+                      <button onClick={() => onSelect(booking.raw, fetchBookings)}>Thanh toán</button>
                     )}
-
-                    {b.status === "Pending" && (
-                      <button className={styles.cancelBtn} onClick={() => handleCancel(b.id)}>
+                    {booking.status === "Pending" && (
+                      <button className={styles.cancelBtn} onClick={() => handleCancel(booking.id)}>
                         Hủy
                       </button>
                     )}
