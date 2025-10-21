@@ -23,6 +23,46 @@ function ThoCatToc() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showChangeBranch, setShowChangeBranch] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [unavailabilities, setUnavailabilities] = useState({});
+  const [editData, setEditData] = useState({
+    fullName: "",
+    phoneNumber: "",
+    email: "",
+    password: "",
+    idBranch: "",
+    profileDescription: "",
+  });
+
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [leaveData, setLeaveData] = useState({
+    idBarber: "",
+    startDate: "",
+    endDate: "",
+    reason: "",
+  });
+
+  const openLeaveModal = (barber) => {
+    setLeaveData({
+      idBarber: barber.idBarber,
+      startDate: "",
+      endDate: "",
+      reason: "",
+    });
+    setShowLeaveModal(true);
+  };
+
+  const handleLeaveSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await BarberAPI.addUnavailability(leaveData);
+      alert("✅ Đã thêm lịch nghỉ phép cho thợ!");
+      setShowLeaveModal(false);
+    } catch (error) {
+      console.error("Lỗi khi thêm nghỉ phép:", error);
+      alert(error?.response?.data?.message || "❌ Không thể thêm lịch nghỉ!");
+    }
+  };
 
   const [formData, setFormData] = useState({
     email: "",
@@ -41,10 +81,26 @@ function ThoCatToc() {
     try {
       const data = await BarberAPI.getAll();
       setBarbers(data || []);
+      await fetchBarberUnavailabilities(data || []);
     } catch (error) {
       console.error("Lỗi khi tải danh sách barber:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBarberUnavailabilities = async (barbersList) => {
+    try {
+      const dataMap = {};
+      for (const barber of barbersList) {
+        const res = await BarberAPI.getUnavailabilitiesByBarber(
+          barber.idBarber
+        );
+        dataMap[barber.idBarber] = res?.unavailabilities || [];
+      }
+      setUnavailabilities(dataMap);
+    } catch (error) {
+      console.error("Lỗi khi tải lịch nghỉ:", error);
     }
   };
 
@@ -90,6 +146,43 @@ function ThoCatToc() {
       profileDescription: "",
     });
     setShowModal(true);
+  };
+
+  const openEditModal = (barber) => {
+    setSelectedBarber(barber);
+    setEditData({
+      fullName: barber.fullName || "",
+      phoneNumber: barber.phoneNumber || "",
+      email: barber.email || "",
+      password: "",
+      idBranch: barber.idBranch || "",
+      profileDescription: barber.profileDescription || "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await BarberAPI.updateBarber(selectedBarber.idBarber, editData);
+      alert("✅ Cập nhật thông tin thợ thành công!");
+      setShowEditModal(false);
+      await fetchBarbers();
+    } catch (error) {
+      console.error("Lỗi khi cập nhật:", error);
+      alert(error?.response?.data?.message || "❌ Không thể cập nhật thợ!");
+    }
+  };
+  const handleDelete = async (barber) => {
+    if (!window.confirm(`⚠️ Xác nhận xóa thợ ${barber.fullName}?`)) return;
+    try {
+      await BarberAPI.deleteBarber(barber.idBarber);
+      alert("🗑️ Đã xóa thợ thành công!");
+      await fetchBarbers();
+    } catch (error) {
+      console.error("Lỗi khi xóa:", error);
+      alert(error?.response?.data?.message || "❌ Không thể xóa thợ!");
+    }
   };
 
   // 🔹 Xử lý nhập form
@@ -138,6 +231,14 @@ function ThoCatToc() {
     }
   };
 
+  const getLeaveText = (idBarber) => {
+    const leaves = unavailabilities[idBarber];
+    if (!leaves || leaves.length === 0) return "Không có";
+    return leaves
+      .map((l) => `${l.startDate} → ${l.endDate} (${l.reason})`)
+      .join(";\n"); // thêm xuống dòng
+  };
+
   if (loading)
     return <div className={cx("loading")}>Đang tải danh sách thợ...</div>;
 
@@ -158,6 +259,7 @@ function ThoCatToc() {
             <tr>
               <th>Thợ cắt tóc</th>
               <th>Chi nhánh</th>
+              <th>Ngày nghỉ phép</th>
               <th>Đánh giá</th>
               <th>Khách hàng</th>
               <th>Trạng thái</th>
@@ -190,6 +292,9 @@ function ThoCatToc() {
                     <FontAwesomeIcon icon={faExchangeAlt} />
                   </button>
                 </td>
+                <td style={{ whiteSpace: "pre-line" }}>
+                  {getLeaveText(b.idBarber)}
+                </td>
 
                 <td className={cx("rating")}>
                   <FontAwesomeIcon icon={faStar} className={cx("star")} />{" "}
@@ -221,11 +326,26 @@ function ThoCatToc() {
 
                 <td>
                   <div className={cx("actions")}>
-                    <button className={cx("editBtn")}>
+                    <button
+                      className={cx("editBtn")}
+                      onClick={() => openEditModal(b)}
+                      title="Sửa thông tin thợ"
+                    >
                       <FontAwesomeIcon icon={faPenToSquare} />
                     </button>
-                    <button className={cx("deleteBtn")}>
+                    <button
+                      className={cx("deleteBtn")}
+                      onClick={() => handleDelete(b)}
+                      title="Xóa thợ"
+                    >
                       <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                    <button
+                      className={cx("leaveBtn")}
+                      onClick={() => openLeaveModal(b)}
+                      title="Thêm lịch nghỉ phép"
+                    >
+                      📅
                     </button>
                   </div>
                 </td>
@@ -235,7 +355,6 @@ function ThoCatToc() {
         </table>
       )}
 
-      {/* =============== MODAL THÊM THỢ =============== */}
       {/* =============== MODAL THÊM THỢ =============== */}
       {showModal && (
         <div className={cx("modalOverlay")}>
@@ -350,6 +469,160 @@ function ThoCatToc() {
                   type="button"
                   className={cx("cancelBtn")}
                   onClick={() => setShowChangeBranch(false)}
+                >
+                  Hủy
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* =============== MODAL SỬA THÔNG TIN THỢ =============== */}
+      {showEditModal && (
+        <div className={cx("modalOverlay")}>
+          <div className={cx("modal")}>
+            <h3>Cập nhật thông tin thợ</h3>
+            <form onSubmit={handleEditSubmit}>
+              <label>Họ và tên</label>
+              <input
+                type="text"
+                name="fullName"
+                value={editData.fullName}
+                onChange={(e) =>
+                  setEditData({ ...editData, fullName: e.target.value })
+                }
+                required
+              />
+
+              <label>Email</label>
+              <input
+                type="email"
+                name="email"
+                value={editData.email}
+                onChange={(e) =>
+                  setEditData({ ...editData, email: e.target.value })
+                }
+                required
+              />
+
+              <label>Số điện thoại</label>
+              <input
+                type="text"
+                name="phoneNumber"
+                value={editData.phoneNumber}
+                onChange={(e) =>
+                  setEditData({ ...editData, phoneNumber: e.target.value })
+                }
+                required
+              />
+
+              <label>Mật khẩu (để trống nếu không đổi)</label>
+              <input
+                type="password"
+                name="password"
+                value={editData.password}
+                onChange={(e) =>
+                  setEditData({ ...editData, password: e.target.value })
+                }
+                placeholder="Nhập mật khẩu mới nếu muốn"
+              />
+
+              <label>Chi nhánh</label>
+              <select
+                name="idBranch"
+                value={editData.idBranch}
+                onChange={(e) =>
+                  setEditData({ ...editData, idBranch: e.target.value })
+                }
+              >
+                <option value="">-- Không chọn --</option>
+                {branches.map((br) => (
+                  <option key={br.idBranch} value={br.idBranch}>
+                    {br.name}
+                  </option>
+                ))}
+              </select>
+
+              <label>Mô tả hồ sơ</label>
+              <textarea
+                name="profileDescription"
+                value={editData.profileDescription}
+                onChange={(e) =>
+                  setEditData({
+                    ...editData,
+                    profileDescription: e.target.value,
+                  })
+                }
+                rows="3"
+              />
+
+              <div className={cx("modalActions")}>
+                <button type="submit" className={cx("saveBtn")}>
+                  Lưu thay đổi
+                </button>
+                <button
+                  type="button"
+                  className={cx("cancelBtn")}
+                  onClick={() => setShowEditModal(false)}
+                >
+                  Hủy
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {showLeaveModal && (
+        <div className={cx("modalOverlay")}>
+          <div className={cx("modal")}>
+            <h3>Thêm lịch nghỉ phép cho thợ</h3>
+            <form onSubmit={handleLeaveSubmit}>
+              <p>
+                Thợ: <strong>{leaveData.idBarber}</strong>
+              </p>
+
+              <label>Từ ngày</label>
+              <input
+                type="date"
+                name="startDate"
+                value={leaveData.startDate}
+                onChange={(e) =>
+                  setLeaveData({ ...leaveData, startDate: e.target.value })
+                }
+                required
+              />
+
+              <label>Đến ngày</label>
+              <input
+                type="date"
+                name="endDate"
+                value={leaveData.endDate}
+                onChange={(e) =>
+                  setLeaveData({ ...leaveData, endDate: e.target.value })
+                }
+                required
+              />
+
+              <label>Lý do</label>
+              <textarea
+                name="reason"
+                value={leaveData.reason}
+                onChange={(e) =>
+                  setLeaveData({ ...leaveData, reason: e.target.value })
+                }
+                rows="3"
+                placeholder="VD: Nghỉ ốm, đi công việc riêng..."
+                required
+              />
+
+              <div className={cx("modalActions")}>
+                <button type="submit" className={cx("saveBtn")}>
+                  Lưu nghỉ phép
+                </button>
+                <button
+                  type="button"
+                  className={cx("cancelBtn")}
+                  onClick={() => setShowLeaveModal(false)}
                 >
                   Hủy
                 </button>
