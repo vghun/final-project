@@ -88,4 +88,9 @@ export const del = async (url, options = {}) => {
   return res.data;
 };
 
+export const patch = async (url, data = {}, options = {}) => {
+  const res = await request.patch(url, data, options);
+  return res.data;
+};
+
 export default request;
