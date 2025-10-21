@@ -220,3 +220,80 @@
   border-radius: 6px;
   cursor: pointer;
 }
+
+.branchCell {
+  .branchIcon {
+    color: #059669;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .branchInfo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #1e293b;
+    font-weight: 500;
+    flex: 1; // giúp text chiếm phần còn lại
+  }
+
+  .branchIcon {
+    color: #059669;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .branchName {
+    color: #111827;
+    white-space: nowrap;
+  }
+
+  .editBranchBtn {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    padding: 5px 8px;
+    color: #047857;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-left: 20px;
+    &:hover {
+      background: #059669;
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    svg {
+      font-size: 13px;
+    }
+  }
+}
+
+.modal select {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  background-color: #f9fafb;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg fill='%236b7280' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #059669;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+    background-color: #fff;
+  }
+
+  option {
+    background-color: #fff;
+    color: #111827;
+  }
+}

@@ -1,19 +1,21 @@
 import db from "../models/index.js";
 import { Sequelize } from "sequelize";
-const Service = db.Service;
-// Lấy dịch vụ mới nhất
+
+const { Service, Branch, ServiceAssignment } = db;
+
+// 🔹 Lấy dịch vụ mới nhất
 export const getLatestServices = async (limit = 8) => {
-  return await db.Service.findAll({
+  return await Service.findAll({
     order: [["createdAt", "DESC"]],
     limit,
   });
 };
 
-// Lấy dịch vụ hot nhất có phân trang
+// 🔹 Lấy dịch vụ hot nhất có phân trang
 export const getHotServicesPaged = async (page = 1, limit = 4) => {
   const offset = (page - 1) * limit;
 
-  const { count, rows } = await db.Service.findAndCountAll({
+  const { count, rows } = await Service.findAndCountAll({
     attributes: {
       include: [
         [
@@ -33,42 +35,51 @@ export const getHotServicesPaged = async (page = 1, limit = 4) => {
     order: [[Sequelize.literal("totalBookings"), "DESC"]],
     limit,
     offset,
-    subQuery: false, // 👈 bắt buộc khi có group by
-    distinct: true,  // 👈 để count đúng số bản ghi
+    subQuery: false,
+    distinct: true,
   });
 
   return {
-    total: Array.isArray(count) ? count.length : count, // count có thể là mảng
+    total: Array.isArray(count) ? count.length : count,
     page,
     limit,
     data: rows,
   };
 };
 
-// Lấy chi tiết dịch vụ theo id
+// 🔹 Lấy chi tiết dịch vụ theo ID
 export const getServiceById = async (id) => {
-  return await db.Service.findByPk(id);
+  return await Service.findByPk(id);
 };
 
-
+// 🔹 Gán dịch vụ cho chi nhánh (tạo bản ghi ở bảng trung gian)
 export const assignServiceToBranch = async (idService, idBranch) => {
   const service = await Service.findByPk(idService);
   if (!service) throw new Error("Service not found");
-  service.idBranch = idBranch;
-  await service.save();
-  return service;
+
+  // ✅ Tạo quan hệ trong bảng trung gian
+  await ServiceAssignment.create({ idService, idBranch });
+  return { message: "Assigned successfully" };
 };
 
+// 🔹 Tạo dịch vụ mới
 export const createService = async (data) => {
   return await Service.create(data);
 };
 
+// 🔹 Cập nhật dịch vụ
 export const updateService = async (idService, data) => {
   const service = await Service.findByPk(idService);
   if (!service) throw new Error("Service not found");
+
+  if (!data.image) {
+    data.image = service.image;
+  }
+
   return await service.update(data);
 };
 
+// 🔹 Xóa dịch vụ
 export const deleteService = async (idService) => {
   const service = await Service.findByPk(idService);
   if (!service) throw new Error("Service not found");
@@ -76,6 +87,37 @@ export const deleteService = async (idService) => {
   return true;
 };
 
+// 🔹 Lấy tất cả dịch vụ (kèm chi nhánh)
 export const getAllServices = async () => {
-  return await Service.findAll();
+  const services = await Service.findAll({
+    include: [
+      {
+        model: Branch,
+        as: "branches",
+        attributes: ["idBranch", "name"],
+        through: { attributes: [] },
+      },
+    ],
+  });
+
+  return services.map((s) => ({
+    idService: s.idService,
+    name: s.name,
+    description: s.description,
+    price: s.price,
+    duration: s.duration,
+    image: s.image,
+    status: s.status,
+    createdAt: s.createdAt,
+    updatedAt: s.updatedAt,
+    branches: s.branches || [],
+  }));
+};
+
+export const unassignServiceFromBranch = async (idService, idBranch) => {
+  const deleted = await db.ServiceAssignment.destroy({
+    where: { idService, idBranch },
+  });
+  if (!deleted) throw new Error("Not assigned or already removed");
+  return true;
 };
