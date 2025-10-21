@@ -1,6 +1,6 @@
 import reelApi from "~/apis/reelAPI";
 
-export const fetchReelsPaged = async (page, limit, idUser) => {
+export const fetchReelsPaged = async (page = 1, limit = 10, idUser = null) => {
   const res = await reelApi.getPaged(page, limit, idUser);
   return res.data;
 };
@@ -46,7 +46,13 @@ export const deleteComment = async (idComment) => {
 };
 
 export const trackReelView = async (idReel, idUser) => {
-  // Không cần trả về data, chỉ cần đảm bảo API call thành công
+  if (!idUser) return; // Không cần gọi API nếu người xem chưa đăng nhập
   const res = await reelApi.trackView(idReel, idUser);
-  return res.data; 
+  return res.data;
 };
+
+export const searchReels = async (keyword, idUser = null) => {
+  const res = await reelApi.search(keyword, idUser);
+  return res.data;
+};
+

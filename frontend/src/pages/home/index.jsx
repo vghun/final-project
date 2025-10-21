@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import styles from "./Home.module.scss";
 import { Link } from "react-router-dom";
-import Button from "~/components/Button";
 import ServiceCard from "~/components/ServiceCard"; 
 import AIChat from "../../components/AIChat/AIChat";
 

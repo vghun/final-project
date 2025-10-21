@@ -27,5 +27,7 @@ router.post("/:id/like", reelController.toggleLike);
 // Lấy chi tiết reel (Phải đặt cuối để tránh :id bắt lấy 'view')
 router.get("/:id", reelController.getById);
 
+router.get("/search", reelController.searchReels);
+
 
 export default router;
