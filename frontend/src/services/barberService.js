@@ -60,3 +60,14 @@ export const unlockBarber = async (data) => {
   const res = await request.post("/api/barbers/unlock", data);
   return res.data;
 };
+
+export const getBarberReward = async (idBarber) => {
+  try {
+    const res = await request.get(`/api/barbers/reward/${idBarber}`);
+    console.log("API getBarberReward trả về:", res);
+    return res;
+  } catch (error) {
+    console.error("Lỗi khi gọi getBarberReward:", error.response?.data || error);
+    throw error.response?.data || error;
+  }
+};
