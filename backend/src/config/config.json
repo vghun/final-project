@@ -1,12 +1,12 @@
 {
- "development": {
-  "username": "root",
-  "password": "123456789",
-  "database": "account",
-  "host": "localhost",
-  "port": 3306,
-  "dialect": "mysql"
-},
+  "development": {
+    "username": "root",
+    "password": "20072004",
+    "database": "ccnpmm_project",
+    "host": "localhost",
+    "port": 3306,
+    "dialect": "mysql"
+  },
   "test": {
     "username": "root",
     "password": null,

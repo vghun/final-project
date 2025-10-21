@@ -3,6 +3,7 @@ import * as bookingService from "../services/bookingService.js";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../config/cloudinary.js";
 import multer from "multer";
+
 // Lấy danh sách chi nhánh
 export const getBranches = async (req, res) => {
   try {
@@ -24,19 +25,19 @@ export const getBranchDetails = async (req, res) => {
       include: [
         {
           model: db.Barber,
-          as: "barbers", // dùng đúng alias đã định nghĩa
+          as: "barbers",
           attributes: ["idBarber", "profileDescription"],
           include: [
             {
               model: db.User,
-              as: "user", // alias đúng
+              as: "user",
               attributes: ["idUser", "fullName", "email"],
             },
           ],
         },
         {
           model: db.Service,
-          as: "services", // alias đúng
+          as: "services",
           attributes: ["idService", "name", "description", "price", "duration", "status"],
           through: { attributes: [] },
         },
@@ -59,7 +60,6 @@ export const createBooking = async (req, res) => {
   try {
     const { idCustomer, idBranch, idBarber, bookingDate, bookingTime, services, description } = req.body;
 
-    // Tạo booking
     const booking = await db.Booking.create({
       idCustomer,
       idBranch,
@@ -70,7 +70,6 @@ export const createBooking = async (req, res) => {
       description,
     });
 
-    // Thêm dịch vụ vào bookingDetail
     if (services && services.length > 0) {
       for (const s of services) {
         await db.BookingDetail.create({
@@ -88,6 +87,7 @@ export const createBooking = async (req, res) => {
   }
 };
 
+// Booking của barber (theo khoảng thời gian)
 export const getBookingsForBarber = async (req, res) => {
   try {
     const { idBarber, start, end } = req.query;
@@ -113,16 +113,16 @@ const storage = new CloudinaryStorage({
 
 export const upload = multer({ storage });
 
+// ✅ HOÀN TẤT LỊCH HẸN
 export const completeBooking = async (req, res) => {
   try {
     const idBooking = req.params.id;
     const { description } = req.body;
-    const idBarber = 7; // ⚓️ fix cứng cho test
+    const idBarber = 7; // test tạm
 
     const files = req.files || {};
     const uploadedImages = [];
 
-    // Lưu vị trí ảnh (front, left, right, back)
     for (const pos of ["front", "left", "right", "back"]) {
       const file = files[pos]?.[0];
       if (file) {
@@ -147,12 +147,12 @@ export const completeBooking = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
-// Lấy danh sách các booking của 1 barber
+
+// ✅ Lấy danh sách các booking của 1 barber
 export const getBookingsByBarber = async (req, res) => {
   try {
     const { idBarber } = req.params;
 
-    // Lấy danh sách booking
     const bookings = await db.Booking.findAll({
       where: { idBarber },
       attributes: ["idBooking", "bookingDate", "bookingTime", "status"],
@@ -162,27 +162,44 @@ export const getBookingsByBarber = async (req, res) => {
       ],
     });
 
-    // Lấy danh sách ngày nghỉ
     const unavailabilities = await db.BarberUnavailability.findAll({
       where: { idBarber },
       attributes: ["idUnavailable", "startDate", "endDate", "reason"],
       order: [["startDate", "DESC"]],
     });
 
-    res.json({
-      bookings,
-      unavailabilities,
-    });
+    res.json({ bookings, unavailabilities });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      message: "Lỗi khi lấy thời gian booking và ngày nghỉ của barber",
-      error,
-    });
+    res.status(500).json({ message: "Lỗi khi lấy thời gian booking và ngày nghỉ của barber", error });
   }
 };
 
-//  Danh sách lịch hẹn bên Admin
+// ✅ HỦY BOOKING
+export const cancelBooking = async (req, res) => {
+  try {
+    const { idBooking } = req.params;
+
+    const booking = await db.Booking.findByPk(idBooking);
+    if (!booking) {
+      return res.status(404).json({ message: "Không tìm thấy lịch hẹn để hủy" });
+    }
+
+    if (booking.status === "Cancelled") {
+      return res.status(400).json({ message: "Lịch hẹn này đã bị hủy trước đó" });
+    }
+
+    booking.status = "Cancelled";
+    await booking.save();
+
+    return res.status(200).json({ message: "Đã hủy lịch hẹn thành công ✅" });
+  } catch (error) {
+    console.error("❌ Lỗi khi hủy lịch:", error);
+    res.status(500).json({ message: "Lỗi khi hủy lịch", error: error.message });
+  }
+};
+
+// ✅ Danh sách lịch hẹn bên Admin
 export const getAllBookingDetails = async (req, res) => {
   try {
     const bookings = await db.Booking.findAll({
@@ -235,26 +252,21 @@ export const getAllBookingDetails = async (req, res) => {
       order: [["bookingDate", "DESC"]],
     });
 
-    // ✅ Format dữ liệu trả về cho frontend
     const result = bookings.map((booking) => {
       const details = booking.BookingDetails || [];
       const subTotal = details.reduce((sum, item) => sum + parseFloat(item.price) * (item.quantity || 1), 0);
-
       const tip = parseFloat(booking.BookingTip?.tipAmount || 0);
       const total = subTotal + tip;
 
-      // ✅ Tách thêm 2 trường mới:
-      // - isPaid: kiểm tra thanh toán
-      // - status: vẫn giữ để biết trạng thái dịch vụ
       const isPaid =
-        booking.isPaid !== undefined ? Boolean(booking.isPaid) : booking.status?.toLowerCase() === "completed"; // fallback nếu DB chưa có cột isPaid
+        booking.isPaid !== undefined ? Boolean(booking.isPaid) : booking.status?.toLowerCase() === "completed";
 
       return {
         idBooking: booking.idBooking,
         bookingDate: booking.bookingDate,
         bookingTime: booking.bookingTime,
-        status: booking.status || "Pending", // ví dụ: Pending / Completed / Cancelled
-        isPaid, // ✅ thêm trường thanh toán
+        status: booking.status || "Pending",
+        isPaid,
         description: booking.description || "",
 
         customer: booking.Customer
@@ -302,47 +314,79 @@ export const getAllBookingDetails = async (req, res) => {
   }
 };
 
-// ✅ Thanh toán booking (chỉ cập nhật isPaid)
+// ✅ Thanh toán booking
 export const payBooking = async (req, res) => {
+  const t = await db.sequelize.transaction();
+
   try {
     const { idBooking } = req.params;
+    const { total, tip, services } = req.body;
 
-    const booking = await db.Booking.findByPk(idBooking);
+    const booking = await db.Booking.findByPk(idBooking, { transaction: t });
     if (!booking) {
+      await t.rollback();
       return res.status(404).json({ message: "Không tìm thấy booking" });
     }
 
     if (booking.isPaid) {
+      await t.rollback();
       return res.status(400).json({ message: "Lịch hẹn này đã được thanh toán" });
     }
 
-    await booking.update({ isPaid: true });
+    if (Array.isArray(services) && services.length > 0) {
+      await db.BookingDetail.destroy({ where: { idBooking }, transaction: t });
+      const newDetails = services.map((idService) => ({
+        idBooking,
+        idService,
+        price: 0,
+      }));
+      await db.BookingDetail.bulkCreate(newDetails, { transaction: t });
+    }
+
+    if (tip && Number(tip) > 0) {
+      await db.BookingTip.create(
+        {
+          idBooking,
+          idBarber: booking.idBarber,
+          tipAmount: tip,
+        },
+        { transaction: t }
+      );
+    }
+
+    await booking.update(
+      {
+        isPaid: true,
+        total: total || booking.total,
+        status: "Completed",
+      },
+      { transaction: t }
+    );
+
+    await t.commit();
 
     return res.status(200).json({
-      message: "Thanh toán thành công",
-      booking: { idBooking: booking.idBooking, isPaid: true },
+      message: "Thanh toán thành công 🎉",
+      booking: { idBooking: booking.idBooking, total, isPaid: true },
     });
   } catch (error) {
+    await t.rollback();
     console.error("❌ Lỗi thanh toán:", error);
-    res.status(500).json({ message: "Lỗi khi thanh toán", error: error.message });
+    return res.status(500).json({ message: "Lỗi khi thanh toán", error: error.message });
   }
 };
+
+// ✅ Lấy khung giờ đã đặt
 export const getBookedSlotsByBarber = async (req, res) => {
   try {
     const { idBarber } = req.params;
     const { branchId, date } = req.query;
 
     if (!idBarber || !branchId || !date) {
-      return res.status(400).json({
-        message: "Thiếu tham số: idBarber, branchId hoặc date",
-      });
+      return res.status(400).json({ message: "Thiếu tham số: idBarber, branchId hoặc date" });
     }
 
-    const result = await bookingService.getBookedSlotsByBarber(
-      parseInt(branchId),
-      parseInt(idBarber),
-      date
-    );
+    const result = await bookingService.getBookedSlotsByBarber(parseInt(branchId), parseInt(idBarber), date);
 
     return res.status(200).json(result);
   } catch (error) {
