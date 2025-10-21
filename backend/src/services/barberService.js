@@ -1,5 +1,6 @@
 import db from "../models/index.js";
 import { upsertBarbers } from "./pineconeService.js";
+import { fn, col, Op } from "sequelize";
 const Barber = db.Barber;
 // Lấy toàn bộ barber từ DB
 
@@ -171,4 +172,144 @@ export const unlockBarber = async (idBarber) => {
   barber.isLocked = false;
   await barber.save();
   return barber;
+};
+
+export const calculateBarberReward = async (idBarber) => {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 1);
+
+  // === 1️⃣ Tính tổng doanh thu & tip thực tế của barber ===
+  const result = await db.Barber.findOne({
+    where: { idBarber },
+    include: [
+      {
+        model: db.Booking,
+        as: "Bookings",
+        required: false,
+        where: {
+          isPaid: true,
+          bookingDate: { [Op.gte]: startDate, [Op.lt]: endDate },
+        },
+        include: [
+          { model: db.BookingDetail, as: "BookingDetails", attributes: [] },
+          { model: db.BookingTip, as: "BookingTip", attributes: [] },
+        ],
+        attributes: [],
+      },
+    ],
+    attributes: [
+      "idBarber",
+      [fn("COALESCE", fn("SUM", col("Bookings.BookingDetails.price")), 0), "serviceRevenue"],
+      [fn("COALESCE", fn("SUM", col("Bookings.BookingTip.tipAmount")), 0), "tipAmount"],
+    ],
+    group: ["Barber.idBarber"],
+    raw: true,
+  });
+
+  const serviceRevenue = parseFloat(result?.serviceRevenue || 0);
+  const tipAmount = parseFloat(result?.tipAmount || 0);
+
+  // === 2️⃣ Lấy toàn bộ mốc thưởng ===
+  const rewardRules = await db.BonusRule.findAll({
+    where: { active: true },
+    order: [["minRevenue", "ASC"]],
+    raw: true,
+  });
+
+  if (!rewardRules || rewardRules.length === 0)
+    throw new Error("Không có mốc thưởng nào trong hệ thống.");
+
+  // === 3️⃣ Xác định mốc hiện tại và mốc kế tiếp ===
+  let currentRule = rewardRules[0];
+  let nextRule = null;
+
+  for (let i = 0; i < rewardRules.length; i++) {
+    if (serviceRevenue >= rewardRules[i].minRevenue) {
+      currentRule = rewardRules[i];
+      nextRule = rewardRules[i + 1] || null;
+    }
+  }
+
+  // === 4️⃣ Tính thưởng ===
+  const bonus = Math.floor((serviceRevenue * currentRule.bonusPercent) / 100);
+  const percentRevenue = nextRule
+    ? Math.min((serviceRevenue / nextRule.minRevenue) * 100, 100)
+    : 100;
+
+  return {
+    idBarber,
+    month,
+    year,
+    serviceRevenue,
+    tipAmount,
+    bonus,
+    percentRevenue,
+    currentRule,
+    nextRule,
+    rewardRules,
+  };
+};
+// 🔹 Admin tạo mới barber (tự tạo user + barber cùng lúc)
+export const createBarberWithUser = async (data) => {
+  const t = await db.sequelize.transaction();
+  try {
+    const { email, password, fullName, phoneNumber, idBranch, profileDescription } = data;
+
+    // 1️⃣ Kiểm tra email trùng
+    const existed = await db.User.findOne({ where: { email } });
+    if (existed) {
+      throw new Error("Email đã tồn tại trong hệ thống!");
+    }
+
+    // 2️⃣ Hash password
+    const bcrypt = await import("bcrypt");
+    const hashedPassword = await bcrypt.default.hash(password, 10);
+
+    // 3️⃣ Tạo user mới với role = barber
+    const newUser = await db.User.create(
+      {
+        email,
+        password: hashedPassword,
+        fullName,
+        phoneNumber,
+        role: "barber",
+        isStatus: true,
+      },
+      { transaction: t }
+    );
+
+    // 4️⃣ Tạo bản ghi barber — cho phép idBranch = null
+    const newBarber = await db.Barber.create(
+      {
+        idBarber: newUser.idUser,
+        idBranch: idBranch || null, // ✅ Cho phép null
+        profileDescription: profileDescription || "Chưa có mô tả",
+        isLocked: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      { transaction: t }
+    );
+
+    await t.commit();
+
+    return {
+      message: "Tạo thợ cắt tóc mới thành công!",
+      user: {
+        idUser: newUser.idUser,
+        email: newUser.email,
+        fullName: newUser.fullName,
+        phoneNumber: newUser.phoneNumber,
+        role: newUser.role,
+      },
+      barber: newBarber,
+    };
+  } catch (error) {
+    await t.rollback();
+    console.error("Lỗi khi tạo barber mới:", error);
+    throw new Error("Lỗi khi tạo barber mới: " + error.message);
+  }
 };

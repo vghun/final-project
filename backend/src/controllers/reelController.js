@@ -76,7 +76,7 @@ export const searchReels = async (req, res) => {
       return res.status(400).json({ message: "Thiếu từ khóa tìm kiếm." });
     }
 
-    const reels = await searchReelsService(q.trim(), idUser);
+    const reels = await reelService.searchReelsService(q.trim(), idUser);
     res.json(reels);
   } catch (error) {
     console.error("Lỗi tại searchReels:", error);

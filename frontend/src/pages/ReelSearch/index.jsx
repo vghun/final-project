@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import styles from "./ReelSearch.module.scss";
 import VideoCard from "~/components/VideoCard";
@@ -7,6 +7,8 @@ import { searchReels } from "~/services/reelService";
 
 function ReelSearch() {
   const location = useLocation();
+  const navigate = useNavigate();
+
   const queryParam = new URLSearchParams(location.search).get("q") || "";
   const [query, setQuery] = useState(queryParam);
   const [reels, setReels] = useState([]);
@@ -14,21 +16,43 @@ function ReelSearch() {
   const [currentIndex, setCurrentIndex] = useState(null);
   const idUser = 5;
 
+  // 🟢 Hàm search API
+  const doSearch = async (keyword) => {
+    if (!keyword.trim()) return;
+    setLoading(true);
+    try {
+      const data = await searchReels(keyword, idUser);
+      setReels(data);
+    } catch (err) {
+      console.error("Lỗi tìm kiếm:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🟢 Tự động search khi queryParam trên URL thay đổi
   useEffect(() => {
-    const doSearch = async () => {
-      if (!queryParam) return;
-      setLoading(true);
-      try {
-        const data = await searchReels(queryParam, idUser);
-        setReels(data);
-      } catch (err) {
-        console.error("Lỗi tìm kiếm:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    doSearch();
+    if (queryParam) doSearch(queryParam);
   }, [queryParam]);
+
+  // 🟢 Khi bấm nút tìm trong form
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    // Cập nhật URL
+    navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+    // ✅ Gọi API ngay lập tức để có kết quả liền
+    doSearch(query);
+  };
+
+  // 🟢 Toggle like
+  const toggleLike = (idReel, isLiked, likesCount) => {
+    setReels((prev) =>
+      prev.map((r) =>
+        r.idReel === idReel ? { ...r, isLiked, likesCount } : r
+      )
+    );
+  };
 
   return (
     <div className={styles.container}>
@@ -46,7 +70,9 @@ function ReelSearch() {
         </button>
       </form>
 
-      {reels.length > 0 ? (
+      {loading && <p>Đang tải...</p>}
+
+      {!loading && reels.length > 0 ? (
         <div className={styles.grid}>
           {reels.map((reel, idx) => (
             <VideoCard

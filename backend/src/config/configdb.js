@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 
-const sequelize = new Sequelize("ccnpmm_project", "root", "20072004", {
+
+const sequelize = new Sequelize("account", "root", "xuandung", {
   host: "localhost",
   port: 3306,
   dialect: "mysql",
