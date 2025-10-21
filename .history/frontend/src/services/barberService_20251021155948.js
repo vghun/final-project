@@ -68,7 +68,6 @@ export const getBarberReward = async (idBarber) => {
     return res;
   } catch (error) {
     console.error("Lỗi khi gọi getBarberReward:", error.response?.data || error);
-  }}
 export const createBarberWithUser = async (payload) => {
   try {
     const res = await request.post("/api/barbers/create", payload);

@@ -25,7 +25,7 @@ export const BarberAPI = {
   getReward: async (idBarber) => {
     const result = await barberService.getBarberReward(idBarber);
     return result;
-  },
+
   createBarber: async (payload) => {
     return await barberService.createBarberWithUser(payload);
   },
