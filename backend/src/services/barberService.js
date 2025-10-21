@@ -313,3 +313,117 @@ export const createBarberWithUser = async (data) => {
     throw new Error("Lỗi khi tạo barber mới: " + error.message);
   }
 };
+
+
+export const updateBarber = async (idBarber, data) => {
+  const t = await db.sequelize.transaction();
+  try {
+    const barber = await db.Barber.findByPk(idBarber, {
+      include: [{ model: db.User, as: "user" }],
+      transaction: t,
+    });
+
+    if (!barber) throw new Error("Không tìm thấy barber");
+
+    // 🔹 Cập nhật thông tin User (nếu có)
+    if (data.fullName) barber.user.fullName = data.fullName;
+    if (data.phoneNumber) barber.user.phoneNumber = data.phoneNumber;
+    if (data.email) barber.user.email = data.email;
+    if (data.password) {
+      barber.user.password = await bcrypt.hash(data.password, 10); // hash mới
+    }
+    await barber.user.save({ transaction: t });
+
+    // 🔹 Cập nhật thông tin Barber
+    if (data.idBranch !== undefined) barber.idBranch = data.idBranch || null;
+    if (data.profileDescription !== undefined)
+      barber.profileDescription = data.profileDescription;
+    await barber.save({ transaction: t });
+
+    await t.commit();
+    return { message: "Cập nhật barber thành công!", barber };
+  } catch (error) {
+    await t.rollback();
+    throw new Error("Lỗi khi cập nhật barber: " + error.message);
+  }
+};
+
+// 🔹 Xóa barber (và user liên kết)
+export const deleteBarber = async (idBarber) => {
+  const t = await db.sequelize.transaction();
+  try {
+    const barber = await db.Barber.findByPk(idBarber, { transaction: t });
+    if (!barber) throw new Error("Không tìm thấy barber");
+
+    // Do có foreign key ON DELETE CASCADE, xóa user sẽ xóa luôn barber
+    await db.User.destroy({
+      where: { idUser: idBarber },
+      transaction: t,
+    });
+
+    await t.commit();
+    return { message: "Xóa barber thành công!" };
+  } catch (error) {
+    await t.rollback();
+    throw new Error("Lỗi khi xóa barber: " + error.message);
+  }
+};
+
+export const addBarberUnavailability = async (data) => {
+  const { idBarber, startDate, endDate, reason } = data;
+
+  if (!idBarber || !startDate || !endDate || !reason) {
+    throw new Error("Thiếu thông tin yêu cầu.");
+  }
+
+  const barber = await db.Barber.findByPk(idBarber);
+  if (!barber) {
+    throw new Error("Không tìm thấy thợ cắt tóc.");
+  }
+
+  // 🔹 Kiểm tra trùng lịch nghỉ
+  const overlap = await db.BarberUnavailability.findOne({
+    where: {
+      idBarber,
+      [db.Sequelize.Op.or]: [
+        {
+          startDate: { [db.Sequelize.Op.between]: [startDate, endDate] },
+        },
+        {
+          endDate: { [db.Sequelize.Op.between]: [startDate, endDate] },
+        },
+        {
+          [db.Sequelize.Op.and]: [
+            { startDate: { [db.Sequelize.Op.lte]: startDate } },
+            { endDate: { [db.Sequelize.Op.gte]: endDate } },
+          ],
+        },
+      ],
+    },
+  });
+
+  if (overlap) {
+    throw new Error("❌ Thợ này đã có lịch nghỉ trong khoảng thời gian này!");
+  }
+
+  // 🔹 Tạo mới nếu không trùng
+  const record = await db.BarberUnavailability.create({
+    idBarber,
+    startDate,
+    endDate,
+    reason,
+  });
+
+  return {
+    message: "✅ Đã thêm lịch nghỉ phép thành công.",
+    record,
+  };
+};
+
+export const getUnavailabilitiesByBarber = async (idBarber) => {
+  const records = await db.BarberUnavailability.findAll({
+    where: { idBarber },
+    order: [["startDate", "ASC"]],
+  });
+  return records;
+};
