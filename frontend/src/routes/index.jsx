@@ -6,6 +6,7 @@ import Admin from "~/pages/Admin";
 import ThoCatToc from "~/pages/ThoCatToc";
 import BookingPage from "~/pages/booking";
 import Reel from "~/pages/reels";
+import ReelSearch from "~/pages/ReelSearch";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 
 export const publicRouter = [
@@ -13,6 +14,7 @@ export const publicRouter = [
   { path: config.routes.profile, component: Profile },
   { path: config.routes.about, component: About },
   { path: config.routes.reels, component: Reel },
+  { path: config.routes.reelSearch, component: ReelSearch },
   
 
   {

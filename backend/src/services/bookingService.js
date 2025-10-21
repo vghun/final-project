@@ -1,5 +1,5 @@
 import db from "../models/index.js";
-import { Op } from "sequelize";
+import { Op,Sequelize } from "sequelize";
 import moment from "moment";
 
 
@@ -194,10 +194,34 @@ export const completeBooking = async (idBooking, idBarber, uploadedImages, descr
 
 export const getBookedSlotsByBarber = async (idBranch, idBarber, bookingDate) => {
   try {
-    // 🔧 Chuẩn hóa ngày về dạng 'YYYY-MM-DD' để so sánh đúng
     const normalizedDate = moment(bookingDate).format("YYYY-MM-DD");
 
-    // 1️⃣ Kiểm tra thợ có nghỉ trong ngày không
+    // 1️⃣ Kiểm tra thợ có tồn tại không
+    const barber = await db.Barber.findByPk(idBarber);
+    if (!barber) throw new Error("Không tìm thấy thợ có ID này");
+
+    // 2️⃣ Kiểm tra thợ có thuộc chi nhánh này không
+    if (Number(barber.idBranch) !== Number(idBranch)) {
+      throw new Error("Thợ không thuộc chi nhánh này");
+    }
+
+    // 3️⃣ Kiểm tra chi nhánh có tồn tại không
+    const branch = await db.Branch.findByPk(idBranch);
+    if (!branch) throw new Error("Không tìm thấy chi nhánh");
+
+    // 4️⃣ Sinh toàn bộ khung giờ trong ngày
+    const openTime = moment(branch.openTime, "HH:mm");
+    const closeTime = moment(branch.closeTime, "HH:mm");
+    const slotDuration = branch.slotDuration;
+
+    const allSlots = [];
+    let current = openTime.clone();
+    while (current.isBefore(closeTime)) {
+      allSlots.push(current.format("HH:mm"));
+      current.add(slotDuration, "minutes");
+    }
+
+    // 5️⃣ Kiểm tra thợ có nghỉ trong ngày không
     const isUnavailable = await db.BarberUnavailability.findOne({
       where: {
         idBarber,
@@ -206,23 +230,6 @@ export const getBookedSlotsByBarber = async (idBranch, idBarber, bookingDate) =>
       },
     });
 
-    // 2️⃣ Lấy thông tin chi nhánh
-    const branch = await db.Branch.findByPk(idBranch);
-    if (!branch) throw new Error("Không tìm thấy chi nhánh");
-
-    const openTime = moment(branch.openTime, "HH:mm");
-    const closeTime = moment(branch.closeTime, "HH:mm");
-    const slotDuration = branch.slotDuration || 60; // bạn muốn mỗi slot 1 tiếng
-
-    // Sinh toàn bộ slot trong ngày
-    const allSlots = [];
-    let current = openTime.clone();
-    while (current.isBefore(closeTime)) {
-      allSlots.push(current.format("HH:mm"));
-      current.add(slotDuration, "minutes");
-    }
-
-    // 3️⃣ Nếu thợ nghỉ → tất cả slot đều unavailable
     if (isUnavailable) {
       return {
         barberId: idBarber,
@@ -234,18 +241,25 @@ export const getBookedSlotsByBarber = async (idBranch, idBarber, bookingDate) =>
       };
     }
 
-    // 4️⃣ Nếu không nghỉ → lấy slot đã có booking
+    // 6️⃣ Lấy các booking hợp lệ trong ngày (không Cancelled)
     const bookings = await db.Booking.findAll({
       where: {
         idBarber,
-        bookingDate: normalizedDate,
+        [Op.and]: [
+          Sequelize.where(
+            Sequelize.fn("DATE", Sequelize.col("bookingDate")),
+            normalizedDate
+          ),
+        ],
         status: { [Op.not]: "Cancelled" },
       },
       attributes: ["bookingTime"],
+      logging: false, // set true nếu bạn muốn debug câu SQL
     });
 
     const bookedSlots = bookings.map((b) => b.bookingTime);
 
+    // 7️⃣ Kết quả
     return {
       barberId: idBarber,
       branchId: idBranch,
@@ -255,7 +269,7 @@ export const getBookedSlotsByBarber = async (idBranch, idBarber, bookingDate) =>
       availableSlots: allSlots.filter((s) => !bookedSlots.includes(s)),
     };
   } catch (error) {
-    console.error("Lỗi khi lấy khung giờ booking:", error);
+    console.error("❌ Lỗi khi lấy khung giờ booking:", error);
     throw error;
   }
 };

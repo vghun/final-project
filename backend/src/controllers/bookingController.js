@@ -382,15 +382,36 @@ export const getBookedSlotsByBarber = async (req, res) => {
     const { idBarber } = req.params;
     const { branchId, date } = req.query;
 
+    // 🧩 Kiểm tra thiếu tham số
     if (!idBarber || !branchId || !date) {
       return res.status(400).json({ message: "Thiếu tham số: idBarber, branchId hoặc date" });
     }
 
-    const result = await bookingService.getBookedSlotsByBarber(parseInt(branchId), parseInt(idBarber), date);
+    // 🧠 Gọi service
+    const result = await bookingService.getBookedSlotsByBarber(
+      parseInt(branchId),
+      parseInt(idBarber),
+      date
+    );
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Lỗi khi lấy khung giờ booking:", error);
+    console.error("❌ Lỗi khi lấy khung giờ booking:", error);
+
+    // 🔍 Phân loại lỗi để trả mã hợp lý
+    if (error.message.includes("Không tìm thấy thợ")) {
+      return res.status(404).json({ message: error.message });
+    }
+
+    if (error.message.includes("Thợ không thuộc chi nhánh")) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    if (error.message.includes("Không tìm thấy chi nhánh")) {
+      return res.status(404).json({ message: error.message });
+    }
+
+    // ⚙️ Các lỗi khác (ngoài dự kiến)
     return res.status(500).json({
       message: "Lỗi khi lấy khung giờ booking của barber",
       error: error.message,
