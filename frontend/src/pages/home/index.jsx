@@ -1,26 +1,25 @@
 import React, { useEffect, useState, useRef } from "react";
 import styles from "./Home.module.scss";
 import { Link } from "react-router-dom";
+import { useAuth } from "~/context/AuthContext";
 import Button from "~/components/Button";
 import ServiceCard from "~/components/ServiceCard"; 
 import AIChat from "../../components/AIChat/AIChat";
-
-import {
-  fetchHotServicesPaged,
-} from "~/services/serviceService";
+import Modal from "~/components/Modal";
+import { fetchHotServicesPaged } from "~/services/serviceService";
 
 const Home = () => {
+  const { isLogin } = useAuth();
   const chatRef = useRef(null);
-  const sliderRef = useRef(null); // Thêm ref cho slider
-
-  const scrollToChat = () => {
-    chatRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const sliderRef = useRef(null);
 
   const [hot, setHot] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 4;
+
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [nextRoute, setNextRoute] = useState(null);
 
   useEffect(() => {
     const loadHot = async () => {
@@ -35,7 +34,7 @@ const Home = () => {
     loadHot();
   }, [page]);
 
-  // Tự động trượt slider
+  // Slider tự động
   useEffect(() => {
     const slider = sliderRef.current;
     if (!slider) return;
@@ -47,17 +46,29 @@ const Home = () => {
     const scrollSlider = () => {
       scrollPosition += slideWidth;
       if (scrollPosition >= totalWidth) {
-        scrollPosition = 0; // Quay về đầu để tạo vòng lặp vô hạn
-        slider.scrollTo({ left: 0, behavior: "auto" }); // Reset không animation
+        scrollPosition = 0;
+        slider.scrollTo({ left: 0, behavior: "auto" });
       } else {
         slider.scrollTo({ left: scrollPosition, behavior: "smooth" });
       }
     };
 
-    const interval = setInterval(scrollSlider, 3000); // Trượt mỗi 3 giây
-
-    return () => clearInterval(interval); // Dọn dẹp interval khi component unmount
+    const interval = setInterval(scrollSlider, 3000);
+    return () => clearInterval(interval);
   }, [hot]);
+
+  const scrollToChat = () => {
+    chatRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleBookingClick = () => {
+    if (isLogin) {
+      window.location.href = "/booking"; // Hoặc dùng useNavigate
+    } else {
+      setNextRoute("/booking");
+      setShowLoginModal(true);
+    }
+  };
 
   return (
     <div className={styles.home}>
@@ -71,9 +82,9 @@ const Home = () => {
           <h1>Barbershop</h1>
           <p>Chăm sóc tóc cho quý ông – Phong cách & Chất lượng</p>
           <div className={styles.heroButtons}>
-            <Link to="/booking">
-              <button className={styles.btnPrimary}>Đặt lịch</button>
-            </Link>
+            <button className={styles.btnPrimary} onClick={handleBookingClick}>
+              Đặt lịch
+            </button>
             <button className={styles.btnSecondary} onClick={scrollToChat}>
               Tư vấn
             </button>
@@ -88,7 +99,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Dịch vụ hot nhất */}
+      {/* Dịch vụ hot */}
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.textCenter}>
@@ -112,7 +123,6 @@ const Home = () => {
                   />
                 </div>
               ))}
-              {/* Nhân đôi danh sách để tạo hiệu ứng lặp vô hạn */}
               {hot.slice(0, 6).map((s) => (
                 <div key={`duplicate-${s.idService}`} className={styles.slideItem}>
                   <ServiceCard
@@ -129,6 +139,24 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Modal Login */}
+      <Modal
+        isOpen={showLoginModal}
+        onClose={() => {
+          setShowLoginModal(false);
+          if (!isLogin && nextRoute) {
+            window.location.href = "/"; // Quay về Home nếu chưa login
+          }
+        }}
+        onLoginSuccess={() => {
+          setShowLoginModal(false);
+          if (nextRoute) {
+            window.location.href = nextRoute; // Đi vào Booking
+            setNextRoute(null);
+          }
+        }}
+      />
     </div>
   );
 };

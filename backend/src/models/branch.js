@@ -13,6 +13,8 @@ export default (sequelize, DataTypes) => {
         otherKey: "idService",
         as: "services",
       });
+
+      
     }
   }
 
@@ -26,6 +28,7 @@ export default (sequelize, DataTypes) => {
       status: DataTypes.ENUM("Active", "Inactive"),
       slotDuration: DataTypes.INTEGER,
     },
+    
     { sequelize, modelName: "Branch", tableName: "branches" }
   );
 

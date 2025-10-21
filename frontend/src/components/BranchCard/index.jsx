@@ -6,16 +6,30 @@ import {
   faMapMarkerAlt,
   faPenToSquare,
   faTrash,
+  faToggleOn,
+  faToggleOff,
 } from "@fortawesome/free-solid-svg-icons";
 
 const cx = classNames.bind(styles);
 
-function BranchCard({ name, address, manager, staff, revenue, status }) {
+function BranchCard({
+  name,
+  address,
+  manager,
+  staff,
+  revenue,
+  status,
+  onEdit,
+  onDelete,
+  onToggle,
+}) {
+  const isActive = status === "Hoạt động";
+
   return (
     <div className={cx("card")}>
       <div className={cx("cardHeader")}>
         <h3>{name}</h3>
-        <span className={cx("status")}>{status}</span>
+        <span className={cx("status", { active: isActive })}>{status}</span>
       </div>
 
       <p className={cx("address")}>
@@ -36,11 +50,20 @@ function BranchCard({ name, address, manager, staff, revenue, status }) {
       </div>
 
       <div className={cx("actions")}>
-        <button className={cx("editBtn")}>
+        <button className={cx("editBtn")} onClick={onEdit}>
           <FontAwesomeIcon icon={faPenToSquare} /> Sửa
         </button>
-        <button className={cx("deleteBtn")}>
-          <FontAwesomeIcon icon={faTrash} />
+
+        <button
+          className={cx("toggleBtn", { off: !isActive })}
+          onClick={onToggle}
+        >
+          <FontAwesomeIcon icon={isActive ? faToggleOn : faToggleOff} />{" "}
+          {isActive ? "Tạm ngưng" : "Kích hoạt"}
+        </button>
+
+        <button className={cx("deleteBtn")} onClick={onDelete}>
+          <FontAwesomeIcon icon={faTrash} /> Xóa
         </button>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { Sequelize } from "sequelize";
 
 
 const sequelize = new Sequelize("account", "root", "123456789", {
-  host: "127.0.0.1",       
+  host: "localhost",
   port: 3306,              
   dialect: "mysql",
   logging: console.log,

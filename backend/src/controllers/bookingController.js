@@ -327,3 +327,29 @@ export const payBooking = async (req, res) => {
     res.status(500).json({ message: "Lỗi khi thanh toán", error: error.message });
   }
 };
+export const getBookedSlotsByBarber = async (req, res) => {
+  try {
+    const { idBarber } = req.params;
+    const { branchId, date } = req.query;
+
+    if (!idBarber || !branchId || !date) {
+      return res.status(400).json({
+        message: "Thiếu tham số: idBarber, branchId hoặc date",
+      });
+    }
+
+    const result = await bookingService.getBookedSlotsByBarber(
+      parseInt(branchId),
+      parseInt(idBarber),
+      date
+    );
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Lỗi khi lấy khung giờ booking:", error);
+    return res.status(500).json({
+      message: "Lỗi khi lấy khung giờ booking của barber",
+      error: error.message,
+    });
+  }
+};

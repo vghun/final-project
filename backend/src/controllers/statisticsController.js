@@ -21,27 +21,6 @@ const getBarberRevenue = async (req, res) => {
 };
 
 /**
-<<<<<<< HEAD
-=======
- * Lấy doanh thu theo chi nhánh
- * Query params: month, year
- */
-const getBranchRevenue = async (req, res) => {
-  try {
-    const { month, year } = req.query;
-    const data = await StatisticsService.getBranchRevenue({
-      month: month ? parseInt(month) : undefined,
-      year: year ? parseInt(year) : undefined,
-    });
-    return res.status(200).json(data);
-  } catch (error) {
-    console.error("Lỗi getBranchRevenue:", error);
-    return res.status(500).json({ message: "Lỗi server" });
-  }
-};
-
-/**
->>>>>>> origin/main
  * Lấy tổng doanh thu từng tháng của các chi nhánh trong năm
  * Query param: year
  */
@@ -58,8 +37,21 @@ const getMonthlyBranchRevenue = async (req, res) => {
     return res.status(500).json({ message: "Lỗi server" });
   }
 };
-
+const getDashboardOverview = async (req, res) => {
+  try {
+    const { month, year } = req.query;
+    const data = await StatisticsService.getStatisticsOverview(
+      month ? parseInt(month) : undefined,
+      year ? parseInt(year) : undefined
+    );
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error("Lỗi getDashboardOverview:", error);
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
 export default {
   getBarberRevenue,
   getMonthlyBranchRevenue,
+  getDashboardOverview,
 };
