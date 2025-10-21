@@ -13,6 +13,10 @@ export default (sequelize, DataTypes) => {
         otherKey: "idService",
         as: "services",
       });
+
+      this.belongsTo(models.User, { foreignKey: "managerId", as: "manager" });
+
+      
     }
   }
 
@@ -25,7 +29,13 @@ export default (sequelize, DataTypes) => {
       closeTime: DataTypes.TIME,
       status: DataTypes.ENUM("Active", "Inactive"),
       slotDuration: DataTypes.INTEGER,
+
+      managerId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
     },
+    
     { sequelize, modelName: "Branch", tableName: "branches" }
   );
 
