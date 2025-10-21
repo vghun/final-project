@@ -12,11 +12,8 @@ export const publicRouter = [
   { path: config.routes.home, component: Home },
   { path: config.routes.profile, component: Profile },
   { path: config.routes.about, component: About },
-  { path: config.routes.admin, component: Admin, layout: null },
-  { path: config.routes.thoCatToc, component: ThoCatToc, layout: null },
-  { path: config.routes.booking, component: BookingPage },
-  { path: config.routes.reels, component: Reel }, // Placeholder component
-];
+  { path: config.routes.reels, component: Reel },
+  
 
   {
     path: config.routes.admin,
