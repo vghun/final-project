@@ -14,8 +14,6 @@ export default (sequelize, DataTypes) => {
         as: "services",
       });
 
-      this.belongsTo(models.User, { foreignKey: "managerId", as: "manager" });
-
       
     }
   }
