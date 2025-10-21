@@ -1,37 +1,35 @@
 import React, { useState, useEffect } from "react";
 import styles from "./PaymentModal.module.scss";
-
-// Import các step con
 import Step1_BookingInfo from "./BookingInfo";
 import Step2_Rating from "./Rating";
 import Step3_Tips from "./Tips";
 import Step4_Invoice from "./Invoice";
 
-export default function PaymentModal({ booking, onClose }) {
+export default function PaymentModal({ booking, onClose, onPaidSuccess }) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState(null);
 
-  // ✅ Khi booking thay đổi (hoặc mở modal), khởi tạo dữ liệu từ API thật
   useEffect(() => {
     if (!booking) return;
 
     const initialData = {
       booking: {
+        idBooking: booking.idBooking || booking.id,
         customer: booking.customer?.name || "Khách lẻ",
         barber: booking.barber?.name || "Chưa chỉ định",
         time: booking.bookingTime || "Không rõ",
         branch: booking.branch?.name || "",
+        barberId: booking.barber?.idBarber || booking.barber?.id,
       },
       services:
         booking.services?.map((s) => ({
-          id: s.id,
+          id: s.idService || s.id,
           name: s.name,
           price: parseFloat(s.price) || 0,
           selected: true,
         })) || [],
-      voucher: null, // có thể bổ sung sau nếu có API voucher
+      voucher: null,
       serviceRating: 0,
-      barberRating: 0,
       tip: booking.tip || 0,
       note: booking.description || "",
     };
@@ -47,22 +45,16 @@ export default function PaymentModal({ booking, onClose }) {
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        {/* Nút đóng */}
         <button className={styles.closeBtn} onClick={onClose}>
           ✕
         </button>
 
-        {/* Bước 1: Xác nhận thông tin */}
         {step === 1 && <Step1_BookingInfo data={formData} setData={setFormData} onNext={nextStep} />}
-
-        {/* Bước 2: Đánh giá */}
         {step === 2 && <Step2_Rating data={formData} setData={setFormData} onNext={nextStep} onBack={prevStep} />}
-
-        {/* Bước 3: Nhập tiền tip */}
         {step === 3 && <Step3_Tips data={formData} setData={setFormData} onNext={nextStep} onBack={prevStep} />}
-
-        {/* Bước 4: Hóa đơn */}
-        {step === 4 && <Step4_Invoice data={formData} onBack={prevStep} onClose={onClose} />}
+        {step === 4 && (
+          <Step4_Invoice data={formData} onBack={prevStep} onClose={onClose} onPaidSuccess={onPaidSuccess} />
+        )}
       </div>
     </div>
   );
