@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import styles from "./Home.module.scss";
+import { Link } from "react-router-dom";
 import { useAuth } from "~/context/AuthContext";
 import Button from "~/components/Button";
 import ServiceCard from "~/components/ServiceCard"; 

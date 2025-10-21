@@ -3,8 +3,12 @@ import axios from "axios";
 const API_URL = "http://localhost:8088/api/reels";
 
 const reelApi = {
-  getPaged: (page = 1, limit = 10, idUser) =>
-    axios.get(`${API_URL}?page=${page}&limit=${limit}&idUser=${idUser}` ),
+  getPaged: (page = 1, limit = 10, idUser = null) => {
+    const query = idUser 
+      ? `?page=${page}&limit=${limit}&idUser=${idUser}` 
+      : `?page=${page}&limit=${limit}`;
+    return axios.get(`${API_URL}${query}`);
+  },
 
   getById: (id) =>
     axios.get(`${API_URL}/${id}`),
@@ -31,6 +35,15 @@ const reelApi = {
 
   deleteComment: (idComment) =>
     axios.delete(`${API_URL}/comment/${idComment}`),
+
+   trackView: (idReel, idUser) =>
+    axios.post(`${API_URL}/${idReel}/view`, { idUser }),
+   search: (keyword, idUser = null) => {
+    const query = idUser
+      ? `/search?q=${encodeURIComponent(keyword)}&idUser=${idUser}`
+      : `/search?q=${encodeURIComponent(keyword)}`;
+    return axios.get(`${API_URL}${query}`);
+   },
 };
 
 export default reelApi;

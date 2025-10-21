@@ -34,9 +34,9 @@ function Header() {
 
         <div className={cx("nav-menu")}>
           <Button href="/" text className={cx("menu-button")}>Trang chủ</Button>
-          <Button href="/team" text className={cx("menu-button")}>Chi nhánh & Thợ</Button>
+          <Button href="/reels" text className={cx("menu-button")}>Video Ngắn</Button>
+          <Button href="/team" text className={cx("menu-button")}>Thợ</Button>
           <Button href="/service" text className={cx("menu-button")}>Dịch vụ</Button>
-          <Button href="/products" text className={cx("menu-button")}>Sản phẩm</Button>
           <Button href="/about" text className={cx("menu-button")}>Về chúng tôi</Button>
         </div>
 

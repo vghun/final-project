@@ -29,10 +29,6 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.TEXT,
       allowNull: true,
     },
-    viewCount: {
-      type: Sequelize.INTEGER,
-      defaultValue: 0,
-    },
     createdAt: {
       type: Sequelize.DATE,
       defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
