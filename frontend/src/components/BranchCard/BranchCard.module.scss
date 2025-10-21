@@ -93,3 +93,17 @@
     color: #fff;
   }
 }
+
+.toggleBtn {
+  background: #ffc107;
+  color: #222;
+}
+
+.toggleBtn.off {
+  background: #6c757d;
+  color: white;
+}
+
+.toggleBtn:hover {
+  opacity: 0.9;
+}
