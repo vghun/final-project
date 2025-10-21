@@ -1,28 +1,23 @@
-import db from "../models/index.js"; 
+import db from "../models/index.js";
 import { upsertBranches } from "./pineconeService.js";
 
 const Branch = db.Branch;
 
 const createBranch = async (data) => {
   try {
-    const { name, address, openTime, closeTime, slotDuration, managerId } = data;
+    const { name, address, openTime, closeTime, slotDuration } = data;
 
-    if (!name || !address || !openTime || !closeTime || !slotDuration || !managerId) {
+    if (!name || !address || !openTime || !closeTime || !slotDuration) {
       throw new Error("Thiếu thông tin bắt buộc khi tạo chi nhánh!");
     }
 
-    const manager = await db.User.findByPk(managerId);
-    if (!manager) {
-      throw new Error(`Không tìm thấy người quản lý với ID = ${managerId}`);
-    }
-
+    // ❌ Tạm thời không kiểm tra managerId
     const newBranch = await Branch.create({
       name,
       address,
       openTime,
       closeTime,
       slotDuration,
-      managerId,
       status: "Active",
     });
 
@@ -38,28 +33,20 @@ const updateBranch = async (id, data) => {
     const branch = await Branch.findByPk(id);
     if (!branch) throw new Error("Không tìm thấy chi nhánh để cập nhật!");
 
-    const { name, address, openTime, closeTime, slotDuration, managerId, status } = data;
+    const { name, address, openTime, closeTime, slotDuration, status } = data;
 
-    // 🔹 Kiểm tra dữ liệu bắt buộc
-    if (!name || !address || !openTime || !closeTime || !slotDuration || !managerId) {
+    if (!name || !address || !openTime || !closeTime || !slotDuration) {
       throw new Error("Thiếu thông tin bắt buộc khi cập nhật chi nhánh!");
     }
 
-    // 🔹 Kiểm tra manager tồn tại
-    const manager = await db.User.findByPk(managerId);
-    if (!manager) {
-      throw new Error(`Không tìm thấy người quản lý với ID = ${managerId}`);
-    }
-
-    // 🔹 Cập nhật các trường hợp lệ
+    // ❌ Bỏ kiểm tra manager
     await branch.update({
       name,
       address,
       openTime,
       closeTime,
       slotDuration,
-      managerId,
-      status: status || branch.status, // giữ nguyên nếu không truyền
+      status: status || branch.status,
     });
 
     return branch;
@@ -68,7 +55,6 @@ const updateBranch = async (id, data) => {
     throw error;
   }
 };
-
 
 const deleteBranch = async (id) => {
   const branch = await Branch.findByPk(id);
@@ -85,7 +71,6 @@ const toggleBranchStatus = async (id) => {
   return branch;
 };
 
-
 const getAllBranches = async () => {
   try {
     const branches = await db.Branch.findAll({
@@ -97,24 +82,16 @@ const getAllBranches = async () => {
         "closeTime",
         "status",
         "slotDuration",
-        "managerId",
-        // 👇 tính tổng số thợ
         [
           db.Sequelize.literal(`(
-            SELECT COUNT(*) 
-            FROM barbers AS b 
+            SELECT COUNT(*)
+            FROM barbers AS b
             WHERE b.idBranch = Branch.idBranch
           )`),
           "totalBarbers",
         ],
       ],
-      include: [
-        {
-          model: db.User,
-          as: "manager",
-          attributes: ["idUser", "fullName", "email", "phoneNumber"],
-        },
-      ],
+      // ❌ Bỏ include manager
       order: [["idBranch", "ASC"]],
     });
 
@@ -131,7 +108,6 @@ const getAllBranches = async () => {
 
 const syncBranchesToPinecone = async () => {
   try {
-    // 🔹 Lấy danh sách chi nhánh kèm thông tin dịch vụ
     const branches = await db.Branch.findAll({
       attributes: ["idBranch", "name", "address", "status", "openTime", "closeTime"],
       include: [
@@ -139,7 +115,7 @@ const syncBranchesToPinecone = async () => {
           model: db.Service,
           as: "services",
           attributes: ["idService", "name", "price", "duration", "status"],
-          through: { attributes: [] }, // bỏ bảng trung gian ServiceAssignment
+          through: { attributes: [] },
         },
       ],
     });
@@ -148,7 +124,6 @@ const syncBranchesToPinecone = async () => {
       return { message: "Không có dữ liệu chi nhánh để đồng bộ." };
     }
 
-    // 🔹 Chuẩn hóa dữ liệu trước khi đẩy lên Pinecone
     const branchData = branches.map((b) => {
       const statusRaw = (b.status || "").trim().toLowerCase();
       const isActive =
@@ -157,7 +132,6 @@ const syncBranchesToPinecone = async () => {
         statusRaw === "1" ||
         statusRaw === "đang hoạt động";
 
-      // 🔹 Ghép danh sách dịch vụ
       const serviceList =
         b.services?.length > 0
           ? b.services
@@ -175,18 +149,14 @@ const syncBranchesToPinecone = async () => {
         status: b.status,
         openTime: b.openTime || "N/A",
         closeTime: b.closeTime || "N/A",
-        displayText: `
-Chi nhánh: ${b.name || "Chưa có tên"}.
-Địa chỉ: ${b.address || "Không có địa chỉ"}.
-Trạng thái: ${isActive ? "Đang hoạt động" : "Ngừng hoạt động"}.
-Giờ mở cửa: ${b.openTime || "N/A"}.
-Giờ đóng cửa: ${b.closeTime || "N/A"}.
-Dịch vụ: ${serviceList}.
-        `.trim(),
+        displayText: `Chi nhánh: ${b.name || "Chưa có tên"}. Địa chỉ: ${
+          b.address || "Không có địa chỉ"
+        }. Trạng thái: ${isActive ? "Đang hoạt động" : "Ngừng hoạt động"}. Giờ mở cửa: ${
+          b.openTime || "N/A"
+        }. Giờ đóng cửa: ${b.closeTime || "N/A"}. Dịch vụ: ${serviceList}.`.trim(),
       };
     });
 
-    // 🔹 Gửi dữ liệu lên Pinecone
     await upsertBranches(branchData);
 
     return {
@@ -198,9 +168,6 @@ Dịch vụ: ${serviceList}.
     return { message: "❌ Lỗi server khi đồng bộ chi nhánh", error: error.message };
   }
 };
-
-
-
 
 export default {
   createBranch,
