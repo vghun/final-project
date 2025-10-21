@@ -11,4 +11,5 @@ router.post("/assign-branch", barberController.assignBarberToBranch);
 router.post("/lock", barberController.lockBarber);
 router.post("/unlock", barberController.unlockBarber);
 
+router.post("/create", barberController.createBarberWithUser);
 export default router;
