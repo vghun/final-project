@@ -31,3 +31,45 @@ export async function sendOtpEmail(email, otp) {
     throw new Error("Gửi OTP thất bại, vui lòng thử lại sau.");
   }
 }
+
+
+/**
+ * Gửi mail xác nhận booking
+ * @param {string} email - email khách
+ * @param {object} booking - thông tin booking
+ */
+export async function sendBookingEmail(email, booking) {
+  const { branch, branchAddress, barber, bookingDate, bookingTime, services, total } = booking;
+
+  const serviceList = services.map((s) => `- ${s.name}: ${s.price.toLocaleString()}đ`).join("\n");
+
+  const text = `
+Chào bạn,
+
+Lịch hẹn của bạn đã được xác nhận:
+
+Cơ sở: ${branch}
+Địa chỉ: ${branchAddress}
+Thợ: ${barber}
+Ngày: ${bookingDate}
+Giờ: ${bookingTime}
+Dịch vụ:
+${serviceList}
+Tổng tiền: ${total.toLocaleString()}đ
+
+Cảm ơn bạn đã đặt lịch!
+`;
+
+  try {
+    await transporter.sendMail({
+      from: '"Barber Shop" <nvh11103@gmail.com>',
+      to: email,
+      subject: "Xác nhận đặt lịch thành công",
+      text,
+    });
+    console.log(`Mail xác nhận đã gửi tới ${email}`);
+  } catch (err) {
+    console.error("Gửi mail xác nhận thất bại:", err.message);
+  }
+}
+
