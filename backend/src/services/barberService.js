@@ -1,9 +1,8 @@
 import db from "../models/index.js";
 import { upsertBarbers } from "./pineconeService.js";
 import { fn, col, Op } from "sequelize";
+import ratingService from "./ratingService.js"; 
 const Barber = db.Barber;
-// Lấy toàn bộ barber từ DB
-
 
 export const getAllBarbers = async () => {
   try {
@@ -173,7 +172,6 @@ export const unlockBarber = async (idBarber) => {
   await barber.save();
   return barber;
 };
-
 export const calculateBarberReward = async (idBarber) => {
   const now = new Date();
   const month = now.getMonth() + 1;
@@ -181,38 +179,41 @@ export const calculateBarberReward = async (idBarber) => {
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 1);
 
-  // === 1️⃣ Tính tổng doanh thu & tip thực tế của barber ===
-  const result = await db.Barber.findOne({
+  // === 1️⃣ Tổng doanh thu từ booking_details ===
+  const serviceRevenue = await db.BookingDetail.sum("price", {
+    include: [
+      {
+        model: db.Booking,
+        as: "booking", // ✅ alias đúng theo model BookingDetail
+        where: {
+          idBarber,
+          isPaid: true,
+          bookingDate: { [Op.gte]: startDate, [Op.lt]: endDate },
+        },
+        attributes: [],
+      },
+    ],
+  });
+
+  // === 2️⃣ Tổng tiền tip từ booking_tips ===
+  const tipAmount = await db.BookingTip.sum("tipAmount", {
     where: { idBarber },
     include: [
       {
         model: db.Booking,
-        as: "Bookings",
-        required: false,
+        as: "booking", // ✅ alias đúng theo model BookingTip
         where: {
           isPaid: true,
           bookingDate: { [Op.gte]: startDate, [Op.lt]: endDate },
         },
-        include: [
-          { model: db.BookingDetail, as: "BookingDetails", attributes: [] },
-          { model: db.BookingTip, as: "BookingTip", attributes: [] },
-        ],
         attributes: [],
       },
     ],
-    attributes: [
-      "idBarber",
-      [fn("COALESCE", fn("SUM", col("Bookings.BookingDetails.price")), 0), "serviceRevenue"],
-      [fn("COALESCE", fn("SUM", col("Bookings.BookingTip.tipAmount")), 0), "tipAmount"],
-    ],
-    group: ["Barber.idBarber"],
-    raw: true,
   });
 
-  const serviceRevenue = parseFloat(result?.serviceRevenue || 0);
-  const tipAmount = parseFloat(result?.tipAmount || 0);
+  const totalServiceRevenue = parseFloat(serviceRevenue || 0);
+  const totalTipAmount = parseFloat(tipAmount || 0);
 
-  // === 2️⃣ Lấy toàn bộ mốc thưởng ===
   const rewardRules = await db.BonusRule.findAll({
     where: { active: true },
     order: [["minRevenue", "ASC"]],
@@ -222,29 +223,28 @@ export const calculateBarberReward = async (idBarber) => {
   if (!rewardRules || rewardRules.length === 0)
     throw new Error("Không có mốc thưởng nào trong hệ thống.");
 
-  // === 3️⃣ Xác định mốc hiện tại và mốc kế tiếp ===
+  // === 4️⃣ Xác định mốc hiện tại và mốc kế tiếp ===
   let currentRule = rewardRules[0];
   let nextRule = null;
 
   for (let i = 0; i < rewardRules.length; i++) {
-    if (serviceRevenue >= rewardRules[i].minRevenue) {
+    if (totalServiceRevenue >= rewardRules[i].minRevenue) {
       currentRule = rewardRules[i];
       nextRule = rewardRules[i + 1] || null;
     }
   }
 
-  // === 4️⃣ Tính thưởng ===
-  const bonus = Math.floor((serviceRevenue * currentRule.bonusPercent) / 100);
+  const bonus = Math.floor((totalServiceRevenue * currentRule.bonusPercent) / 100);
   const percentRevenue = nextRule
-    ? Math.min((serviceRevenue / nextRule.minRevenue) * 100, 100)
+    ? Math.min((totalServiceRevenue / nextRule.minRevenue) * 100, 100)
     : 100;
 
   return {
     idBarber,
     month,
     year,
-    serviceRevenue,
-    tipAmount,
+    serviceRevenue: totalServiceRevenue,
+    tipAmount: totalTipAmount,
     bonus,
     percentRevenue,
     currentRule,
@@ -252,7 +252,7 @@ export const calculateBarberReward = async (idBarber) => {
     rewardRules,
   };
 };
-// 🔹 Admin tạo mới barber (tự tạo user + barber cùng lúc)
+
 export const createBarberWithUser = async (data) => {
   const t = await db.sequelize.transaction();
   try {
@@ -415,7 +415,7 @@ export const addBarberUnavailability = async (data) => {
   });
 
   return {
-    message: "✅ Đã thêm lịch nghỉ phép thành công.",
+    message: " Đã thêm lịch nghỉ phép thành công.",
     record,
   };
 };
@@ -426,4 +426,66 @@ export const getUnavailabilitiesByBarber = async (idBarber) => {
     order: [["startDate", "ASC"]],
   });
   return records;
+};
+
+export const getProfile = async (idBarber) => {
+  const barber = await Barber.findOne({
+    where: { idBarber },
+    include: [
+      {
+        model: db.User,
+        as: "user",
+        attributes: ["fullName", "image", "phoneNumber", "email"],
+      },
+      {
+        model: db.Branch,
+        as: "branch",
+        attributes: ["name", "address"],
+      },
+    ],
+  });
+
+  if (!barber) throw new Error("Không tìm thấy thợ.");
+
+  const ratingSummary = await ratingService.getRatingSummaryByBarber(idBarber);
+
+  return {
+    idBarber: barber.idBarber,
+    fullName: barber.user?.fullName || "",
+    image: barber.user?.image || "",
+    phoneNumber: barber.user?.phoneNumber || "",
+    email: barber.user?.email || "",
+    branchName: barber.branch?.name || "Chưa có chi nhánh",
+    branchAddress: barber.branch?.address || "",
+    profileDescription: barber.profileDescription || "",
+    avgRate: ratingSummary?.avgRate || 0,
+    totalRate: ratingSummary?.totalRate || 0,
+  };
+};
+
+export const updateProfile = async (idBarber, payload) => {
+  const barber = await Barber.findByPk(idBarber, {
+    include: [{ model: db.User, as: "user" }],
+  });
+
+  if (!barber) throw new Error("Không tìm thấy thợ.");
+
+  const { fullName, image, phoneNumber, email, idBranch, profileDescription } =
+    payload;
+
+  if (barber.user) {
+    await barber.user.update({
+      fullName: fullName ?? barber.user.fullName,
+      image: image ?? barber.user.image,
+      phoneNumber: phoneNumber ?? barber.user.phoneNumber,
+      email: email ?? barber.user.email,
+    });
+  }
+
+  await barber.update({
+    idBranch: idBranch ?? barber.idBranch,
+    profileDescription: profileDescription ?? barber.profileDescription,
+  });
+
+  return { message: "Cập nhật hồ sơ thành công." };
 };
