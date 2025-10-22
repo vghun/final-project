@@ -1,6 +1,8 @@
 import * as BarberService from "../services/barberService.js";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
+import multer from "multer";
 
-// Lấy tất cả barber
 const getAllBarbers = async (req, res) => {
   try {
     const barbers = await BarberService.getAllBarbers();
@@ -162,6 +164,48 @@ const getBarberUnavailabilities = async (req, res) => {
   }
 };
 
+const getBarberProfile = async (req, res) => {
+  try {
+    const { idBarber } = req.params;
+    const data = await BarberService.getProfile(idBarber);
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async () => ({
+    folder: "barber-profile",
+    resource_type: "image",
+  }),
+});
+const uploadAvatar = multer({ storage });
+
+const updateBarberProfile = async (req, res) => {
+  try {
+    const { idBarber } = req.params;
+    const payload = { ...req.body };
+
+    // ✅ Cloudinary lưu ở file.path hoặc file.url tùy lib, nên check cả 2
+    if (req.file) {
+      payload.image = req.file.path || req.file.url;
+    }
+
+    if (payload.image && typeof payload.image !== "string") {
+      delete payload.image;
+    }
+
+    const result = await BarberService.updateProfile(idBarber, payload);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error("❌ Lỗi updateProfile:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+
 export default {
   getAllBarbers,
   syncBarbers,
@@ -176,4 +220,7 @@ export default {
   updateBarber,
   deleteBarber,
   getBarberUnavailabilities,
+  getBarberProfile,
+  updateBarberProfile,
+  uploadAvatar,
 };

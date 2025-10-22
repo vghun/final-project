@@ -18,4 +18,11 @@ router.delete("/delete/:idBarber", barberController.deleteBarber);
 router.post("/unavailability", barberController.addBarberUnavailability);
 router.get("/unavailability/:idBarber", barberController.getBarberUnavailabilities);
 
+router.get("/profile/:idBarber", barberController.getBarberProfile);
+router.put(
+  "/profile/:idBarber",
+  barberController.uploadAvatar.single("image"),
+  barberController.updateBarberProfile
+);
+
 export default router;
