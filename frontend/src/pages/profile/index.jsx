@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import classNames from "classnames/bind";
 import { useAuth } from "~/context/AuthContext";
 import { ProfileAPI } from "~/apis/profileApi";
-import { useToast } from "~/context/ToastContext"; 
+import { useToast } from "~/context/ToastContext";
 import styles from "./Profile.module.scss";
+import WorkCard from "~/components/CustomerGalleryCard";
+import { fetchCustomerGallery } from "~/services/customerGalleryService";
 
 const cx = classNames.bind(styles);
 
 function Profile() {
   const { accessToken, user, setUser } = useAuth();
-  const { showToast } = useToast();  
+  const { showToast } = useToast();
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,15 +23,17 @@ function Profile() {
   const [avatarFile, setAvatarFile] = useState(null);
   const [preview, setPreview] = useState("");
 
-  // Fetch profile khi accessToken có giá trị
+  // Gallery
+  const [galleryWorks, setGalleryWorks] = useState([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
+
+  // Fetch profile
   useEffect(() => {
     if (!accessToken) return;
 
     const fetchProfile = async () => {
       try {
         const res = await ProfileAPI.getProfile(accessToken);
-        console.log("fetchProfile res:", res);
-
         const userProfile = res.profile;
         setProfile(userProfile);
 
@@ -51,12 +55,50 @@ function Profile() {
     fetchProfile();
   }, [accessToken, showToast]);
 
+  // Fetch gallery theo customer
+  // Thay đổi useEffect gallery
+  // Fetch gallery theo customer
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const loadGallery = async () => {
+      setGalleryLoading(true);
+      try {
+        const data = await fetchCustomerGallery(accessToken);
+
+        const grouped = {};
+        data.forEach((item) => {
+          const id = item.idbooking; // backend đã trả idbooking
+          if (!grouped[id]) {
+            grouped[id] = {
+              idBooking: id,
+              customerName: item.customerName,
+              barberName: item.barberName,
+              service: item.service,
+              description: item.description || "",
+              date: item.date,
+              photos: [],
+            };
+          }
+          grouped[id].photos.push(item.photo);
+        });
+
+        setGalleryWorks(Object.values(grouped));
+      } catch (err) {
+        console.error("Lỗi khi tải gallery:", err);
+      } finally {
+        setGalleryLoading(false);
+      }
+    };
+
+    loadGallery();
+  }, [accessToken]);
+
   if (loading) return <div className={cx("loading")}>Đang tải...</div>;
   if (!profile) return <div className={cx("loading")}>Không có dữ liệu</div>;
 
   const { email, profileDetail } = profile;
   const points = profileDetail?.loyaltyPoint || 0;
-  const gallery = profileDetail?.gallery || []; // Nếu gallery có trong profileDetail
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -79,7 +121,6 @@ function Profile() {
       if (avatarFile) formData.append("avatar", avatarFile);
 
       const updatedProfile = await ProfileAPI.updateProfile(accessToken, formData);
-
       const updatedUser = updatedProfile.profile;
       setProfile(updatedUser);
       setUser({
@@ -100,7 +141,7 @@ function Profile() {
       text: "Đổi mật khẩu thành công!",
       type: "success",
       duration: 3000,
-    }); 
+    });
   };
 
   return (
@@ -190,19 +231,17 @@ function Profile() {
         </div>
       </div>
 
-      {/* Gallery */}
-      <div className={cx("gallery")}>
-        <h2>Ảnh sau khi cắt tóc</h2>
-        {gallery.length === 0 ? (
-          <p className={cx("no-gallery")}>Chưa có ảnh nào</p>
-        ) : (
-          <div className={cx("gallery-grid")}>
-            {gallery.map((img, idx) => (
-              <div key={idx} className={cx("gallery-item")}>
-                <img src={img} alt={`Haircut ${idx + 1}`} />
-              </div>
+      {/* Gallery Customer giống barber */}
+      <div className={styles.container}>
+        <h2 className={styles.title}>Ảnh sau khi cắt tóc</h2>
+        {galleryWorks.length > 0 ? (
+          <div className={styles.grid}>
+            {galleryWorks.map((work) => (
+              <WorkCard key={work.idBooking} work={work} />
             ))}
           </div>
+        ) : (
+          <p className={styles.empty}>Chưa có ảnh nào</p>
         )}
       </div>
     </div>
