@@ -12,7 +12,7 @@ import {
   getBookingsForBarber,
   getBookedSlotsByBarber,
 } from "../controllers/bookingController.js";
-
+import { authenticate } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 // 🧾 Lấy tất cả chi nhánh
@@ -50,6 +50,6 @@ router.post(
 );
 
 // ✍️ Tạo booking mới
-router.post("/create", createBooking);
+router.post("/create",authenticate, createBooking);
 
 export default router;

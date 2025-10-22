@@ -1,7 +1,7 @@
 import db from "../models/index.js";
 import { Op,Sequelize } from "sequelize";
 import moment from "moment";
-
+import { sendBookingEmail } from "./mailService.js"; 
 
 // Lấy tất cả chi nhánh
 export const getBranches = async (req, res) => {
@@ -99,28 +99,71 @@ export const createBookingService = async ({
   bookingTime,
   services,
   description,
+  idCustomerVoucher,
 }) => {
+  // Lấy thông tin chi nhánh
+  const branch = await db.Branch.findByPk(idBranch, {
+    attributes: ["name", "address"],
+  });
+
+  // Lấy thông tin barber
+  const barber = await db.Barber.findByPk(idBarber, {
+    include: [{ model: db.User, as: "user", attributes: ["fullName"] }],
+  });
+
+  // Tính tổng giá
+  const total = services.reduce((sum, s) => sum + (s.price * (s.quantity || 1)), 0);
+
   // Tạo booking
   const booking = await db.Booking.create({
     idCustomer,
     idBranch,
     idBarber,
+    idCustomerVoucher,
     bookingDate,
     bookingTime,
     status: "Pending",
     description,
+    total,
   });
 
-  // Thêm dịch vụ chi tiết
-  if (services && services.length > 0) {
-    for (const s of services) {
-      await db.BookingDetail.create({
-        idBooking: booking.idBooking,
-        idService: s.idService,
-        quantity: s.quantity || 1,
-        price: s.price,
-      });
-    }
+  // Tạo chi tiết dịch vụ
+const serviceDetails = [];
+for (const s of services) {
+  const service = await db.Service.findByPk(s.idService);
+  if (service) {
+    serviceDetails.push({
+      idService: service.idService,
+      name: service.name,
+      price: s.price, // giữ giá từ booking
+      quantity: s.quantity || 1,
+    });
+  }
+}
+for (const s of serviceDetails) {
+  await db.BookingDetail.create({
+    idBooking: booking.idBooking,
+    idService: s.idService,
+    quantity: s.quantity,
+    price: s.price,
+  });
+}
+  // Lấy email khách
+  const customer = await db.Customer.findByPk(idCustomer, {
+    include: [{ model: db.User, as: "user", attributes: ["email", "fullName"] }],
+  });
+
+  // Gửi mail xác nhận
+  if (customer?.user?.email) {
+    await sendBookingEmail(customer.user.email, {
+      branch: branch?.name || "Tên chi nhánh",
+      branchAddress: branch?.address || "",
+      barber: barber?.user?.fullName || "Tên barber",
+      bookingDate,
+      bookingTime,
+      services: serviceDetails,
+      total,
+    });
   }
 
   return booking;

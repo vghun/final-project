@@ -12,13 +12,15 @@ function VoucherPopup({ idCustomer, onClose, onSelect }) {
       try {
         setLoading(true);
 
-        const customerVouchers = await voucherService.getCustomerVouchers(); 
+        // Truyền idCustomer vào API
+        const customerVouchers = await voucherService.getCustomerVouchers(idCustomer); 
         const availableVouchers = await voucherService.getAvailableVouchersByPoint();
 
         const allVouchers = [
           // Voucher đã đổi
           ...customerVouchers.map((v) => ({
             id: v.voucher.idVoucher,
+            idCustomerVoucher: v.id,
             code: v.voucherCode,
             title: v.voucher.title,
             description: v.voucher.description || "-",
@@ -29,6 +31,7 @@ function VoucherPopup({ idCustomer, onClose, onSelect }) {
             status: v.voucher.status ?? false,
             exchanged: true,
           })),
+
           // Voucher chưa đổi
           ...availableVouchers.map((v) => ({
             id: v.idVoucher,
@@ -41,6 +44,7 @@ function VoucherPopup({ idCustomer, onClose, onSelect }) {
             totalQuantity: v.totalQuantity ?? "Không giới hạn",
             status: v.status ?? false,
             exchanged: false,
+            idCustomerVoucher: null, // thêm dòng này
           })),
         ];
 
@@ -60,23 +64,35 @@ function VoucherPopup({ idCustomer, onClose, onSelect }) {
     onClose();
   };
 
-  const handleConfirmExchange = async () => {
-    if (!selectedVoucher) return;
-    try {
-      await voucherService.exchangeVoucher(selectedVoucher.id);
-      alert(`Đổi voucher ${selectedVoucher.title} thành công!`);
+const handleConfirmExchange = async () => {
+  if (!selectedVoucher) return;
+  try {
+    // Giả sử API trả về object { idCustomerVoucher, ...voucher }
+    const exchangedVoucher = await voucherService.exchangeVoucher(selectedVoucher.id);
 
-      setVouchers((prev) =>
-        prev.map((v) =>
-          v.id === selectedVoucher.id ? { ...v, exchanged: true } : v
-        )
-      );
-      setSelectedVoucher(null);
-    } catch (error) {
-      alert(error.message || "Đổi voucher thất bại!");
-      console.error(error);
-    }
-  };
+    alert(`Đổi voucher ${selectedVoucher.title} thành công!`);
+
+    setVouchers((prev) =>
+      prev.map((v) =>
+        v.id === selectedVoucher.id
+          ? { ...v, exchanged: true, idCustomerVoucher: exchangedVoucher.idCustomerVoucher }
+          : v
+      )
+    );
+
+    // Gọi onSelect luôn nếu muốn áp dụng ngay
+    onSelect({
+      ...selectedVoucher,
+      exchanged: true,
+      idCustomerVoucher: exchangedVoucher.idCustomerVoucher
+    });
+
+    setSelectedVoucher(null);
+  } catch (error) {
+    alert(error.message || "Đổi voucher thất bại!");
+    console.error(error);
+  }
+};
 
   if (loading) return <div className={styles.overlay}>Đang tải...</div>;
 
@@ -92,15 +108,9 @@ function VoucherPopup({ idCustomer, onClose, onSelect }) {
                 <p className={styles.description}>{voucher.description}</p>
                 <p className={styles.discount}>Giảm {voucher.discount}%</p>
                 <p className={styles.pointCost}>Giá điểm: {voucher.pointCost}</p>
-                <p className={styles.totalQuantity}>
-                  Số lượng còn: {voucher.totalQuantity}
-                </p>
-                <p className={styles.status}>
-                  Trạng thái: {voucher.status ? "Còn hiệu lực" : "Hết hiệu lực"}
-                </p>
-                <p className={styles.expire}>
-                  Hết hạn: {new Date(voucher.expireDate).toLocaleDateString("vi-VN")}
-                </p>
+                <p className={styles.totalQuantity}>Số lượng còn: {voucher.totalQuantity}</p>
+                <p className={styles.status}>Trạng thái: {voucher.status ? "Còn hiệu lực" : "Hết hiệu lực"}</p>
+                <p className={styles.expire}>Hết hạn: {new Date(voucher.expireDate).toLocaleDateString("vi-VN")}</p>
               </div>
               <div className={styles.actions}>
                 {voucher.exchanged ? (
@@ -132,8 +142,7 @@ function VoucherPopup({ idCustomer, onClose, onSelect }) {
           <div className={styles.confirmBox}>
             <h4>Xác nhận đổi</h4>
             <p>
-              Bạn có chắc chắn muốn đổi voucher <strong>{selectedVoucher.title}</strong> với{" "}
-              <strong>{selectedVoucher.pointCost} điểm</strong>?
+              Bạn có chắc chắn muốn đổi voucher <strong>{selectedVoucher.title}</strong> với <strong>{selectedVoucher.pointCost} điểm</strong>?
             </p>
             <div className={styles.confirmActions}>
               <button className={styles.confirmBtn} onClick={handleConfirmExchange}>Đồng ý</button>
