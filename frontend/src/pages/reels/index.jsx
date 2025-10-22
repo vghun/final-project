@@ -5,8 +5,8 @@ import ReelPlayer from "~/components/ReelPlayer";
 import VideoDetailDialog from "~/components/VideoDetailDialog";
 import { fetchReelsPaged } from "~/services/reelService";
 
-const PAGE_SIZE = 5;
-const SCROLL_COOLDOWN_MS = 500; // thời gian khóa scroll mỗi lần
+const PAGE_SIZE = 3;
+const SCROLL_COOLDOWN_MS = 1500;
 
 function Reel() {
   const [reels, setReels] = useState([]);
@@ -19,68 +19,87 @@ function Reel() {
   const [detailIndex, setDetailIndex] = useState(0);
   const [keyword, setKeyword] = useState("");
   const [canScroll, setCanScroll] = useState(true);
+  const [globalMuted, setGlobalMuted] = useState(true);
 
   const rightColumnRef = useRef(null);
+  const touchStartY = useRef(0);
+  const isFetchingRef = useRef(false);
   const navigate = useNavigate();
 
-  /** 📦 Load thêm dữ liệu */
   const loadMore = async () => {
-    if (loading || !hasMore) return;
+    if (loading || !hasMore || isFetchingRef.current) return;
+    isFetchingRef.current = true;
     setLoading(true);
     try {
       const data = await fetchReelsPaged(page, PAGE_SIZE, idUser);
-      setReels((prev) => [...prev, ...data]);
-      setPage((prev) => prev + 1);
-      if (data.length < PAGE_SIZE) setHasMore(false);
+      if (data.length === 0) setHasMore(false);
+      else {
+        setReels((prev) => {
+          const newOnes = data.filter(
+            (d) => !prev.some((p) => p.idReel === d.idReel)
+          );
+          return [...prev, ...newOnes];
+        });
+        setPage((prev) => prev + 1);
+        if (data.length < PAGE_SIZE) setHasMore(false);
+      }
     } catch (err) {
       console.error("Lỗi tải reels:", err);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
-  /** 🪣 Lần đầu tải dữ liệu */
   useEffect(() => {
-    if (idUser) loadMore();
+    if (idUser && reels.length === 0 && page === 1) loadMore();
   }, [idUser]);
 
-  /** 🔄 Tải thêm khi sắp hết video */
   useEffect(() => {
-    if (currentIndex >= reels.length - 2 && hasMore && !loading) {
-      loadMore();
-    }
+    if (currentIndex >= reels.length - 2 && hasMore && !loading) loadMore();
   }, [currentIndex]);
 
-  /** 🔄 Tải thêm khi xem chi tiết */
-  useEffect(() => {
-    if (detailIndex >= reels.length - 2 && hasMore && !loading) {
-      loadMore();
-    }
-  }, [detailIndex]);
-
-  /** ❤️ Xử lý like */
   const handleLike = (idReel, liked, count) => {
     setReels((prev) =>
-      prev.map((r) => (r.idReel === idReel ? { ...r, isLiked: liked, likesCount: count } : r))
+      prev.map((r) =>
+        r.idReel === idReel ? { ...r, isLiked: liked, likesCount: count } : r
+      )
     );
   };
 
-  /** ⬆⬇ Chuyển video */
+  const scrollToVideo = (index) => {
+    const container = rightColumnRef.current;
+    const videoEl = container?.querySelector(`[data-reel-index="${index}"]`);
+    if (videoEl)
+      videoEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   const handleNext = () => {
-    if (currentIndex + 1 < reels.length) setCurrentIndex((prev) => prev + 1);
+    if (currentIndex + 1 >= reels.length) return;
+    const next = currentIndex + 1;
+    setCurrentIndex(next);
+    scrollToVideo(next);
+    setCanScroll(false);
+    setTimeout(() => setCanScroll(true), SCROLL_COOLDOWN_MS);
   };
+
   const handlePrev = () => {
-    if (currentIndex > 0) setCurrentIndex((prev) => prev - 1);
+    if (currentIndex <= 0) return;
+    const prev = currentIndex - 1;
+    setCurrentIndex(prev);
+    scrollToVideo(prev);
+    setCanScroll(false);
+    setTimeout(() => setCanScroll(true), SCROLL_COOLDOWN_MS);
   };
+
   const handleChangeVideo = (newIndex) => setDetailIndex(newIndex);
 
-  /** 🔍 Xử lý tìm kiếm */
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (keyword.trim()) navigate(`/search?q=${encodeURIComponent(keyword.trim())}`);
+    if (keyword.trim())
+      navigate(`/search?q=${encodeURIComponent(keyword.trim())}`);
   };
 
-  /** 🖱️ Scroll chỉ trong cột video */
   useEffect(() => {
     const container = rightColumnRef.current;
     if (!container) return;
@@ -88,17 +107,46 @@ function Reel() {
     const handleWheel = (e) => {
       e.preventDefault();
       if (!canScroll) return;
+      const dir = e.deltaY > 50 ? "down" : e.deltaY < -50 ? "up" : null;
+      if (dir === "down") handleNext();
+      else if (dir === "up") handlePrev();
+    };
 
-      setCanScroll(false);
-      e.deltaY > 0 ? handleNext() : handlePrev();
-      setTimeout(() => setCanScroll(true), SCROLL_COOLDOWN_MS);
+    const handleTouchStart = (e) => (touchStartY.current = e.touches[0].clientY);
+    const handleTouchEnd = (e) => {
+      if (!canScroll) return;
+      const delta = touchStartY.current - e.changedTouches[0].clientY;
+      if (Math.abs(delta) < 50) return;
+      if (delta > 0) handleNext();
+      else handlePrev();
     };
 
     container.addEventListener("wheel", handleWheel, { passive: false });
-    return () => container.removeEventListener("wheel", handleWheel);
+    container.addEventListener("touchstart", handleTouchStart, { passive: true });
+    container.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("touchend", handleTouchEnd);
+    };
   }, [canScroll, currentIndex, reels]);
 
-  /** ⏳ Trạng thái tải */
+  // Pause all ReelPlayer videos when VideoDetailDialog is open
+  useEffect(() => {
+    const container = rightColumnRef.current;
+    if (!container) return;
+
+    const videos = container.querySelectorAll(`[data-reel-index] video`);
+    videos.forEach((video) => {
+      if (showDetail) {
+        video.pause();
+      } else if (video.closest(`[data-reel-index="${currentIndex}"]`)) {
+        video.play().catch(() => {});
+      }
+    });
+  }, [showDetail, currentIndex]);
+
   if (loading && reels.length === 0)
     return (
       <div className={styles.centerContainer}>
@@ -112,16 +160,13 @@ function Reel() {
       </div>
     );
 
-  const currentReel = reels[currentIndex];
-
   return (
     <div className={styles.pageWrapper}>
-      {/* 🧭 Cột trái: Tìm kiếm */}
       <div className={styles.leftColumn}>
         <form onSubmit={handleSearchSubmit} className={styles.searchBar}>
           <input
             type="text"
-            placeholder="Tìm kiếm video theo tiêu đề hoặc mô tả..."
+            placeholder="Tìm kiếm video..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
           />
@@ -129,39 +174,56 @@ function Reel() {
         </form>
       </div>
 
-      {/* 🎬 Cột phải: Video + Background */}
       <div
         className={styles.rightColumn}
         ref={rightColumnRef}
         style={{
           position: "relative",
-          backgroundImage: 'url("/Reel.png")', // 👉 ảnh trong public
+          backgroundImage: 'url("/Reel.png")',
           backgroundSize: "cover",
           backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
+          overflow: "hidden",
+          scrollBehavior: "smooth",
         }}
       >
-        {/* Lớp phủ giúp video nổi bật hơn */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: "rgba(0, 0, 0, 0.25)", // overlay mờ đen
+            background: "rgba(0,0,0,0.25)",
             zIndex: 0,
           }}
         />
         <div style={{ position: "relative", zIndex: 1 }}>
-          <ReelPlayer
-            reel={currentReel}
-            idUser={idUser}
-            onLike={handleLike}
-            onComment={() => {
-              setDetailIndex(currentIndex);
-              setShowDetail(true);
-            }}
-            onNavUp={handlePrev}
-            onNavDown={handleNext}
-          />
+          {reels.map((reel, i) => (
+            <div
+              key={reel.idReel}
+              data-reel-index={i}
+              style={{
+                height: "100vh",
+                display: i === currentIndex ? "block" : "none",
+              }}
+            >
+              <ReelPlayer
+                reel={reel}
+                idUser={idUser}
+                isActive={i === currentIndex && !showDetail}
+                globalMuted={globalMuted}
+                onToggleGlobalMuted={() =>
+                  setGlobalMuted((prev) => !prev)
+                }
+                onLike={handleLike}
+                onComment={() => {
+                  setDetailIndex(i);
+                  setShowDetail(true);
+                }}
+                onNavUp={handlePrev}
+                onNavDown={handleNext}
+                hasPrev={currentIndex > 0}
+                hasNext={currentIndex + 1 < reels.length}
+              />
+            </div>
+          ))}
 
           {showDetail && (
             <VideoDetailDialog
@@ -171,6 +233,9 @@ function Reel() {
               onToggleLike={handleLike}
               onChangeVideo={handleChangeVideo}
               idUser={idUser}
+              globalMuted={globalMuted}
+              onToggleGlobalMuted={() => setGlobalMuted((prev) => !prev)}
+              fromReelPlayer={true}
             />
           )}
         </div>
