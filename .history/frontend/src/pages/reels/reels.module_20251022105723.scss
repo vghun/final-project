@@ -1,0 +1,155 @@
+/* --- Biến màu --- */
+$bg-darkest: #f6f9fe; // Nền trang (Xám than 900)
+$bg-dark: #2d3748;    // Nền nội dung/Viền (Xám than 800)
+$text-light: #e2e8f0; // Màu chữ chính (Xám 200)
+$text-muted: #a0aec0; // Màu chữ phụ (Xám 400)
+$border-dark: #4a5568;  // Màu viền (Xám 600)
+$accent-red: rgb(120, 57, 57);      // Đỏ Barbershop
+$accent-red-hover: #e53e3e; // Đỏ sáng hơn khi hover
+
+/* --- Bắt đầu CSS của bạn --- */
+
+.pageWrapper {
+  display: flex;
+  flex-direction: row;
+
+  /* Đảm bảo nội dung bắt đầu từ trên cùng (căn chỉnh theo trục Y) */
+  align-items: flex-start;
+
+  /* Căn giữa toàn bộ khối nội dung theo chiều ngang */
+  justify-content: center;
+
+  /* Khoảng cách giữa thanh tìm kiếm và video */
+  gap: 30px;
+
+  background: $bg-darkest;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: $text-light;
+  padding: 30px 20px;
+
+  @media (max-width: 1024px) {
+    /* Chuyển sang bố cục cột trên thiết bị nhỏ hơn để thanh tìm kiếm nằm trên video */
+    flex-direction: column;
+    align-items: center; /* Căn giữa các phần tử khi xếp cột */
+    padding: 20px 10px;
+  }
+}
+
+/* .searchBar là cột trái
+  Gán width cố định và đặt nó ở vị trí bắt đầu của flex container (top-aligned)
+*/
+.searchBar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  
+  /* Cố định chiều rộng cho cột tìm kiếm */
+  width: 300px;
+  flex-shrink: 0; 
+  
+  background-color: $bg-darkest;
+  border-radius: 50px;
+  padding: 5px 8px;
+
+  /* Shadow inset đẹp hơn cho dark mode */
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); 
+
+  /* Không cần margin-bottom nếu nó không nằm trong một leftColumn */
+  margin-bottom: 0;
+
+  @media (max-width: 1024px) {
+    width: 100%;
+    max-width: 500px; /* Giới hạn trên mobile/tablet */
+    margin-bottom: 20px; /* Thêm lại margin dưới khi ở bố cục cột */
+  }
+
+  button {
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 50%;
+
+    background-color: $accent-red;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: $accent-red-hover;
+      transform: scale(1.05);
+      box-shadow: 0 0 10px rgba($accent-red-hover, 0.5);
+    }
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px 15px;
+    font-size: 15px;
+    border-radius: 50px;
+    margin-left: 10px;
+
+    background-color: transparent;
+    color: $text-light;
+
+    &::placeholder {
+      color: $text-muted;
+    }
+  }
+}
+
+/* .centerContainer là cột phải, chứa video player. 
+  Nó sẽ chiếm phần không gian còn lại.
+*/
+.centerContainer {
+  flex-grow: 1; /* Cho phép nó mở rộng */
+  display: flex;
+  flex-direction: column;
+  
+  /* Căn giữa video theo chiều ngang trong cột của nó */
+  align-items: center; 
+  
+  /* Bỏ min-height 100vh và align-items: center của nó 
+     để video bắt đầu từ trên cùng, theo flex-start của .pageWrapper */
+  min-height: auto; 
+  
+  /* Đảm bảo ReelPlayer bên trong được căn chỉnh */
+  > * {
+      width: 100%;
+      max-width: 500px; /* Đặt max-width cho video player */
+  }
+
+  /* Style cho thẻ video/ReelPlayer */
+  .reelPlayerContainer {
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    background-color: $bg-dark;
+    transition: transform 0.3s ease;
+  }
+  
+  @media (max-width: 1024px) {
+    width: 100%;
+    flex-grow: 0;
+  }
+
+  /* Khi không có data */
+  p {
+    margin-top: 150px; /* Đẩy thông báo xuống giữa màn hình */
+  }
+}
+
+/* Center khi không có data hoặc đang loading */
+.centerContainer {
+  /* Nếu chỉ có loading/no data, container này sẽ giữ chiều cao tối thiểu */
+  min-height: 80vh; 
+  justify-content: center;
+  
+  font-size: 18px;
+  color: $text-muted;
+}
