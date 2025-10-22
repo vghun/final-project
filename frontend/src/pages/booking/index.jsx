@@ -3,14 +3,11 @@ import DefaultLayout from "../../layouts/DefaultLayout";
 import styles from "./Booking.module.scss";
 import VoucherPopup from "../../components/VoucherPopup";
 import { useAuth } from "~/context/AuthContext";
+import { fetchBookedSlots, createBooking } from "~/services/bookingService";
 
-import { 
-  fetchBookedSlots, 
-  createBooking 
-} from "~/services/bookingService";
 function BookingPage() {
-    const { user } = useAuth();
-   const [booking, setBooking] = useState({
+  const { user } = useAuth();
+  const [booking, setBooking] = useState({
     branch: "",
     branchId: null,
     barber: "",
@@ -112,7 +109,6 @@ function BookingPage() {
     }
   };
 
-  // Reset ngày nếu đang chọn vào ngày nghỉ
   useEffect(() => {
     if (unavailableDates.includes(booking.date)) {
       setBooking((prev) => ({ ...prev, date: "" }));
@@ -162,47 +158,91 @@ function BookingPage() {
   const handleRemoveService = (idService) =>
     setBooking({ ...booking, services: booking.services.filter((s) => Number(s.idService) !== Number(idService)) });
 
-  const handleVoucherSelect = (voucher) => {
-    setBooking({ ...booking, discount: voucher.discount, voucher });
-    setShowVoucherList(false);
-  };
+const handleVoucherSelect = (voucher) => {
+  setBooking({
+    ...booking,
+    discount: voucher.discount,
+    voucher,
+    idCustomerVoucher: voucher.idCustomerVoucher || null, // thêm dòng này
+  });
+  setShowVoucherList(false);
+};
+
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
-    const discountAmount = (totalPrice * booking.discount) / 100;
-    const finalPrice = totalPrice - discountAmount;
+  e.preventDefault();
+  const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
+  const discountAmount = (totalPrice * booking.discount) / 100;
+  const finalPrice = totalPrice - discountAmount;
 
-    try {
-      const res = await fetch("http://localhost:8088/api/bookings/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idCustomer: 2,
-          idBranch: booking.branchId,
-          idBarber: booking.barberId,
-          bookingDate: booking.date,
-          bookingTime: booking.time,
-          services: booking.services.map((s) => ({
-            idService: s.idService,
-            price: s.price,
-            quantity: 1,
-          })),
-          description: booking.services.map((s) => s.name).join(", "),
-        }),
-      });
-      alert(`Đặt lịch thành công!\nThành tiền: ${finalPrice.toLocaleString()}đ`);
-      window.location.reload();
-    } catch (err) {
-      console.error(err);
-      alert("Không thể kết nối server!");
+  try {
+    const token = localStorage.getItem("accessToken"); // hoặc lấy từ context nếu bạn lưu token ở đó
+    const res = await fetch("http://localhost:8088/api/bookings/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // gửi token
+      },
+      body: JSON.stringify({
+        idBranch: booking.branchId,
+        idBarber: booking.barberId,
+        bookingDate: booking.date,
+        bookingTime: booking.time,
+        services: booking.services.map((s) => ({
+          idService: s.idService,
+          price: s.price,
+          quantity: 1,
+        })),
+        description: booking.services.map((s) => s.name).join(", "),
+        idCustomerVoucher: booking.idCustomerVoucher || null
+      }),
+    });
+    console.log("Payload gửi lên API:", {
+    idBranch: booking.branchId,
+    idBarber: booking.barberId,
+    bookingDate: booking.date,
+    bookingTime: booking.time,
+    services: booking.services.map((s) => ({
+      idService: s.idService,
+      price: s.price,
+      quantity: 1,
+  })),
+  description: booking.services.map((s) => s.name).join(", "),
+  idCustomerVoucher: booking.idCustomerVoucher || null
+});
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Lỗi khi tạo booking");
     }
-  };
+      console.log("Payload gửi lên API:", {
+    idBranch: booking.branchId,
+    idBarber: booking.barberId,
+    bookingDate: booking.date,
+    bookingTime: booking.time,
+    services: booking.services.map((s) => ({
+      idService: s.idService,
+      price: s.price,
+      quantity: 1,
+  })),
+  description: booking.services.map((s) => s.name).join(", "),
+  idCustomerVoucher: booking.idCustomerVoucher || null
+});
+    const data = await res.json();
+    alert(`Đặt lịch thành công!\nThành tiền: ${finalPrice.toLocaleString()}đ`);
+    window.location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("Không thể kết nối server!");
+  }
+};
+
 
   const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
   const discountAmount = (totalPrice * booking.discount) / 100;
   const finalPrice = totalPrice - discountAmount;
   const bookedTimes = booking.date ? bookedTimesByDate[booking.date] || [] : [];
+
   return (
     <DefaultLayout>
       <div className={styles.bookingWrapper}>
@@ -332,13 +372,15 @@ function BookingPage() {
               <p>
                 <b>Thành tiền: {finalPrice.toLocaleString()}đ</b>
               </p>
-               {booking.voucher && (
-              <div className={styles.appliedVoucher}>
-                <p><strong>Voucher đang áp dụng:</strong> {booking.voucher.title}</p>
-                <p>Giảm: {booking.voucher.discount}%</p>
-                <p>Điểm cần: {booking.voucher.pointCost}</p>
-              </div>
-            )}
+              {booking.voucher && (
+                <div className={styles.appliedVoucher}>
+                  <p>
+                    <strong>Voucher đang áp dụng:</strong> {booking.voucher.title}
+                  </p>
+                  <p>Giảm: {booking.voucher.discount}%</p>
+                  <p>Điểm cần: {booking.voucher.pointCost}</p>
+                </div>
+              )}
               <button type="button" onClick={() => setShowVoucherList(true)}>
                 Áp dụng mã giảm
               </button>
@@ -353,14 +395,9 @@ function BookingPage() {
         <img src="/keo.png" alt="Left Scissors" className={styles.scissorsLeft} />
         <img src="/keo.png" alt="Right Scissors" className={styles.scissorsRight} />
 
-       {showVoucherList && (
-        <VoucherPopup 
-        onClose={() => setShowVoucherList(false)} 
-        onSelect={handleVoucherSelect} 
-      />
-
-      )}
-
+        {showVoucherList && (
+          <VoucherPopup onClose={() => setShowVoucherList(false)} onSelect={handleVoucherSelect} />
+        )}
       </div>
     </DefaultLayout>
   );
