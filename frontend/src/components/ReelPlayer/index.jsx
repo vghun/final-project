@@ -9,6 +9,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { trackReelView } from "~/services/reelService";
+import { Link } from "react-router-dom";
 
 const MIN_VIEW_DURATION_MS = 3000;
 const ANIMATION_DURATION_MS = 600;
@@ -40,6 +41,7 @@ const ReelPlayer = forwardRef(
     const creator = reel?.Barber?.user;
     const creatorFullName = creator?.fullName || "Barber ẩn danh";
     const creatorAvatar = creator?.image || "/user.png";
+    const creatorId = reel?.Barber?.idBarber;
     const isLiked = reel?.isLiked ?? false;
 
     // đồng bộ muted với global
@@ -61,7 +63,10 @@ const ReelPlayer = forwardRef(
 
     useEffect(() => {
       if (slideDirection) {
-        const timer = setTimeout(() => setSlideDirection(null), ANIMATION_DURATION_MS);
+        const timer = setTimeout(
+          () => setSlideDirection(null),
+          ANIMATION_DURATION_MS
+        );
         return () => clearTimeout(timer);
       }
     }, [slideDirection]);
@@ -105,7 +110,11 @@ const ReelPlayer = forwardRef(
           else if (ref) ref.current = node;
         }}
         className={`${styles.reelItemContainer} ${
-          slideDirection === "up" ? styles.slideUp : slideDirection === "down" ? styles.slideDown : ""
+          slideDirection === "up"
+            ? styles.slideUp
+            : slideDirection === "down"
+            ? styles.slideDown
+            : ""
         }`}
       >
         <div className={styles.videoWrapper}>
@@ -128,18 +137,28 @@ const ReelPlayer = forwardRef(
             {globalMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
           </button>
 
+          {/* === Avatar + Action Bar === */}
           <div className={styles.interactionBar}>
-            <img
-              src={creatorAvatar}
-              alt="avatar"
-              className={styles.avatarSmall}
-              title={creatorFullName}
-            />
+            <Link
+              to={`/barber/${creatorId}`}
+              className={styles.userLink}
+              title={`Xem trang của ${creatorFullName}`}
+            >
+              <img
+                src={creatorAvatar}
+                alt="avatar"
+                className={styles.avatarSmall}
+              />
+            </Link>
 
             <div
               className={styles.actionIcon}
               onClick={() =>
-                onLike?.(reel.idReel, !isLiked, reel.likesCount + (isLiked ? -1 : 1))
+                onLike?.(
+                  reel.idReel,
+                  !isLiked,
+                  reel.likesCount + (isLiked ? -1 : 1)
+                )
               }
             >
               <Heart
@@ -155,12 +174,22 @@ const ReelPlayer = forwardRef(
             </div>
           </div>
 
+          {/* === Overlay thông tin video === */}
           <div className={styles.contentOverlay}>
-            <span className={styles.username}>{creatorFullName}</span>
-            <p className={styles.titleText}>{reel.title || "Không có tiêu đề"}</p>
+            <Link
+              to={`/barber/${creatorId}`}
+              className={styles.userNameLink}
+              title={`Xem trang của ${creatorFullName}`}
+            >
+              <span className={styles.username}>{creatorFullName}</span>
+            </Link>
+            <p className={styles.titleText}>
+              {reel.title || "Không có tiêu đề"}
+            </p>
           </div>
         </div>
 
+        {/* === Navigation Buttons === */}
         <div className={styles.navButtons}>
           <div
             className={`${styles.navUp} ${!hasPrev ? styles.navDisabled : ""}`}
@@ -169,7 +198,9 @@ const ReelPlayer = forwardRef(
             <ChevronUp size={20} stroke="#fff" />
           </div>
           <div
-            className={`${styles.navDown} ${!hasNext ? styles.navDisabled : ""}`}
+            className={`${styles.navDown} ${
+              !hasNext ? styles.navDisabled : ""
+            }`}
             onClick={() => hasNext && handleNavClick("down")}
           >
             <ChevronDown size={20} stroke="#fff" />
