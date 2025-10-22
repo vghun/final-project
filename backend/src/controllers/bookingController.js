@@ -58,35 +58,29 @@ export const getBranchDetails = async (req, res) => {
 // Tạo booking
 export const createBooking = async (req, res) => {
   try {
-    const { idCustomer, idBranch, idBarber, bookingDate, bookingTime, services, description } = req.body;
+    // Lấy idCustomer từ token
+    const idCustomer = req.user.idUser;
 
-    const booking = await db.Booking.create({
+    // Gọi service, controller chỉ "điều phối"
+    const booking = await bookingService.createBookingService({
+      ...req.body,
       idCustomer,
-      idBranch,
-      idBarber,
-      bookingDate,
-      bookingTime,
-      status: "Pending",
-      description,
     });
 
-    if (services && services.length > 0) {
-      for (const s of services) {
-        await db.BookingDetail.create({
-          idBooking: booking.idBooking,
-          idService: s.idService,
-          quantity: s.quantity || 1,
-          price: s.price,
-        });
-      }
-    }
-
-    res.status(201).json({ message: "Đặt lịch thành công", booking });
+    res.status(201).json({
+      success: true,
+      message: "Đặt lịch thành công",
+      data: booking,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Lỗi khi tạo booking", error });
+    console.error("Lỗi khi tạo booking:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi tạo booking",
+      error: error.message,
+    });
   }
 };
-
 // Booking của barber (theo khoảng thời gian)
 export const getBookingsForBarber = async (req, res) => {
   try {
