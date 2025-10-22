@@ -9,10 +9,12 @@ function VideoTayNghe() {
   const [reels, setReels] = useState([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(null);
+  const [globalMuted, setGlobalMuted] = useState(true); // Add globalMuted state
   const idUser = 2; // quản lý index thay vì reel
 
   const openDetail = (index) => {
     setCurrentIndex(index);
+    setGlobalMuted(false); // Unmute when opening VideoDetailDialog
   };
 
   useEffect(() => {
@@ -55,7 +57,7 @@ function VideoTayNghe() {
             reel={reel}
             onToggleLike={toggleLike}
             onOpenDetail={() => openDetail(idx)}
-            idUser={idUser}// mở theo index
+            idUser={idUser}
           />
         ))}
       </div>
@@ -64,10 +66,13 @@ function VideoTayNghe() {
         <VideoDetailDialog
           reels={reels}
           currentIndex={currentIndex}
-          onChangeVideo={(newIdx) => setCurrentIndex(newIdx)} // đổi index khi next/prev
+          onChangeVideo={(newIdx) => setCurrentIndex(newIdx)}
           onClose={() => setCurrentIndex(null)}
           onToggleLike={toggleLike}
           idUser={idUser}
+          globalMuted={globalMuted}
+          onToggleGlobalMuted={() => setGlobalMuted((prev) => !prev)}
+          fromReelPlayer={false} // Indicate not from ReelPlayer
         />
       )}
 

@@ -7,9 +7,11 @@ import {
   addReply,
   trackReelView,
 } from "~/services/reelService";
-import { Heart, Share2, ChevronUp, ChevronDown, Send } from "lucide-react";
+import { Heart, Share2, ChevronUp, ChevronDown, Send, Volume2, VolumeX } from "lucide-react";
 
 const MIN_VIEW_DURATION_MS = 3000;
+const ANIMATION_DURATION_MS = 600;
+const ANIMATION_LOCK_MS = 1000;
 
 function VideoDetailDialog({
   reels,
@@ -18,16 +20,32 @@ function VideoDetailDialog({
   onToggleLike,
   onChangeVideo,
   idUser = 5,
+  globalMuted = true,
+  onToggleGlobalMuted = () => {},
+  fromReelPlayer = false,
 }) {
   const reel = reels[currentIndex];
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [activeReply, setActiveReply] = useState(null);
   const [newReply, setNewReply] = useState("");
+  const [slideDirection, setSlideDirection] = useState(null);
+  const [isScrollLocked, setIsScrollLocked] = useState(false);
+  const [showNavButtons, setShowNavButtons] = useState(!fromReelPlayer);
+  const [localMuted, setLocalMuted] = useState(globalMuted); // Add localMuted state
 
   const videoRef = useRef(null);
   const dialogRef = useRef(null);
   const isViewTrackedRef = useRef(false);
+
+  // Đồng bộ muted với globalMuted và fromReelPlayer
+  useEffect(() => {
+    if (videoRef.current) {
+      const shouldMute = fromReelPlayer ? globalMuted : false; // Unmute if not from ReelPlayer
+      videoRef.current.muted = shouldMute;
+      setLocalMuted(shouldMute);
+    }
+  }, [globalMuted, currentIndex, fromReelPlayer]);
 
   // Track view after 3s
   useEffect(() => {
@@ -78,6 +96,21 @@ function VideoDetailDialog({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
+  // Xử lý hiệu ứng chuyển tiếp
+  useEffect(() => {
+    if (slideDirection) {
+      const timer = setTimeout(() => setSlideDirection(null), ANIMATION_DURATION_MS);
+      return () => clearTimeout(timer);
+    }
+  }, [slideDirection]);
+
+  // Show navigation buttons after first navigation
+  useEffect(() => {
+    if (fromReelPlayer && slideDirection) {
+      setShowNavButtons(true);
+    }
+  }, [fromReelPlayer, slideDirection]);
+
   const handleLike = async () => {
     const res = await likeReel(reel.idReel, idUser);
     onToggleLike(reel.idReel, res.liked, res.likesCount);
@@ -105,11 +138,23 @@ function VideoDetailDialog({
   };
 
   const handleEnded = () => {
-    if (currentIndex < reels.length - 1) onChangeVideo(currentIndex + 1);
+    if (currentIndex < reels.length - 1) {
+      handleNavClick("down");
+    }
+  };
+
+  const handleNavClick = (direction) => {
+    if (isScrollLocked) return;
+    const canNav = direction === "down" ? currentIndex < reels.length - 1 : currentIndex > 0;
+    if (!canNav) return;
+    setSlideDirection(direction);
+    onChangeVideo(direction === "down" ? currentIndex + 1 : currentIndex - 1);
+    setIsScrollLocked(true);
+    setTimeout(() => setIsScrollLocked(false), ANIMATION_LOCK_MS);
   };
 
   return (
-    <div className={styles.overlay}>
+    <div className={`${styles.overlay} ${slideDirection === "up" ? styles.slideUp : slideDirection === "down" ? styles.slideDown : ""}`}>
       <div className={styles.dialog} ref={dialogRef}>
         {/* 🎬 Video Section */}
         <div className={styles.videoSection}>
@@ -119,30 +164,45 @@ function VideoDetailDialog({
             controls
             autoPlay
             loop
-            muted
+            playsInline
+            muted={localMuted}
             onEnded={handleEnded}
           />
           <button className={styles.closeBtn} onClick={onClose}>
             ✖
           </button>
 
-          {/* ✅ Navigation Buttons nằm trong video */}
-          <div className={styles.navContainer}>
-            <button
-              className={`${styles.navBtn} ${styles.prevBtn}`}
-              disabled={currentIndex === 0}
-              onClick={() => onChangeVideo(currentIndex - 1)}
-            >
-              <ChevronUp size={24} />
-            </button>
-            <button
-              className={`${styles.navBtn} ${styles.nextBtn}`}
-              disabled={currentIndex === reels.length - 1}
-              onClick={() => onChangeVideo(currentIndex + 1)}
-            >
-              <ChevronDown size={24} />
-            </button>
-          </div>
+          {/* 🔊 Nút bật/tắt âm thanh */}
+          <button
+            className={styles.soundToggle}
+            onClick={() => {
+              setLocalMuted((prev) => !prev);
+              onToggleGlobalMuted();
+            }}
+            title={localMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+          >
+            {localMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+          </button>
+
+          {/* ✅ Navigation Buttons */}
+          {showNavButtons && (
+            <div className={styles.navContainer}>
+              <button
+                className={`${styles.navBtn} ${styles.prevBtn} ${currentIndex === 0 ? styles.navDisabled : ""}`}
+                disabled={currentIndex === 0 || isScrollLocked}
+                onClick={() => handleNavClick("up")}
+              >
+                <ChevronUp size={24} />
+              </button>
+              <button
+                className={`${styles.navBtn} ${styles.nextBtn} ${currentIndex === reels.length - 1 ? styles.navDisabled : ""}`}
+                disabled={currentIndex === reels.length - 1 || isScrollLocked}
+                onClick={() => handleNavClick("down")}
+              >
+                <ChevronDown size={24} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 📝 Info + Comments */}
