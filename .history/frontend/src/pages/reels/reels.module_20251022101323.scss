@@ -1,0 +1,11 @@
+<form onSubmit={handleSearchSubmit} className={styles.searchBar}>
+  <button type="submit">
+    <i className="fa fa-search"></i> {/* Icon kính lúp */}
+  </button>
+  <input
+    type="text"
+    placeholder="Tìm kiếm video..."
+    value={keyword}
+    onChange={(e) => setKeyword(e.target.value)}
+  />
+</form>

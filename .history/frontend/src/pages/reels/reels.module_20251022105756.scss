@@ -1,0 +1,188 @@
+/* --- Biến màu (Tùy chọn, nhưng nên dùng) --- */
+$bg-darkest: #1a202c; // Nền trang (Xám than 900)
+$bg-dark: #2d3748;    // Nền nội dung (Xám than 800)
+$text-light: #e2e8f0; // Màu chữ chính (Xám 200)
+$text-muted: #a0aec0; // Màu chữ phụ (Xám 400)
+$border-dark: #4a5568;  // Màu viền (Xám 600)
+$accent-red: #c00;      // Đỏ Barbershop
+$accent-red-hover: #e53e3e; // Đỏ sáng hơn khi hover
+
+/* --- Bắt đầu CSS của bạn --- */
+
+.pageWrapper {
+  display: flex;
+  flex-direction: row; // hai cột ngang
+
+  /* THAY ĐỔI: Chuyển sang nền tối */
+  // background: linear-gradient(to bottom, #fdfdfd, #e6e6e6); // CŨ
+  background: $bg-darkest; // MỚI
+
+  min-height: 100vh;
+
+  /* THAY ĐỔI: Phông chữ đẹp hơn */
+  // font-family: 'Arial', sans-serif; // CŨ
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; // MỚI
+
+  /* THAY ĐỔI: Màu chữ sáng */
+  // color: #000; // CŨ
+  color: $text-light; // MỚI
+
+  padding: 20px;
+
+  @media (max-width: 768px) {
+    flex-direction: column; // responsive: cột trái trên, video dưới
+    padding: 10px;
+  }
+}
+
+.leftColumn {
+  width: 300px; // Tăng nhẹ chiều rộng cho thoải mái
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; // kéo theo chiều ngang
+  padding: 20px; // Đơn giản hóa padding
+
+  /* THAY ĐỔI: Nền tối cho cột */
+  // background-color: #fff; // CŨ
+  background-color: $bg-dark; // MỚI
+
+  /* THAY ĐỔI: Viền tối */
+  // border-right: 1px solid #eee; // CŨ
+  border-right: 1px solid $border-dark; // MỚI
+
+  border-radius: 15px;
+
+  /* THAY ĐỔI: Bóng đổ cho nền tối */
+  // box-shadow: 0 4px 15px rgba(0,0,0,0.1); // CŨ
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2); // MỚI
+
+  /* Dính lên đầu cột */
+  justify-content: flex-start;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    border-right: none;
+
+    /* THAY ĐỔI: Viền tối */
+    // border-bottom: 1px solid #eee; // CŨ
+    border-bottom: 1px solid $border-dark; // MỚI
+    margin-bottom: 15px;
+  }
+}
+
+.searchBar {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+
+  /* THAY ĐỔI: Nền tối (có thể tối hơn cột) */
+  // background-color: #f9f9f9; // CŨ
+  background-color: $bg-darkest; // MỚI
+
+  border-radius: 50px;
+  padding: 5px 8px;
+
+  /* THAY ĐỔI: Bóng đổ vào trong (inset) */
+  // box-shadow: 0 4px 10px rgba(0,0,0,0.08); // CŨ
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); // MỚI
+
+  margin-bottom: 40px;
+
+  button {
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 50%;
+
+    /* THAY ĐỔI: Màu đỏ Barbershop */
+    // background-color: #000; // CŨ
+    background-color: $accent-red; // MỚI
+
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      /* THAY ĐỔI: Đỏ sáng hơn khi hover */
+      // background-color: #c00; // CŨ
+      background-color: $accent-red-hover; // MỚI
+      transform: scale(1.1);
+    }
+
+    i {
+      font-size: 18px;
+    }
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px 15px;
+    font-size: 15px;
+    border-radius: 50px;
+    margin-left: 10px;
+
+    /* THAY ĐỔI: Nền trong suốt và chữ trắng */
+    // background-color: #fff; // CŨ
+    background-color: transparent; // MỚI
+    color: $text-light; // MỚI
+
+    &::placeholder {
+      /* THAY ĐỔI: Màu placeholder sáng */
+      // color: #888; // CŨ
+      color: $text-muted; // MỚI
+    }
+  }
+}
+
+.rightColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-left: 30px; // Tăng khoảng cách
+
+  /* Giả định đây là các thẻ video */
+  > * {
+    width: 100%;
+    max-width: 700px;
+    border-radius: 15px;
+
+    /* THAY ĐỔI: Bóng đổ cho nền tối */
+    // box-shadow: 0 15px 30px rgba(0,0,0,0.25); // CŨ
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); // MỚI
+
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: transform 0.3s;
+
+    /* THAY ĐỔI: Thêm nền cho các thẻ video */
+    background-color: $bg-dark; // MỚI
+  }
+
+  &:hover > * {
+    transform: scale(1.03); // Tăng hiệu ứng hover
+  }
+
+  @media (max-width: 768px) {
+    padding-left: 0;
+    padding-top: 15px;
+  }
+}
+
+/* Center khi không có data hoặc đang loading */
+.centerContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 18px;
+
+  /* THAY ĐỔI: Màu chữ sáng */
+  // color: #555; // CŨ
+  color: $text-muted; // MỚI
+}

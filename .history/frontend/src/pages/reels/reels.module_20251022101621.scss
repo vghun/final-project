@@ -1,0 +1,95 @@
+.pageWrapper {
+  display: flex;
+  flex-direction: row;
+  background-color: #fff;
+  min-height: 100vh;
+  font-family: 'Arial', sans-serif;
+  color: #000;
+}
+
+.leftColumn {
+  width: 220px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background-color: #f9f9f9;
+  border-right: 1px solid #eee;
+  min-height: 100vh;
+}
+
+.searchBar {
+  display: flex;
+  flex-direction: row;
+  width: 100%;      // chiếm toàn bộ chiều rộng cột trái
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 50px;
+  padding: 3px 5px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+
+  button {
+    width: 45px;     // rộng hơn một chút
+    height: 45px;
+    border: none;
+    border-radius: 50%;
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: #333;
+      transform: scale(1.1);
+    }
+
+    i {
+      font-size: 18px; // icon lớn hơn
+    }
+  }
+
+  input {
+    flex: 1;           // chiếm phần còn lại
+    border: none;
+    outline: none;
+    padding: 12px 15px; // tăng padding
+    font-size: 15px;    // chữ to hơn
+    border-radius: 50px;
+    margin-left: 10px;
+    background-color: transparent;
+
+    &::placeholder {
+      color: #888;
+    }
+  }
+}
+
+
+.rightColumn {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 20px;
+
+  > * {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+}
+
+/* Center khi không có data hoặc đang loading */
+.centerContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 18px;
+  color: #555;
+}
