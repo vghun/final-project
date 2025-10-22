@@ -3,7 +3,7 @@
 .chat-card {
   font-family: 'Old Standard TT', serif; 
   max-width: 700px;
-  height: 600px; 
+  height: 600px;
   margin: 20px auto;
   border: 1px solid #ddd;
   border-radius: 12px;
@@ -13,7 +13,6 @@
   overflow: hidden;
 }
 
-
 .chat-header {
   padding: 10px;
   background: #f5f5f5;
@@ -21,6 +20,10 @@
   align-items: center;
   gap: 8px;
   border-bottom: 1px solid #ddd;
+
+  h3 {
+    margin: 0;
+  }
 }
 
 .chat-body {
@@ -45,20 +48,28 @@
 }
 
 .bubble {
-  max-width: 70%;
-  padding: 8px 12px;
-  border-radius: 12px;
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 14px;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .chat-message.ai .bubble {
-  background: #eee;
+  background: #eeeeee;
   border: 1px solid #ddd;
 }
 .chat-message.user .bubble {
   background: #007bff;
   color: white;
+}
+
+.bubble-text {
+  white-space: pre-line;
+  line-height: 1.6;
+  strong {
+    font-weight: 700;
+  }
 }
 
 .avatar {
@@ -149,4 +160,20 @@
       background: #0056b3;
     }
   }
+}
+
+/* 💬 Hiệu ứng typing */
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background: #888;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 2px;
+  animation: blink 1.2s infinite ease-in-out;
+}
+
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.3; }
+  40% { opacity: 1; }
 }

@@ -1,30 +1,25 @@
 import React, { useState } from "react";
 import styles from "./PaymentModal.module.scss";
 
-export default function Step4_Invoice({ data, onBack, onClose }) {
+export default function Step4_Invoice({ data, onBack, onClose, onPaidSuccess }) {
   const [isPaid, setIsPaid] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { booking = {}, services = [], tip = 0, voucher = null, serviceRating = 0 } = data || {};
 
-  // ✅ Lọc dịch vụ đã chọn
   const selectedServices = services.filter((s) => s.selected);
-
-  // ✅ Tính toán tổng tiền
   const totalServicePrice = selectedServices.reduce((sum, s) => sum + (s.price || 0), 0);
   const discount = voucher?.discountPercent ? (totalServicePrice * voucher.discountPercent) / 100 : 0;
   const total = totalServicePrice - discount + tip;
 
   const formatVND = (num) => num.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
-  // ✅ Hàm xử lý thanh toán
   const handleConfirm = async () => {
     if (loading) return;
     setLoading(true);
 
     try {
-      // 1️⃣ Cập nhật trạng thái thanh toán
-      const payRes = await fetch(`http://localhost:8088/api/bookings/${booking.id}/pay`, {
+      const payRes = await fetch(`http://localhost:8088/api/bookings/${booking.idBooking || booking.id}/pay`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -38,7 +33,6 @@ export default function Step4_Invoice({ data, onBack, onClose }) {
       if (!payRes.ok) throw new Error("Không thể cập nhật trạng thái thanh toán");
       await payRes.json();
 
-      // 2️⃣ Gửi đánh giá thợ (nếu có rating)
       if (booking?.barberId && serviceRating > 0) {
         await fetch(`http://localhost:8088/api/ratings/barber/${booking.barberId}`, {
           method: "POST",
@@ -47,9 +41,14 @@ export default function Step4_Invoice({ data, onBack, onClose }) {
         });
       }
 
-      // ✅ Đánh dấu thanh toán thành công
       setIsPaid(true);
-      setTimeout(onClose, 2000);
+      alert("✅ Thanh toán thành công!");
+
+      // ✅ Gọi callback reload + đóng modal
+      if (onPaidSuccess) onPaidSuccess();
+      setTimeout(() => {
+        onClose();
+      }, 800);
     } catch (error) {
       console.error("Lỗi khi thanh toán:", error);
       alert("❌ Có lỗi xảy ra khi thanh toán!");
@@ -63,7 +62,6 @@ export default function Step4_Invoice({ data, onBack, onClose }) {
       <div className={styles.invoiceCard}>
         <h2 className={styles.invoiceTitle}>🧾 Hóa đơn thanh toán</h2>
 
-        {/* ✅ Thông tin đặt lịch */}
         <div className={styles.section}>
           <h3>Thông tin đặt lịch</h3>
           <p>
@@ -80,7 +78,6 @@ export default function Step4_Invoice({ data, onBack, onClose }) {
           </p>
         </div>
 
-        {/* ✅ Dịch vụ đã chọn */}
         <div className={styles.section}>
           <h3>Dịch vụ đã chọn</h3>
           {selectedServices.length > 0 ? (
@@ -97,7 +94,6 @@ export default function Step4_Invoice({ data, onBack, onClose }) {
           )}
         </div>
 
-        {/* ✅ Thông tin giảm giá / tip / tổng */}
         <div className={styles.section}>
           <div className={styles.voucherRow}>
             <span>🎟️ Voucher</span>

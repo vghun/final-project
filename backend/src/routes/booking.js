@@ -1,5 +1,4 @@
 import express from "express";
-import * as bookingController from "../controllers/bookingController.js";
 import {
   getBranches,
   getBranchDetails,
@@ -9,42 +8,48 @@ import {
   upload,
   getAllBookingDetails,
   payBooking,
+  cancelBooking,
+  getBookingsForBarber,
+  getBookedSlotsByBarber,
 } from "../controllers/bookingController.js";
 
 const router = express.Router();
 
 // 🧾 Lấy tất cả chi nhánh
-router.get("/branches", bookingController.getBranches);
+router.get("/branches", getBranches);
 
-// 🧩 Lấy chi tiết 1 chi nhánh (barber + dịch vụ)
+// 🧩 Lấy chi tiết 1 chi nhánh
 router.get("/branches/:idBranch", getBranchDetails);
 
-// 🧑‍💼 Lấy tất cả booking của 1 barber (theo id)
-router.get("/barbers/:idBarber", bookingController.getBookingsByBarber);
+// 🧑‍💼 Booking theo barber
+router.get("/barbers/:idBarber", getBookingsByBarber);
 
+// 📋 Danh sách booking admin
 router.get("/details", getAllBookingDetails);
 
+// 💵 Thanh toán booking
 router.put("/:idBooking/pay", payBooking);
 
-// 📅 Lấy booking của barber theo ngày (tùy query start-end)
-router.get("/barber", bookingController.getBookingsForBarber);
-router.get("/barbers/:idBarber/booked-slots", bookingController.getBookedSlotsByBarber);
+// ❌ Hủy booking
+router.put("/:idBooking/cancel", cancelBooking);
 
+// 📅 Booking của barber theo khoảng thời gian
+router.get("/barber", getBookingsForBarber);
+router.get("/barbers/:idBarber/booked-slots", getBookedSlotsByBarber);
 
-
-// ✅ Hoàn tất booking (upload ảnh 4 góc)
+// ✅ Hoàn tất booking (upload ảnh)
 router.post(
   "/:id/complete",
-  bookingController.upload.fields([
+  upload.fields([
     { name: "front", maxCount: 1 },
     { name: "left", maxCount: 1 },
     { name: "right", maxCount: 1 },
     { name: "back", maxCount: 1 },
   ]),
-  bookingController.completeBooking
+  completeBooking
 );
 
 // ✍️ Tạo booking mới
-router.post("/create", bookingController.createBooking);
+router.post("/create", createBooking);
 
 export default router;

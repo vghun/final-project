@@ -67,12 +67,8 @@ export const getBarberReward = async (idBarber) => {
     console.log("API getBarberReward trả về:", res);
     return res;
   } catch (error) {
-    console.error(
-      "Lỗi khi gọi getBarberReward:",
-      error.response?.data || error
-    );
-  }
-};
+    console.error("Lỗi khi gọi getBarberReward:", error.response?.data || error);
+  }}
 export const createBarberWithUser = async (payload) => {
   try {
     const res = await request.post("/api/barbers/create", payload);
@@ -81,61 +77,6 @@ export const createBarberWithUser = async (payload) => {
   } catch (error) {
     console.error(
       "Lỗi khi gọi API createBarberWithUser:",
-      error.response?.data || error
-    );
-    throw error.response?.data || error;
-  }
-};
-
-export const updateBarber = async (idBarber, payload) => {
-  try {
-    const res = await request.put(`/api/barbers/update/${idBarber}`, payload);
-    console.log("API updateBarber trả về:", res);
-    return res;
-  } catch (error) {
-    console.error(
-      "Lỗi khi gọi API updateBarber:",
-      error.response?.data || error
-    );
-    throw error.response?.data || error;
-  }
-};
-export const deleteBarber = async (idBarber) => {
-  try {
-    const res = await request.del(`/api/barbers/delete/${idBarber}`);
-    console.log("API deleteBarber trả về:", res);
-    return res;
-  } catch (error) {
-    console.error(
-      "Lỗi khi gọi API deleteBarber:",
-      error.response?.data || error
-    );
-    throw error.response?.data || error;
-  }
-};
-
-export const addUnavailability = async (payload) => {
-  try {
-    const res = await request.post("/api/barbers/unavailability", payload);
-    console.log("API addUnavailability trả về:", res);
-    return res;
-  } catch (error) {
-    console.error(
-      "Lỗi khi gọi API addUnavailability:",
-      error.response?.data || error
-    );
-    throw error.response?.data || error;
-  }
-};
-
-export const getUnavailabilitiesByBarber = async (idBarber) => {
-  try {
-    const res = await request.get(`/api/barbers/unavailability/${idBarber}`);
-    console.log("API getUnavailabilitiesByBarber trả về:", res);
-    return res;
-  } catch (error) {
-    console.error(
-      "Lỗi khi gọi API getUnavailabilitiesByBarber:",
       error.response?.data || error
     );
     throw error.response?.data || error;

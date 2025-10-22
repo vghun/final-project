@@ -21,24 +21,12 @@ export const BarberAPI = {
   unlock: async (idBarber) => {
     return await barberService.unlockBarber({ idBarber });
   },
-
+  
   getReward: async (idBarber) => {
     const result = await barberService.getBarberReward(idBarber);
     return result;
   },
   createBarber: async (payload) => {
     return await barberService.createBarberWithUser(payload);
-  },
-  updateBarber: async (idBarber, payload) => {
-    return await barberService.updateBarber(idBarber, payload);
-  },
-  deleteBarber: async (idBarber) => {
-    return await barberService.deleteBarber(idBarber);
-  },
-  addUnavailability: async (payload) => {
-    return await barberService.addUnavailability(payload);
-  },
-  getUnavailabilitiesByBarber: async (idBarber) => {
-    return await barberService.getUnavailabilitiesByBarber(idBarber);
   },
 };
