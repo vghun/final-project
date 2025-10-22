@@ -1,18 +1,18 @@
 .container {
-  padding: 20px;
-  margin: 0 auto;
-  background: #fffaf5;
-  border: 1px solid #e8e1dc;
-  border-radius: 12px;
-  color: #2a1f1f;
-  font-family: "Segoe UI", Tahoma, sans-serif;
+  max-width: 800px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: 24px 32px;
+  font-family: "Inter", sans-serif;
 }
 
 .header {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 16px;
 }
 
 .avatarBox {
@@ -20,127 +20,168 @@
 }
 
 .avatar {
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #e8e1dc;
+  border: 3px solid #16a34a;
 }
 
 .changeAvatar {
   position: absolute;
-  bottom: 0;
+  bottom: 4px;
   left: 50%;
   transform: translateX(-50%);
-  background: #3b2f2f;
-  color: #fff;
-  font-size: 12px;
-  padding: 4px 8px;
+  background: #16a34a;
+  color: white;
+  font-size: 13px;
+  border: none;
+  padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
+  transition: 0.2s;
 
   &:hover {
-    background: #1f1b1a;
+    background: #15803d;
   }
+}
+
+.info {
+  flex: 1;
 }
 
 .name {
   font-size: 22px;
-  font-weight: bold;
-  color: #3b2f2f;
+  font-weight: 600;
+  color: #111827;
 }
 
 .branch {
-  color: #5c4033;
+  color: #6b7280;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.contact {
+  color: #4b5563;
   font-size: 15px;
 }
 
-.rating {
-  margin-top: 6px;
-  font-size: 14px;
-  color: #7a6b6b;
+.ratingBox {
+  margin-top: 8px;
+  font-size: 15px;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .section {
-  margin-bottom: 16px;
-}
+  margin-top: 20px;
 
-.section h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: #3b2f2f;
-}
-
-.specialties {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.badge {
-  background: #fff6eb;
-  color: #3b2f2f;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 13px;
+  h3 {
+    color: #111827;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
 }
 
 .input,
 .textarea {
   width: 100%;
-  border: 1px solid #d8cdc3;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 14px;
-  margin-top: 4px;
-  background: #fffaf5;
-  color: #2a1f1f;
+  font-size: 15px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: #16a34a;
+    outline: none;
+  }
 }
 
 .textarea {
-  min-height: 80px;
   resize: vertical;
 }
 
-.addBtn {
-  background: #fff6eb;
-  border: 1px dashed #3b2f2f;
-  color: #3b2f2f;
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
+.disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.desc {
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  color: #374151;
+  font-size: 15px;
 }
 
 .actions {
-  margin-top: 20px;
   display: flex;
+  justify-content: flex-end;
   gap: 10px;
+  margin-top: 20px;
 }
 
 .editBtn,
 .saveBtn,
 .cancelBtn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
+  padding: 10px 18px;
   border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
 .editBtn {
-  background: #3b2f2f;
-  color: #fff;
+  background: #16a34a;
+  color: white;
+
+  &:hover {
+    background: #15803d;
+  }
 }
 
 .saveBtn {
-  background: #5c4033;
-  color: #fff;
+  background: #2563eb;
+  color: white;
+
+  &:hover {
+    background: #1e40af;
+  }
 }
 
 .cancelBtn {
-  background: #f2f0ed;
-  color: #2a1f1f;
+  background: #e5e7eb;
+
+  &:hover {
+    background: #d1d5db;
+  }
 }
+
+.loading,
+.empty {
+  text-align: center;
+  color: #6b7280;
+  padding: 40px 0;
+}
+
+.savingState {
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.saveBtn[disabled],
+.cancelBtn[disabled],
+.editBtn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+

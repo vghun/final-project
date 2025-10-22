@@ -141,3 +141,38 @@ export const getUnavailabilitiesByBarber = async (idBarber) => {
     throw error.response?.data || error;
   }
 };
+
+export const getProfile = async (idBarber) => {
+  try {
+    const res = await request.get(`/api/barbers/profile/${idBarber}`);
+    console.log("API getProfile trả về:", res);
+    return res;
+  } catch (error) {
+    console.error("Lỗi khi gọi API getProfile:", error.response?.data || error);
+    throw error.response?.data || error;
+  }
+};
+
+export const updateProfile = async (idBarber, payload) => {
+  try {
+    const isFormData = payload instanceof FormData;
+
+    const res = await request.put(`/api/barbers/profile/${idBarber}`, payload, {
+      headers: {
+        "Content-Type": isFormData
+          ? "multipart/form-data"
+          : "application/json",
+      },
+    });
+
+    console.log("API updateProfile trả về:", res.data);
+    return res.data;
+  } catch (error) {
+    console.error(
+      "Lỗi khi gọi API updateProfile:",
+      error.response?.data || error
+    );
+    throw error.response?.data || error;
+  }
+};
+

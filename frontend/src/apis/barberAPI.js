@@ -41,4 +41,11 @@ export const BarberAPI = {
   getUnavailabilitiesByBarber: async (idBarber) => {
     return await barberService.getUnavailabilitiesByBarber(idBarber);
   },
+  getProfile: async (idBarber) => {
+    const result = await barberService.getProfile(idBarber);
+    return result;
+  },
+  updateProfile: async (idBarber, payload) => {
+    return await barberService.updateProfile(idBarber, payload);
+  },
 };
