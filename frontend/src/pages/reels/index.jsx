@@ -142,7 +142,7 @@ function Reel() {
       if (showDetail) {
         video.pause();
       } else if (video.closest(`[data-reel-index="${currentIndex}"]`)) {
-        video.play().catch(() => {});
+        video.play().catch(() => { });
       }
     });
   }, [showDetail, currentIndex]);
