@@ -1,0 +1,111 @@
+.pageWrapper {
+  display: flex;
+  flex-direction: row;
+  background-color: #fff;
+  min-height: 100vh;
+  font-family: 'Arial', sans-serif;
+  color: #000;
+
+  @media (max-width: 768px) {
+    flex-direction: column; // responsive: cột trái trên, video dưới
+  }
+}
+
+.leftColumn {
+  width: 220px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f9f9f9;
+  border-right: 1px solid #eee;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #eee;
+  }
+}
+
+.searchBar {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 280px; // thanh search dài hơn
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 50px;
+  padding: 5px 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+
+  button {
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 50%;
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: #333;
+      transform: scale(1.1);
+    }
+
+    i {
+      font-size: 18px;
+    }
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px 15px;
+    font-size: 15px;
+    border-radius: 50px;
+    margin-left: 10px;
+    background-color: transparent;
+
+    &::placeholder {
+      color: #888;
+    }
+  }
+}
+
+.rightColumn {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 20px;
+
+  @media (max-width: 768px) {
+    padding-left: 0;
+    padding-top: 20px;
+  }
+
+  > * {
+    width: 100%;
+    max-width: 650px; // video rộng hơn
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+}
+
+/* Center khi không có data hoặc đang loading */
+.centerContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 18px;
+  color: #555;
+}

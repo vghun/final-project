@@ -1,0 +1,100 @@
+.reelItemContainer {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.videoWrapper {
+  position: relative;
+  background: #000;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.video {
+  width: auto;
+  height: 80vh;
+  max-width: 450px;
+  max-height: 850px;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+.contentOverlay {
+  position: absolute;
+  right: 10px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-width: 180px;
+  z-index: 2;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+  background: rgba(0,0,0,0.4);
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 0;
+}
+
+.username {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 16px;
+  color: #fff;
+}
+
+.titleText {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 14px;
+  color: #fff;
+  word-wrap: break-word;
+}
+
+.interactionBar {
+  position: absolute;
+  right: calc(50% - 14vw - 50px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+}
+
+.actionIcon {
+  cursor: pointer;
+  color: #fff;
+}
+
+.navButtons {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+}
+
+.navUp, .navDown {
+  border: 1.5px solid #fff;
+  border-radius: 2px;
+  padding: 2px;
+  display: flex;
+  cursor: pointer;
+  color: #fff;
+}
