@@ -114,66 +114,16 @@ const createBarberWithUser = async (req, res) => {
 
 };
 
-// 🔹 Cập nhật barber (cho phép đổi pass, tên, sđt, branch, mô tả)
-const updateBarber = async (req, res) => {
-  try {
-    const { idBarber } = req.params;
-    const data = req.body;
-    const result = await BarberService.updateBarber(idBarber, data);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error("Lỗi updateBarber:", error);
-    return res.status(500).json({ message: "Lỗi khi cập nhật barber: " + error.message });
-  }
-};
-
-// 🔹 Xóa barber (xóa luôn user tương ứng)
-const deleteBarber = async (req, res) => {
-  try {
-    const { idBarber } = req.params;
-    const result = await BarberService.deleteBarber(idBarber);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error("Lỗi deleteBarber:", error);
-    return res.status(500).json({ message: "Lỗi khi xóa barber: " + error.message });
-  }
-};
-
-export const addBarberUnavailability = async (req, res) => {
-  try {
-    const result = await BarberService.addBarberUnavailability(req.body);
-    res.status(201).json(result);
-  } catch (error) {
-    console.error("Lỗi khi thêm nghỉ phép:", error);
-    res.status(500).json({
-      message: error.message || "Không thể thêm lịch nghỉ phép.",
-    });
-  }
-};
-
-const getBarberUnavailabilities = async (req, res) => {
-  try {
-    const { idBarber } = req.params;
-    const records = await BarberService.getUnavailabilitiesByBarber(idBarber);
-    return res.status(200).json({ unavailabilities: records });
-  } catch (error) {
-    console.error("Lỗi khi lấy lịch nghỉ phép:", error);
-    return res.status(500).json({ message: error.message });
-  }
-};
 
 export default {
   getAllBarbers,
   syncBarbers,
   assignBarberToBranch,
   approveBarber,
-  addBarberUnavailability,
   lockBarber,
   unlockBarber,
   assignUserAsBarber,
   getBarberReward,
-  createBarberWithUser,
-  updateBarber,
-  deleteBarber,
-  getBarberUnavailabilities,
+};
+  createBarberWithUser
 };

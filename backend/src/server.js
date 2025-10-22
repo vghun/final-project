@@ -22,6 +22,7 @@ import branchRoutes from "./routes/branch.js";
 import customerGalleryRoutes from "./routes/customerGallery.js";
 import ratingRoutes from "./routes/rating.js";
 import summaryRoutes from "./routes/summaryStatistics.js";
+import bookingDirectRoutes from "./routes/bookingDirect.js";
 
 import { authenticate, authorize } from "./middlewares/authMiddleware.js";
 
@@ -46,11 +47,13 @@ app.use("/api/reels", reelCommentRoutes);
 app.use("/api/customer-gallery", customerGalleryRoutes);
 
 app.use("/api/vouchers", voucherRoutes);
-app.use("/api/loyalty-rules",loyaltyRuleRoute);
+app.use("/api/loyalty-rules", loyaltyRuleRoute);
 app.use("/api/salary", authenticate, authorize(["admin"]), salaryRoute);
 app.use("/api/statistics", authenticate, authorize(["admin"]), statisticRoute);
 app.use("/api/bonus", authenticate, authorize(["admin"]), bonusRoutes);
 app.use("/api/statistics/summary", authenticate, authorize(["admin"]), summaryRoutes);
+
+app.use("/api/booking-direct", bookingDirectRoutes);
 
 // View engine & auth routes
 viewEngine(app);
