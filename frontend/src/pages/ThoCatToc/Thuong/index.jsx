@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import styles from "./Thuong.module.scss";
 import { BarberAPI } from "~/apis/barberAPI";
 
+const formatCurrency = (num) => Math.round(num).toLocaleString("vi-VN") + "đ";
+const formatPercent = (num) => Number(num).toFixed(0);
+
 const Thuong = ({ idBarber = 7 }) => {
   const [reward, setReward] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,11 +32,12 @@ const Thuong = ({ idBarber = 7 }) => {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>🎁 Thưởng & Mốc doanh thu</h2>
+      <h2 className={styles.title}>Thưởng & Mốc doanh thu</h2>
       <p className={styles.subtitle}>
         Tháng {reward.month}/{reward.year}
       </p>
 
+      {/* Phần doanh thu */}
       <div className={styles.section}>
         <div className={styles.headerRow}>
           <h3>Doanh thu tháng này</h3>
@@ -49,34 +53,40 @@ const Thuong = ({ idBarber = 7 }) => {
           </div>
 
           <div className={styles.row}>
-            <span>Hiện tại:</span>
-            <b>{reward.serviceRevenue.toLocaleString("vi-VN")}đ</b>
+            <span>Doanh thu dịch vụ:</span>
+            <b>{formatCurrency(reward.serviceRevenue)}</b>
           </div>
+
 
           {reward.nextRule && (
             <div className={styles.row}>
               <span>Mốc tiếp theo:</span>
-              <b>{reward.nextRule.minRevenue.toLocaleString("vi-VN")}đ</b>
+              <b>{formatCurrency(reward.nextRule.minRevenue)}</b>
             </div>
           )}
+
+          <div className={styles.row}>
+            <span>Tiền tip:</span>
+            <b>{formatCurrency(reward.tipAmount)}</b>
+          </div>
         </div>
 
+        {/* Phần thưởng */}
         <div className={styles.rewardBox}>
           <p className={styles.rewardLabel}>Phần thưởng hiện tại</p>
           <p className={styles.rewardValue}>
-            {reward.bonus.toLocaleString("vi-VN")}đ (
-            {reward.currentRule.bonusPercent}%)
+            {formatCurrency(reward.bonus)} ({formatPercent(reward.currentRule.bonusPercent)}%)
           </p>
+
           {reward.nextRule && (
             <p className={styles.nextMilestone}>
-              Khi đạt{" "}
-              {reward.nextRule.minRevenue.toLocaleString("vi-VN")}đ → thưởng{" "}
-              +{reward.nextRule.bonusPercent}%
+              Khi đạt {formatCurrency(reward.nextRule.minRevenue)} → thưởng +{formatPercent(reward.nextRule.bonusPercent)}%
             </p>
           )}
         </div>
       </div>
 
+      {/* Bảng mốc thưởng */}
       <div className={styles.tableSection}>
         <h3>Bảng mốc thưởng</h3>
         <table className={styles.rewardTable}>
@@ -101,8 +111,8 @@ const Thuong = ({ idBarber = 7 }) => {
                       : styles.notYet
                   }
                 >
-                  <td>{rule.minRevenue.toLocaleString("vi-VN")}đ</td>
-                  <td>{rule.bonusPercent}%</td>
+                  <td>{formatCurrency(rule.minRevenue)}</td>
+                  <td>{formatPercent(rule.bonusPercent)}%</td>
                 </tr>
               );
             })}
