@@ -1,0 +1,91 @@
+.pageWrapper {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(to bottom, #fdfdfd, #e6e6e6);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 10px;
+  }
+}
+
+.leftColumn {
+  width: 300px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-color: #fff;
+  border-right: 1px solid #eee;
+  border-radius: 15px;
+
+  @media (max-width: 800px) {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 15px;
+  }
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 50px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+
+  input {
+    flex: 1;
+    padding: 12px 15px;
+    border-radius: 50px;
+    border: none;
+    outline: none;
+    background: #fff;
+  }
+
+  button {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: none;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #c00;
+      transform: scale(1.1);
+    }
+  }
+}
+
+.rightColumn {
+  flex: 1;
+  display: flex;
+  justify-content: center; /* căn giữa video */
+  align-items: flex-start;
+  padding-left: 20px;
+
+  .videoContainer {
+    width: 100%;
+    max-width: 500px; /* giới hạn chiều rộng video */
+    aspect-ratio: 9/16; /* video dọc chuẩn */
+    background-color: #ddd; /* placeholder */
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  @media (max-width: 768px) {
+    padding-left: 0;
+    padding-top: 15px;
+
+    .videoContainer {
+      max-width: 100%;
+      aspect-ratio: auto;
+    }
+  }
+}
