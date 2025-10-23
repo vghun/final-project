@@ -30,6 +30,7 @@ const ReelPlayer = forwardRef(
       onComment,
       onNavUp,
       onNavDown,
+      onHashtagClick,
       hasPrev,
       hasNext,
     },
@@ -92,6 +93,37 @@ const ReelPlayer = forwardRef(
       v?.addEventListener("timeupdate", handleTimeUpdate);
       return () => v?.removeEventListener("timeupdate", handleTimeUpdate);
     }, [reel, token]);
+
+    const renderTitleWithHashtags = (text) => {
+        // Regex tìm kiếm hashtag (#word)
+        const hashtagRegex = /#(\w+)/g;
+        
+        // Chia chuỗi thành các phần text và hashtag
+        const parts = text.split(hashtagRegex);
+        
+        return parts.map((part, index) => {
+            // Nếu index chẵn, đó là text bình thường
+            if (index % 2 === 0) {
+                return part;
+            } 
+            // Nếu index lẻ, đó là hashtag (là nội dung bên trong dấu ngoặc đơn của regex)
+            else {
+                const tag = part;
+                return (
+                    <span 
+                        key={index}
+                        className={styles.hashtagLink}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Ngăn sự kiện click lan ra video/container
+                            onHashtagClick(tag);
+                        }}
+                    >
+                        #{tag}
+                    </span>
+                );
+            }
+        });
+    };
 
     const handleNavClick = (direction) => {
       if (isScrollLockedRef.current) return;
@@ -211,7 +243,7 @@ const ReelPlayer = forwardRef(
               <span className={styles.username}>{creatorFullName}</span>
             </Link>
             <p className={styles.titleText}>
-              {reel.title || "Không có tiêu đề"}
+              {renderTitleWithHashtags(reel.title || "Không có tiêu đề")}
             </p>
           </div>
         </div>

@@ -102,20 +102,33 @@
     display: none; // Thường không hiển thị trong header Reel/Post Insta
 }
 
-// 2. Description (Mô tả) & Primary Content
+.titleSection {
+    padding: 14px 16px 0; /* Padding trên và dưới 0 để sát với desc */
+    flex-shrink: 0; 
+}
+
+.reelTitle {
+    font-size: 16px;
+    font-weight: 700; /* Tiêu đề thường đậm hơn */
+    color: var(--ig-primary-text, #262626);
+    margin: 0;
+    line-height: 1.3;
+}
+
 .descriptionBox {
-    padding: 14px 16px;
+    padding: 10px 16px 14px; /* Giảm padding trên, tăng nhẹ padding dưới */
     border-bottom: 1px solid var(--ig-separator, #DBDBDB);
-    flex-shrink: 0; // Không co lại
+    flex-shrink: 0; 
 }
 
 .desc {
     font-size: 14px;
     color: var(--ig-primary-text, #262626);
     margin: 0;
+    white-space: pre-wrap; /* Quan trọng: Để giữ định dạng xuống dòng và khoảng trắng */
+    font-family: inherit; /* Đảm bảo <pre> dùng font chữ chính */
 }
 
-// 3. Comment List: Vùng cuộn chính
 .commentsContainer {
     flex: 1;
     display: flex;

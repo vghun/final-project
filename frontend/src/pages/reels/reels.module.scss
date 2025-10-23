@@ -170,3 +170,62 @@
     margin-top: 20px;
   }
 }
+
+.leftColumn {
+    /* ... giữ nguyên ... */
+    position: relative; /* Đảm bảo .suggestionBox đặt đúng vị trí */
+}
+
+/* 🟢 GỢI Ý HASHTAG (Reel.jsx) */
+.suggestionBox {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+}
+
+.suggestionTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.hashtagList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hashtagItem {
+    background: #e0f7fa; /* Màu nền nhẹ */
+    color: #00796b; /* Màu chữ nổi bật */
+    border: none;
+    border-radius: 15px;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+        background: #b2ebf2;
+    }
+}
+
+.titleText {
+    /* ... style cũ ... */
+    .hashtagLink {
+        color: #0088cc; /* Màu xanh nổi bật */
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 0.2s;
+
+        &:hover {
+            color: #00bfff;
+            text-decoration: underline;
+        }
+    }
+}
