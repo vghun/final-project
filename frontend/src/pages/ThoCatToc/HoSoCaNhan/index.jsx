@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import styles from "./HoSoCaNhan.module.scss";
 import { BarberAPI } from "~/apis/barberAPI";
+import { useAuth } from "~/context/AuthContext";
 
-function HoSoCaNhan({ idBarber = 7 }) {
+function HoSoCaNhan() {
+  const { user, accessToken, loading: isAuthLoading } = useAuth(); 
+  const idBarber = user?.idUser;
   const [barber, setBarber] = useState(null);
   const [formData, setFormData] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
@@ -12,7 +15,13 @@ function HoSoCaNhan({ idBarber = 7 }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (isAuthLoading || !idBarber) {
+      if (!isAuthLoading) setLoading(false);
+      return;
+    }
+
     const fetchProfile = async () => {
+      setLoading(true); 
       try {
         const data = await BarberAPI.getProfile(idBarber);
         setBarber(data);
@@ -24,7 +33,7 @@ function HoSoCaNhan({ idBarber = 7 }) {
       }
     };
     fetchProfile();
-  }, [idBarber]);
+  }, [idBarber, isAuthLoading]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,6 +49,7 @@ function HoSoCaNhan({ idBarber = 7 }) {
   };
 
   const handleSave = async () => {
+    if (!idBarber || !accessToken) return;
     setSaving(true);
     try {
       const form = new FormData();
@@ -48,7 +58,7 @@ function HoSoCaNhan({ idBarber = 7 }) {
       form.append("profileDescription", formData.profileDescription);
       if (selectedImage) form.append("image", selectedImage);
 
-      await BarberAPI.updateProfile(idBarber, form);
+      await BarberAPI.updateProfile(idBarber, form, accessToken);
       setBarber({
         ...formData,
         image: previewImage || formData.image,

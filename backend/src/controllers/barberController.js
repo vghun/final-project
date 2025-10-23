@@ -205,6 +205,24 @@ const updateBarberProfile = async (req, res) => {
   }
 };
 
+const getDashboardStats = async (req, res) => {
+  try {
+    const { idBarber } = req.params;
+    const idUser = req.user.idUser; 
+
+    if (idBarber != idUser) {
+        return res.status(403).json({ error: "Không có quyền truy cập số liệu này." });
+    }
+
+    const stats = await BarberService.getDashboardStats(idBarber); 
+
+    res.json(stats);
+  } catch (err) {
+    console.error("Lỗi khi lấy dashboard stats:", err);
+    res.status(500).json({ error: "Không thể lấy dữ liệu thống kê." });
+  }
+};
+
 
 export default {
   getAllBarbers,
@@ -223,4 +241,5 @@ export default {
   getBarberProfile,
   updateBarberProfile,
   uploadAvatar,
+  getDashboardStats
 };

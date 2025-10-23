@@ -3,55 +3,81 @@ import { useEffect, useState } from "react";
 import styles from "./ReelSearch.module.scss";
 import VideoCard from "~/components/VideoCard";
 import VideoDetailDialog from "~/components/VideoDetailDialog";
+import { useAuth } from "~/context/AuthContext";
+import { useToast } from "~/context/ToastContext";
 import { searchReels } from "~/services/reelService";
 
 function ReelSearch() {
+  const { accessToken, isLogin, loading: isAuthLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-
+  const { showToast } = useToast();
   const queryParam = new URLSearchParams(location.search).get("q") || "";
   const [query, setQuery] = useState(queryParam);
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(null);
-  const idUser = 5;
 
-  // 🟢 Hàm search API
-  const doSearch = async (keyword) => {
+  const doSearch = async (keyword, token) => { 
     if (!keyword.trim()) return;
+    console.log("Gọi API tìm kiếm với keyword:", keyword, "token:", token);
     setLoading(true);
     try {
-      const data = await searchReels(keyword, idUser);
+      // Truyền token đã nhận vào
+      const data = await searchReels(keyword, token); 
+      console.log("Kết quả tìm kiếm:", data);
       setReels(data);
     } catch (err) {
       console.error("Lỗi tìm kiếm:", err);
+      showToast({
+        text: "Lỗi tìm kiếm video, vui lòng thử lại",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // 🟢 Tự động search khi queryParam trên URL thay đổi
   useEffect(() => {
-    if (queryParam) doSearch(queryParam);
-  }, [queryParam]);
+    if (!isAuthLoading && queryParam) {
+        // Truyền accessToken hiện tại xuống doSearch
+        doSearch(queryParam, accessToken); 
+    }
+  }, [isAuthLoading, queryParam, accessToken]);
 
   // 🟢 Khi bấm nút tìm trong form
   const handleSearch = (e) => {
     e.preventDefault();
     if (!query.trim()) return;
-    // Cập nhật URL
     navigate(`/search?q=${encodeURIComponent(query.trim())}`);
-    // ✅ Gọi API ngay lập tức để có kết quả liền
     doSearch(query);
   };
 
   // 🟢 Toggle like
+
   const toggleLike = (idReel, isLiked, likesCount) => {
+    if (!isLogin) {
+      showToast({
+        text: "Vui lòng đăng nhập để thực hiện hành động này",
+        type: "error",
+      });
+      return;
+    }
     setReels((prev) =>
       prev.map((r) =>
         r.idReel === idReel ? { ...r, isLiked, likesCount } : r
       )
     );
+  };
+  const handleOpenDetail = (idx) => {
+    if (!isLogin) {
+      showToast({
+        text: "Vui lòng đăng nhập để thực hiện hành động này",
+        type: "error",
+      });
+      return;
+    }
+    setCurrentIndex(idx);
   };
 
   return (
@@ -78,9 +104,8 @@ function ReelSearch() {
             <VideoCard
               key={reel.idReel}
               reel={reel}
-              idUser={idUser}
               onToggleLike={toggleLike}
-              onOpenDetail={() => setCurrentIndex(idx)}
+              onOpenDetail={() => handleOpenDetail(idx)}
             />
           ))}
         </div>
@@ -95,7 +120,7 @@ function ReelSearch() {
           onClose={() => setCurrentIndex(null)}
           onChangeVideo={(newIdx) => setCurrentIndex(newIdx)}
           onToggleLike={toggleLike}
-          idUser={idUser}
+          token={accessToken}
         />
       )}
     </div>

@@ -12,6 +12,7 @@ import {
   getBookingsForBarber,
   getBookedSlotsByBarber,
 } from "../controllers/bookingController.js";
+import { authenticate } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -33,8 +34,7 @@ router.put("/:idBooking/pay", payBooking);
 // ❌ Hủy booking
 router.put("/:idBooking/cancel", cancelBooking);
 
-// 📅 Booking của barber theo khoảng thời gian
-router.get("/barber", getBookingsForBarber);
+router.get("/barber", authenticate,getBookingsForBarber);
 router.get("/barbers/:idBarber/booked-slots", getBookedSlotsByBarber);
 
 // ✅ Hoàn tất booking (upload ảnh)

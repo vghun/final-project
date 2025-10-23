@@ -3,14 +3,20 @@ import styles from "./VideoTayNghe.module.scss";
 import VideoCard from "~/components/VideoCard";
 import VideoDetailDialog from "~/components/VideoDetailDialog";
 import UploadVideoDialog from "~/components/UploadVideoDialog";
-import { fetchReelsPaged } from "~/services/reelService";
+import { fetchReelsByBarberId } from "~/services/reelService";
+import { useAuth } from "~/context/AuthContext"; 
+import { useToast } from "~/context/ToastContext";
 
 function VideoTayNghe() {
+
+  const { accessToken, user, loading: isAuthLoading } = useAuth();
+  const { showToast } = useToast();
   const [reels, setReels] = useState([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(null);
-  const [globalMuted, setGlobalMuted] = useState(true); // Add globalMuted state
-  const idUser = 2; // quản lý index thay vì reel
+  const [globalMuted, setGlobalMuted] = useState(true); 
+  const [loading, setLoading] = useState(true);
+  const idBarber = user.idUser; // Add globalMuted state
 
   const openDetail = (index) => {
     setCurrentIndex(index);
@@ -18,12 +24,24 @@ function VideoTayNghe() {
   };
 
   useEffect(() => {
-    const loadReels = async () => {
-      const data = await fetchReelsPaged(1, 10, idUser);
-      setReels(data);
-    };
-    loadReels();
-  }, []);
+        if (isAuthLoading || !idBarber) {
+            setLoading(false); 
+            return;
+        }
+        const loadReels = async () => {
+            setLoading(true);
+            try {
+                const data = await fetchReelsByBarberId(idBarber, 1, 20, accessToken);
+                setReels(data);
+            } catch (error) {
+                console.error("Lỗi khi tải reels của Barber:", error);
+                showToast({ text: "Không thể tải video, vui lòng thử lại.", type: "error" });
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadReels();
+    }, [idBarber, accessToken, isAuthLoading, showToast]);
 
   const toggleLike = (idReel, isLiked, likesCount) => {
     setReels((prev) =>
@@ -57,7 +75,6 @@ function VideoTayNghe() {
             reel={reel}
             onToggleLike={toggleLike}
             onOpenDetail={() => openDetail(idx)}
-            idUser={idUser}
           />
         ))}
       </div>
@@ -69,7 +86,7 @@ function VideoTayNghe() {
           onChangeVideo={(newIdx) => setCurrentIndex(newIdx)}
           onClose={() => setCurrentIndex(null)}
           onToggleLike={toggleLike}
-          idUser={idUser}
+          token={accessToken}
           globalMuted={globalMuted}
           onToggleGlobalMuted={() => setGlobalMuted((prev) => !prev)}
           fromReelPlayer={false} // Indicate not from ReelPlayer

@@ -7,9 +7,7 @@ const { Reel, ReelLike, ReelComment, ReelView, Barber, User, Sequelize } = db;
 let fuse = null;
 let fuseData = [];
 
-/**
- * Ghi nhận lượt xem vĩnh viễn (Persistent View Tracking)
- */
+
 export const trackReelView = async (idReel, idUser) => {
   if (!idUser) return;
   try {
@@ -83,6 +81,76 @@ export const getAllReels = async (page = 1, limit = 10, idUser) => {
 
   return reels.map((r) => {
     const plain = r.get({ plain: true });
+    return {
+      ...plain,
+      viewCount: parseInt(plain.viewCount) || 0,
+      likesCount: parseInt(plain.likesCount) || 0,
+      commentsCount: parseInt(plain.commentsCount) || 0,
+      isLiked: idUser
+        ? plain.ReelLikes?.some((like) => like.idUser == idUser)
+        : false,
+    };
+  });
+};
+
+export const getReelsByBarber = async (idBarber, page = 1, limit = 10, idUser) => {
+  const reels = await Reel.findAll({
+    where: { idBarber: idBarber }, // Lọc theo idBarber
+    offset: (page - 1) * limit,
+    limit: parseInt(limit),
+    order: [["createdAt", "DESC"]],
+    attributes: {
+      // Giữ nguyên các thuộc tính viewCount, likesCount, commentsCount
+      include: [
+        [
+          sequelize.literal(`(
+            SELECT COUNT(DISTINCT rv.idUser)
+            FROM reel_views AS rv
+            WHERE rv.idReel = Reel.idReel
+          )`),
+          "viewCount",
+        ],
+        [
+          sequelize.literal(`(
+            SELECT COUNT(*)
+            FROM reel_likes AS rl
+            WHERE rl.idReel = Reel.idReel
+          )`),
+          "likesCount",
+        ],
+        [
+          sequelize.literal(`(
+            SELECT COUNT(*)
+            FROM reel_comments AS rc
+            WHERE rc.idReel = Reel.idReel
+          )`),
+          "commentsCount",
+        ],
+      ],
+    },
+    include: [
+      {
+        model: Barber,
+        required: true,
+        attributes: ["idBarber"],
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["fullName", "image"],
+            required: true,
+          },
+        ],
+      },
+      // Vẫn lấy thông tin like để kiểm tra isLiked
+      { model: ReelLike, as: "ReelLikes", attributes: ["idUser"], required: false },
+      { model: ReelComment, as: "ReelComments", attributes: ["idComment"], required: false },
+    ],
+  });
+
+  return reels.map((r) => {
+    const plain = r.get({ plain: true });
+    // Logic kiểm tra isLiked dựa trên idUser (có thể null nếu chưa đăng nhập)
     return {
       ...plain,
       viewCount: parseInt(plain.viewCount) || 0,
@@ -179,9 +247,7 @@ export const toggleLikeReel = async (idReel, idUser) => {
   return { liked: !existing, likesCount: count };
 };
 
-/* ========================================================
-   🔍 SEARCH REELS (Fuzzy Search - không cần ElasticSearch)
-======================================================== */
+
 export const searchReelsService = async (query, idUser) => {
   const keyword = query?.trim()?.toLowerCase();
   if (!keyword) return [];
@@ -245,16 +311,14 @@ export const searchReelsService = async (query, idUser) => {
         viewCount: parseInt(plain.viewCount) || 0,
         likesCount: parseInt(plain.likesCount) || 0,
         commentsCount: parseInt(plain.commentsCount) || 0,
-        isLiked: idUser
-          ? plain.ReelLikes?.some((like) => like.idUser == idUser)
-          : false,
+        isLiked: idUser ? plain.ReelLikes?.some((like) => like.idUser == idUser) : false,
       };
     });
 
     // ⚙️ Cấu hình Fuse
     fuse = new Fuse(fuseData, {
       keys: ["title", "description"],
-      threshold: 0.2, // mức độ fuzzy (0.0 = chính xác, 1.0 = siêu fuzzy)
+      threshold: 0.2,
       distance: 100,
       ignoreLocation: true,
     });
