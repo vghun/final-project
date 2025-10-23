@@ -4,9 +4,9 @@ import ReelPlayer from "~/components/ReelPlayer";
 import VideoDetailDialog from "~/components/VideoDetailDialog";
 import VideoCard from "~/components/VideoCard"; // dùng lại VideoCard khi search
 import { fetchReelsPaged, searchReels } from "~/services/reelService";
+import { getHashtags } from "~/services/hashtagService";
 import { useAuth } from "~/context/AuthContext";
 import { useToast } from "~/context/ToastContext";
-import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 3;
 const SCROLL_COOLDOWN_MS = 1500;
@@ -14,6 +14,8 @@ const SCROLL_COOLDOWN_MS = 1500;
 function Reel() {
   const { accessToken, isLogin, loading: isAuthLoading } = useAuth();
   const { showToast } = useToast();
+
+  const[hashtagSuggestions, setHashtagSuggestions] = useState([]);
 
   // --- nguyên logic cũ (giữ nguyên)
   const [reels, setReels] = useState([]);
@@ -35,7 +37,6 @@ function Reel() {
   const rightColumnRef = useRef(null);
   const touchStartY = useRef(0);
   const isFetchingRef = useRef(false);
-  const navigate = useNavigate();
 
   // --- loadMore giữ nguyên
   const loadMore = async () => {
@@ -62,6 +63,19 @@ function Reel() {
       isFetchingRef.current = false;
     }
   };
+
+  useEffect(() => {
+    const match = keyword.match(/#(\w+)$/);
+    // Nếu keyword kết thúc bằng #<text>
+    if (match && match[1]) {
+      const query = match[1];
+      getHashtags(query)
+        .then(data => setHashtagSuggestions(data || []))
+        .catch(() => setHashtagSuggestions([]));
+    } else {
+      setHashtagSuggestions([]);
+    }
+  }, [keyword]);
 
   useEffect(() => {
     if (!isAuthLoading && reels.length === 0 && page === 1) {
@@ -144,21 +158,25 @@ function Reel() {
   const handleChangeVideo = (newIndex) => setDetailIndex(newIndex);
 
   // --- handle search: gọi API ngay trong Reel, không navigate
-  const handleSearchSubmit = async (e) => {
-    e.preventDefault();
-    const q = keyword.trim();
-    if (!q) {
-      // nếu input rỗng: reset về mode reel (Option A)
-      setIsSearching(false);
-      setSearchResults([]);
-      return;
-    }
+  // 🟢 THÊM: Hàm xử lý khi click vào hashtag (từ ReelPlayer hoặc gợi ý)
+  const handleHashtagSearch = (tag) => {
+    const q = `#${tag.trim()}`;
+    setKeyword(q); // Cập nhật input search
+
+    performSearch(q);
+  };
+
+  // 🟢 TẠO: Hàm thực hiện search API
+  const performSearch = async (q) => {
+    if (!q) return;
 
     try {
       setSearchLoading(true);
       const data = await searchReels(q, accessToken);
       setSearchResults(data || []);
       setIsSearching(true);
+      // Sau khi search, cuộn lên đầu cột phải
+      rightColumnRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error("Lỗi tìm kiếm:", err);
       showToast({
@@ -168,6 +186,17 @@ function Reel() {
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const q = keyword.trim();
+    if (!q) {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
+    performSearch(q);
   };
 
   // nếu người dùng xóa keyword thủ công, reset về reel (Option A)
@@ -246,7 +275,6 @@ function Reel() {
   return (
     <div className={styles.pageWrapper}>
       <div className={styles.leftColumn}>
-        {/* ... Left Column (Search Form & Clear Button) - KHÔNG ĐỔI */}
         <form onSubmit={handleSearchSubmit} className={styles.searchBar}>
           <input
             type="text"
@@ -256,6 +284,24 @@ function Reel() {
           />
           <button type="submit">Tìm</button>
         </form>
+
+        {/* 🟢 HIỂN THỊ GỢI Ý HASHTAG */}
+        {hashtagSuggestions.length > 0 && (
+          <div className={styles.suggestionBox}>
+            <p className={styles.suggestionTitle}>Gợi ý Hashtag:</p>
+            <div className={styles.hashtagList}>
+              {hashtagSuggestions.map(tag => (
+                <button
+                  key={tag.idHashtag}
+                  className={styles.hashtagItem}
+                  onClick={() => handleHashtagSearch(tag.name)}
+                >
+                  #{tag.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {keyword && (
           <button
@@ -284,11 +330,6 @@ function Reel() {
           minHeight: "100vh",
         }}
       >
-        {/* === FIX 1: HIỂN THỊ LỚP NỀN MỜ CHỈ KHI KHÔNG SEARCH (hoặc điều chỉnh nó) === */}
-        {/* Trong chế độ Search, ta muốn Grid hiển thị rõ ràng nên ta sẽ bỏ lớp nền mờ hoặc giới hạn nó chỉ nằm ở background. 
-          Việc đặt zIndex: 0 và position: absolute cho nó là đúng, nhưng có thể nó đang bao trùm mọi thứ. 
-          BỎ LỚP NỀN TẠM THỜI ĐỂ TEST HOẶC GỌI NÓ LÀ "BACKGROUND" */}
-        {/* Sửa lại zIndex: 0 để đảm bảo nó là background */}
         <div
           style={{
             position: "absolute",
@@ -297,15 +338,11 @@ function Reel() {
             zIndex: 0,
           }}
         />
-
-        {/* === FIX 2: ĐẢM BẢO LỚP NỘI DUNG CHIẾM TOÀN BỘ KHÔNG GIAN CUỘN VÀ NẰM TRÊN NỀN MỜ === */}
         <div
           style={{
             position: "relative",
             zIndex: 1, // Đảm bảo lớp này luôn ở trên lớp nền (zIndex: 0)
             width: "100%", // Đảm bảo chiếm full chiều rộng
-            // Khi đang search, cho phép nội dung tự kéo dài theo grid.
-            // Khi không search, để chiều cao 100% để hiển thị ReelPlayer
             minHeight: isSearching ? "auto" : "100vh",
             display: "flex", // Cần thiết để căn giữa và sắp xếp nội dung
             flexDirection: "column",
@@ -317,10 +354,6 @@ function Reel() {
               {searchLoading && <p style={{ textAlign: "center", color: "#333", padding: "20px 0" }}>Đang tìm...</p>}
 
               {!searchLoading && searchResults.length > 0 ? (
-                // FIX 3: Thêm padding-top/margin-top cho gridContainer (hoặc bọc nó) 
-                // vì rightColumn có align-items: center và gap: 25px
-                // Có thể bỏ gap: 25px trong styles.rightColumn nếu muốn grid bắt đầu từ trên cùng.
-                // Ở đây, tôi thêm style để căn chỉnh lại vị trí khi search.
                 <div
                   className={styles.gridContainer}
                   style={{ marginTop: '20px', marginBottom: '20px' }} // Thêm margin để nội dung không dính sát viền
@@ -375,6 +408,7 @@ function Reel() {
                   onComment={() => handleCommentClick(i)}
                   onNavUp={handlePrev}
                   onNavDown={handleNext}
+                  onHashtagClick={handleHashtagSearch}
                   hasPrev={currentIndex > 0}
                   hasNext={currentIndex + 1 < reels.length}
                 />
