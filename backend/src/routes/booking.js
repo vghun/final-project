@@ -50,6 +50,6 @@ router.post(
 );
 
 // ✍️ Tạo booking mới
-router.post("/create", createBooking);
+router.post("/create",authenticate, createBooking);
 
 export default router;
