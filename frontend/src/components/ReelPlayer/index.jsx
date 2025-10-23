@@ -12,6 +12,7 @@ import { trackReelView } from "~/services/reelService";
 import { Link } from "react-router-dom";
 import { useAuth } from "~/context/AuthContext";
 import { useToast } from "~/context/ToastContext";
+import { likeReel } from "~/services/reelService";
 
 const MIN_VIEW_DURATION_MS = 3000;
 const ANIMATION_DURATION_MS = 600;
@@ -24,7 +25,7 @@ const ReelPlayer = forwardRef(
       token,
       isActive = false,
       globalMuted = true,
-      onToggleGlobalMuted = () => {},
+      onToggleGlobalMuted = () => { },
       onLike,
       onComment,
       onNavUp,
@@ -56,7 +57,7 @@ const ReelPlayer = forwardRef(
       if (!v) return;
       if (isActive) {
         v.muted = globalMuted;
-        v.play().catch(() => {});
+        v.play().catch(() => { });
       } else {
         v.pause();
         v.currentTime = 0;
@@ -82,7 +83,7 @@ const ReelPlayer = forwardRef(
           videoRef.current.currentTime * 1000 >= MIN_VIEW_DURATION_MS
         ) {
           if (!isViewTrackedRef.current) {
-            trackReelView(reel.idReel, token).catch(() => {});
+            trackReelView(reel.idReel, token).catch(() => { });
             isViewTrackedRef.current = true;
           }
         }
@@ -102,7 +103,7 @@ const ReelPlayer = forwardRef(
       setTimeout(() => (isScrollLockedRef.current = false), ANIMATION_LOCK_MS);
     };
 
-    const handleLikeClick = () => {
+    const handleLikeClick = async () => { // Đổi thành async function
       if (!isLogin) {
         showToast({
           text: "Vui lòng đăng nhập để thực hiện hành động này",
@@ -110,9 +111,23 @@ const ReelPlayer = forwardRef(
         });
         return;
       }
-      onLike();
-    };
 
+      // Bắt đầu xử lý like API
+      try {
+        // Gọi API like Reel
+        const res = await likeReel(reel.idReel, token);
+
+        if (res) {
+          onLike(reel.idReel, res.liked, res.likesCount);
+        }
+      } catch (error) {
+        console.error("Lỗi khi gọi API like:", error);
+        showToast({
+          text: "Lỗi thực hiện hành động. Vui lòng thử lại.",
+          type: "error",
+        });
+      }
+    };
     const handleCommentClick = () => {
       if (!isLogin) {
         showToast({
@@ -133,13 +148,12 @@ const ReelPlayer = forwardRef(
           if (typeof ref === "function") ref(node);
           else if (ref) ref.current = node;
         }}
-        className={`${styles.reelItemContainer} ${
-          slideDirection === "up"
+        className={`${styles.reelItemContainer} ${slideDirection === "up"
             ? styles.slideUp
             : slideDirection === "down"
-            ? styles.slideDown
-            : ""
-        }`}
+              ? styles.slideDown
+              : ""
+          }`}
       >
         <div className={styles.videoWrapper}>
           <video
@@ -210,9 +224,8 @@ const ReelPlayer = forwardRef(
             <ChevronUp size={20} stroke="#fff" />
           </div>
           <div
-            className={`${styles.navDown} ${
-              !hasNext ? styles.navDisabled : ""
-            }`}
+            className={`${styles.navDown} ${!hasNext ? styles.navDisabled : ""
+              }`}
             onClick={() => hasNext && handleNavClick("down")}
           >
             <ChevronDown size={20} stroke="#fff" />
