@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { trackReelView } from "~/services/reelService";
 import { Link } from "react-router-dom";
+import { useAuth } from "~/context/AuthContext";
+import { useToast } from "~/context/ToastContext";
 
 const MIN_VIEW_DURATION_MS = 3000;
 const ANIMATION_DURATION_MS = 600;
@@ -19,7 +21,7 @@ const ReelPlayer = forwardRef(
   (
     {
       reel,
-      idUser,
+      token,
       isActive = false,
       globalMuted = true,
       onToggleGlobalMuted = () => {},
@@ -37,14 +39,14 @@ const ReelPlayer = forwardRef(
     const isViewTrackedRef = useRef(false);
     const isScrollLockedRef = useRef(false);
     const [slideDirection, setSlideDirection] = useState(null);
+    const { isLogin } = useAuth();
+    const { showToast } = useToast();
 
     const creator = reel?.Barber?.user;
     const creatorFullName = creator?.fullName || "Barber ẩn danh";
     const creatorAvatar = creator?.image || "/user.png";
     const creatorId = reel?.Barber?.idBarber;
-    const isLiked = reel?.isLiked ?? false;
 
-    // đồng bộ muted với global
     useEffect(() => {
       if (videoRef.current) videoRef.current.muted = globalMuted;
     }, [globalMuted]);
@@ -72,7 +74,7 @@ const ReelPlayer = forwardRef(
     }, [slideDirection]);
 
     useEffect(() => {
-      if (!reel || !idUser) return;
+      if (!reel || !token) return;
       isViewTrackedRef.current = false;
       const handleTimeUpdate = () => {
         if (
@@ -80,7 +82,7 @@ const ReelPlayer = forwardRef(
           videoRef.current.currentTime * 1000 >= MIN_VIEW_DURATION_MS
         ) {
           if (!isViewTrackedRef.current) {
-            trackReelView(reel.idReel, idUser).catch(() => {});
+            trackReelView(reel.idReel, token).catch(() => {});
             isViewTrackedRef.current = true;
           }
         }
@@ -88,7 +90,7 @@ const ReelPlayer = forwardRef(
       const v = videoRef.current;
       v?.addEventListener("timeupdate", handleTimeUpdate);
       return () => v?.removeEventListener("timeupdate", handleTimeUpdate);
-    }, [reel, idUser]);
+    }, [reel, token]);
 
     const handleNavClick = (direction) => {
       if (isScrollLockedRef.current) return;
@@ -98,6 +100,28 @@ const ReelPlayer = forwardRef(
       direction === "down" ? onNavDown?.() : onNavUp?.();
       isScrollLockedRef.current = true;
       setTimeout(() => (isScrollLockedRef.current = false), ANIMATION_LOCK_MS);
+    };
+
+    const handleLikeClick = () => {
+      if (!isLogin) {
+        showToast({
+          text: "Vui lòng đăng nhập để thực hiện hành động này",
+          type: "error",
+        });
+        return;
+      }
+      onLike();
+    };
+
+    const handleCommentClick = () => {
+      if (!isLogin) {
+        showToast({
+          text: "Vui lòng đăng nhập để thực hiện hành động này",
+          type: "error",
+        });
+        return;
+      }
+      onComment();
     };
 
     if (!reel) return null;
@@ -137,7 +161,6 @@ const ReelPlayer = forwardRef(
             {globalMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
           </button>
 
-          {/* === Avatar + Action Bar === */}
           <div className={styles.interactionBar}>
             <Link
               to={`/barber/${creatorId}`}
@@ -151,30 +174,20 @@ const ReelPlayer = forwardRef(
               />
             </Link>
 
-            <div
-              className={styles.actionIcon}
-              onClick={() =>
-                onLike?.(
-                  reel.idReel,
-                  !isLiked,
-                  reel.likesCount + (isLiked ? -1 : 1)
-                )
-              }
-            >
+            <div className={styles.actionIcon} onClick={handleLikeClick}>
               <Heart
                 size={28}
-                fill={isLiked ? "#ff385c" : "none"}
-                stroke={isLiked ? "#ff385c" : "#fff"}
+                fill={reel.isLiked ? "#ff385c" : "none"}
+                stroke={reel.isLiked ? "#ff385c" : "#fff"}
               />
               <span className={styles.iconLabel}>{reel.likesCount || 0}</span>
             </div>
 
-            <div className={styles.actionIcon} onClick={onComment}>
+            <div className={styles.actionIcon} onClick={handleCommentClick}>
               <MessageCircle size={28} stroke="#fff" />
             </div>
           </div>
 
-          {/* === Overlay thông tin video === */}
           <div className={styles.contentOverlay}>
             <Link
               to={`/barber/${creatorId}`}
@@ -189,7 +202,6 @@ const ReelPlayer = forwardRef(
           </div>
         </div>
 
-        {/* === Navigation Buttons === */}
         <div className={styles.navButtons}>
           <div
             className={`${styles.navUp} ${!hasPrev ? styles.navDisabled : ""}`}

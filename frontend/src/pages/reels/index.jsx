@@ -1,17 +1,22 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import styles from "./reels.module.scss";
 import ReelPlayer from "~/components/ReelPlayer";
 import VideoDetailDialog from "~/components/VideoDetailDialog";
 import { fetchReelsPaged } from "~/services/reelService";
+import { useAuth } from "~/context/AuthContext";
+import { useToast } from "~/context/ToastContext";
+import { useNavigate } from "react-router-dom";
+
 
 const PAGE_SIZE = 3;
 const SCROLL_COOLDOWN_MS = 1500;
 
 function Reel() {
+  const { accessToken, isLogin, loading: isAuthLoading } = useAuth();
+  const { showToast } = useToast();
+
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [idUser, setIdUser] = useState(5);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,7 +36,7 @@ function Reel() {
     isFetchingRef.current = true;
     setLoading(true);
     try {
-      const data = await fetchReelsPaged(page, PAGE_SIZE, idUser);
+      const data = await fetchReelsPaged(page, PAGE_SIZE, accessToken);
       if (data.length === 0) setHasMore(false);
       else {
         setReels((prev) => {
@@ -52,19 +57,48 @@ function Reel() {
   };
 
   useEffect(() => {
-    if (idUser && reels.length === 0 && page === 1) loadMore();
-  }, [idUser]);
-
-  useEffect(() => {
-    if (currentIndex >= reels.length - 2 && hasMore && !loading) loadMore();
-  }, [currentIndex]);
+        if (!isAuthLoading && reels.length === 0 && page === 1) {
+            loadMore();
+        }
+    }, [isAuthLoading]);
+    useEffect(() => {
+        if (accessToken && page === 1 && reels.length > 0) {
+            setReels([]);
+            setPage(1);
+            setHasMore(true);
+            setCurrentIndex(0);
+            loadMore();
+        } 
+        else if (accessToken && currentIndex >= reels.length - 2 && hasMore && !loading) {
+            loadMore();
+        }
+    }, [currentIndex, accessToken, loading]);
 
   const handleLike = (idReel, liked, count) => {
+    if (!isLogin) {
+      showToast({
+        text: "Vui lòng đăng nhập để thực hiện hành động này",
+        type: "error",
+      });
+      return;
+    }
     setReels((prev) =>
       prev.map((r) =>
         r.idReel === idReel ? { ...r, isLiked: liked, likesCount: count } : r
       )
     );
+  };
+
+  const handleCommentClick = (i) => {
+    if (!isLogin) {
+      showToast({
+        text: "Vui lòng đăng nhập để thực hiện hành động này",
+        type: "error",
+      });
+      return;
+    }
+    setDetailIndex(i);
+    setShowDetail(true);
   };
 
   const scrollToVideo = (index) => {
@@ -132,7 +166,6 @@ function Reel() {
     };
   }, [canScroll, currentIndex, reels]);
 
-  // Pause all ReelPlayer videos when VideoDetailDialog is open
   useEffect(() => {
     const container = rightColumnRef.current;
     if (!container) return;
@@ -142,7 +175,7 @@ function Reel() {
       if (showDetail) {
         video.pause();
       } else if (video.closest(`[data-reel-index="${currentIndex}"]`)) {
-        video.play().catch(() => { });
+        video.play().catch(() => {});
       }
     });
   }, [showDetail, currentIndex]);
@@ -206,17 +239,12 @@ function Reel() {
             >
               <ReelPlayer
                 reel={reel}
-                idUser={idUser}
+                token={accessToken}
                 isActive={i === currentIndex && !showDetail}
                 globalMuted={globalMuted}
-                onToggleGlobalMuted={() =>
-                  setGlobalMuted((prev) => !prev)
-                }
-                onLike={handleLike}
-                onComment={() => {
-                  setDetailIndex(i);
-                  setShowDetail(true);
-                }}
+                onToggleGlobalMuted={() => setGlobalMuted((prev) => !prev)}
+                onLike={() => handleLike(reel.idReel, !reel.isLiked, reel.likesCount + (reel.isLiked ? -1 : 1))}
+                onComment={() => handleCommentClick(i)}
                 onNavUp={handlePrev}
                 onNavDown={handleNext}
                 hasPrev={currentIndex > 0}
@@ -232,7 +260,7 @@ function Reel() {
               onClose={() => setShowDetail(false)}
               onToggleLike={handleLike}
               onChangeVideo={handleChangeVideo}
-              idUser={idUser}
+              token={accessToken}
               globalMuted={globalMuted}
               onToggleGlobalMuted={() => setGlobalMuted((prev) => !prev)}
               fromReelPlayer={true}
