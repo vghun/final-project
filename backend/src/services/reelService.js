@@ -1,6 +1,8 @@
 import db from "../models/index.js";
 import sequelize from "sequelize"; 
 import Fuse from "fuse.js"; // 🚀 Thêm Fuse
+import { getHashtagsService, linkHashtagsToReelService } from "../services/hashtagService.js";
+
 const { Reel, ReelLike, ReelComment, ReelView, Barber, User, Sequelize } = db;
 
 // --- Biến cache cho Fuse ---
@@ -165,7 +167,8 @@ export const getReelsByBarber = async (idBarber, page = 1, limit = 10, idUser) =
 
 // --- Upload video ---
 export const uploadReel = async (body, files) => {
-  const { title, description, idBarber } = body;
+  const { title, description, idBarber, hashtags } = body;
+
   const videoFile = files["video"]?.[0];
   const thumbnailFile = files["thumbnail"]?.[0];
   if (!videoFile) throw new Error("Cần upload video");
@@ -179,7 +182,7 @@ export const uploadReel = async (body, files) => {
       .replace(/\.mp4$/, ".jpg");
   }
 
-  const reel = await Reel.create({
+  const reel = await db.Reel.create({
     idBarber,
     title,
     description,
@@ -187,7 +190,17 @@ export const uploadReel = async (body, files) => {
     thumbnail: thumbnailUrl,
   });
 
-  // ✅ Reset cache Fuse để cập nhật dữ liệu mới
+  try {
+    // 1. Parse Hashtags
+    const parsedHashtags = typeof hashtags === "string" ? JSON.parse(hashtags) : hashtags;
+    
+    if (Array.isArray(parsedHashtags) && parsedHashtags.length > 0) {
+      await linkHashtagsToReelService(reel.idReel, parsedHashtags);
+    }
+  } catch (e) {
+    console.warn(`Không thể lưu hashtags cho Reel ${reel.idReel}:`, e.message);
+  }
+
   fuse = null;
   fuseData = [];
 
