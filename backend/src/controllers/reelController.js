@@ -1,8 +1,10 @@
 import * as reelService from "../services/reelService.js";
 
+// Lấy tất cả reels
 export const getAll = async (req, res) => {
   try {
-    const { page = 1, limit = 10, idUser } = req.query;
+    const { page = 1, limit = 10 } = req.query;
+    const idUser = req.user?.idUser; // có thể undefined nếu public
     const result = await reelService.getAllReels(page, limit, idUser);
     res.json(result);
   } catch (err) {
@@ -11,10 +13,30 @@ export const getAll = async (req, res) => {
   }
 };
 
+export const getReelsByBarberId = async (req, res) => {
+  try {
+    const { idBarber } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    const idUser = req.user?.idUser; // idUser của người đang đăng nhập (optional)
+
+    // Kiểm tra xem idBarber có hợp lệ không
+    if (!idBarber) {
+      return res.status(400).json({ error: "Thiếu ID Barber" });
+    }
+
+    const result = await reelService.getReelsByBarber(idBarber, page, limit, idUser);
+    res.json(result);
+  } catch (err) {
+    console.error(`Lỗi khi lấy reels của Barber ${req.params.idBarber}:`, err);
+    res.status(500).json({ error: "Không thể lấy reels của Barber" });
+  }
+};
+
+// Upload video
 export const uploadReel = async (req, res) => {
   try {
-    // Multer đã xử lý files và body trước khi đến đây
-    const newReel = await reelService.uploadReel(req.body, req.files);
+    const body = { ...req.body, idBarber: req.user.idUser }; // gắn idBarber từ token
+    const newReel = await reelService.uploadReel(body, req.files);
     res.json(newReel);
   } catch (err) {
     console.error("Upload reel lỗi:", err);
@@ -22,9 +44,10 @@ export const uploadReel = async (req, res) => {
   }
 };
 
+// Chi tiết reel
 export const getById = async (req, res) => {
   try {
-    const { idUser } = req.query;
+    const idUser = req.user?.idUser; // optional
     const reel = await reelService.getReelById(req.params.id, idUser);
     if (!reel) return res.status(404).json({ error: "Không tìm thấy reel" });
     res.json(reel);
@@ -34,10 +57,10 @@ export const getById = async (req, res) => {
   }
 };
 
+// Like / Unlike
 export const toggleLike = async (req, res) => {
   try {
-    // Giả định idUser được gửi trong body
-    const { idUser } = req.body; 
+    const idUser = req.user.idUser;
     const idReel = req.params.id;
     const result = await reelService.toggleLikeReel(idReel, idUser);
     res.json(result);
@@ -47,35 +70,27 @@ export const toggleLike = async (req, res) => {
   }
 };
 
-// --- NEW API: Ghi nhận lượt xem (Unique View Tracking) ---
+// Track view
 export const trackView = async (req, res) => {
-    try {
-        const idReel = parseInt(req.params.id);
-        // Giả định idUser được gửi trong body, nên kiểm tra tính hợp lệ
-        const idUser = parseInt(req.body.idUser); 
-
-        if (isNaN(idReel) || isNaN(idUser)) {
-            return res.status(400).json({ error: "ID Reel hoặc User không hợp lệ." });
-        }
-
-        await reelService.trackReelView(idReel, idUser);
-        
-        // Không cần trả về view count mới, chỉ cần xác nhận thành công
-        res.status(200).json({ message: "View tracked successfully." });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Lỗi khi ghi nhận lượt xem." });
-    }
+  try {
+    const idReel = req.params.id;
+    const idUser = req.user.idUser;
+    await reelService.trackReelView(idReel, idUser);
+    res.status(200).json({ message: "View tracked successfully." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Lỗi khi ghi nhận lượt xem." });
+  }
 };
 
+// Search reels (public)
 export const searchReels = async (req, res) => {
   try {
-    const { q, idUser } = req.query;
-
+    const { q } = req.query;
     if (!q || q.trim() === "") {
       return res.status(400).json({ message: "Thiếu từ khóa tìm kiếm." });
     }
-
+    const idUser = req.user?.idUser; 
     const reels = await reelService.searchReelsService(q.trim(), idUser);
     res.json(reels);
   } catch (error) {

@@ -1,16 +1,26 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Thuong.module.scss";
 import { BarberAPI } from "~/apis/barberAPI";
+import { useAuth } from "~/context/AuthContext";
 
 const formatCurrency = (num) => Math.round(num).toLocaleString("vi-VN") + "đ";
 const formatPercent = (num) => Number(num).toFixed(0);
 
-const Thuong = ({ idBarber = 7 }) => {
+const Thuong = () => {
+  const { user, loading: isAuthLoading } = useAuth();
+  const idBarber = user?.idUser;
+
   const [reward, setReward] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isAuthLoading || !idBarber) {
+      if (!isAuthLoading) setLoading(false); // Nếu Auth xong mà không có ID
+      return;
+    }
+
     const fetchReward = async () => {
+      setLoading(true); // Đảm bảo hiển thị loading
       try {
         const data = await BarberAPI.getReward(idBarber);
         setReward(data);
@@ -21,10 +31,12 @@ const Thuong = ({ idBarber = 7 }) => {
       }
     };
     fetchReward();
-  }, [idBarber]);
+  }, [idBarber, isAuthLoading]);
 
-  if (loading) return <p>Đang tải dữ liệu...</p>;
-  if (!reward) return <p>Không có dữ liệu thưởng.</p>;
+  // 🟢 XỬ LÝ TRƯỜNG HỢP LOADING/KHÔNG CÓ DỮ LIỆU
+  if (isAuthLoading || loading) return <p className={styles.loading}>Đang tải dữ liệu...</p>;
+  if (!idBarber) return <p className={styles.empty}>Vui lòng đăng nhập bằng tài khoản Barber để xem thưởng.</p>;
+  if (!reward) return <p className={styles.empty}>Không có dữ liệu thưởng.</p>;
 
   const percentRevenue = reward.nextRule
     ? Math.min((reward.serviceRevenue / reward.nextRule.minRevenue) * 100, 100)
@@ -107,8 +119,8 @@ const Thuong = ({ idBarber = 7 }) => {
                     reached
                       ? styles.reached
                       : isNext
-                      ? styles.next
-                      : styles.notYet
+                        ? styles.next
+                        : styles.notYet
                   }
                 >
                   <td>{formatCurrency(rule.minRevenue)}</td>
