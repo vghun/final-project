@@ -242,8 +242,12 @@ function VideoDetailDialog({
             </div>
           </div>
 
+          <div className={styles.titleSection}>
+            <h3 className={styles.reelTitle}>{reel.title || "Không có tiêu đề"}</h3>
+          </div>
+
           <div className={styles.descriptionBox}>
-            <p className={styles.desc}>{reel.description || "Chưa có mô tả"}</p>
+            <pre className={styles.desc}>{reel.description || "Chưa có mô tả chi tiết"}</pre> 
           </div>
 
           <div className={styles.commentsContainer}>

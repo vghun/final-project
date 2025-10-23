@@ -23,6 +23,7 @@ import customerGalleryRoutes from "./routes/customerGallery.js";
 import ratingRoutes from "./routes/rating.js";
 import summaryRoutes from "./routes/summaryStatistics.js";
 import bookingDirectRoutes from "./routes/bookingDirect.js";
+import hashtagRoutes from "./routes/hashtag.js";
 
 import { authenticate, authorize } from "./middlewares/authMiddleware.js";
 
@@ -54,6 +55,7 @@ app.use("/api/bonus", authenticate, authorize(["admin"]), bonusRoutes);
 app.use("/api/statistics/summary", authenticate, authorize(["admin"]), summaryRoutes);
 
 app.use("/api/booking-direct", bookingDirectRoutes);
+app.use("/api/hashtags", hashtagRoutes);
 
 // View engine & auth routes
 viewEngine(app);
