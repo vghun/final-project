@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import styles from "./BookingList.module.scss";
 
-export default function BookingList({ onSelect, onReload, date }) {
+export default function BookingList({ onSelect, date }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchBookings = async () => {
+  // ✅ Hàm lấy danh sách booking theo ngày
+  const fetchBookings = useCallback(async () => {
     try {
       const res = await fetch("http://localhost:8088/api/bookings/details");
       const data = await res.json();
@@ -34,11 +35,8 @@ export default function BookingList({ onSelect, onReload, date }) {
               raw: booking,
             };
           })
-          // ✅ Sắp xếp theo thời gian (giờ giảm dần)
-          .sort((a, b) => {
-            const timeA = a.time ? a.time.localeCompare(b.time) : 0;
-            return -timeA; // đảo ngược để được từ cao đến thấp
-          });
+          // ✅ Sắp xếp theo thời gian giảm dần
+          .sort((a, b) => b.time.localeCompare(a.time));
 
         setBookings(mapped);
       }
@@ -47,11 +45,19 @@ export default function BookingList({ onSelect, onReload, date }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [date]);
 
+  // ✅ Load lại danh sách mỗi khi đổi ngày
   useEffect(() => {
     fetchBookings();
-  }, [date]);
+  }, [fetchBookings]);
+
+  // ✅ Truyền hàm reload ra ngoài cho parent mà không reset onSelect
+  useEffect(() => {
+    if (onSelect) {
+      onSelect((prev) => prev, fetchBookings); // giữ nguyên handler
+    }
+  }, [fetchBookings, onSelect]);
 
   // ✅ Hủy đặt lịch
   const handleCancel = async (id) => {
@@ -78,77 +84,82 @@ export default function BookingList({ onSelect, onReload, date }) {
   return (
     <div className={styles.list}>
       <h2>Lịch hẹn {date}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Giờ</th>
-            <th>Khách hàng</th>
-            <th>Thợ cắt</th>
-            <th>Dịch vụ</th>
-            <th>Chi nhánh</th>
-            <th>Tạm tính</th>
-            <th>Tiến trình</th>
-            <th>Thanh toán</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
 
-        <tbody>
-          {bookings.length === 0 ? (
+      {/* ✅ Bọc table để có phần cuộn khi dài */}
+      <div className={styles.tableContainer}>
+        <table>
+          <thead>
             <tr>
-              <td colSpan="9" style={{ textAlign: "center" }}>
-                Không có lịch hẹn nào trong ngày này
-              </td>
+              <th>Giờ</th>
+              <th>Khách hàng</th>
+              <th>Thợ cắt</th>
+              <th>Dịch vụ</th>
+              <th>Chi nhánh</th>
+              <th>Tạm tính</th>
+              <th>Tiến trình</th>
+              <th>Thanh toán</th>
+              <th>Thao tác</th>
             </tr>
-          ) : (
-            bookings.map((booking) => {
-              const displayedServices =
-                booking.services.length > 2
-                  ? `${booking.services.slice(0, 2).join(", ")} (+${booking.services.length - 2})`
-                  : booking.services.join(", ");
+          </thead>
 
-              return (
-                <tr key={booking.id}>
-                  <td>{booking.time}</td>
-                  <td>{booking.customer}</td>
-                  <td>{booking.barber}</td>
-                  <td title={booking.services.join(", ")}>{displayedServices || "—"}</td>
-                  <td>{booking.branch}</td>
-                  <td>{booking.subTotal.toLocaleString("vi-VN")}đ</td>
-                  <td
-                    className={
-                      booking.status === "Completed"
-                        ? styles.completed
+          <tbody>
+            {bookings.length === 0 ? (
+              <tr>
+                <td colSpan="9" style={{ textAlign: "center" }}>
+                  Không có lịch hẹn nào trong ngày này
+                </td>
+              </tr>
+            ) : (
+              bookings.map((booking) => {
+                const displayedServices =
+                  booking.services.length > 2
+                    ? `${booking.services.slice(0, 2).join(", ")} (+${booking.services.length - 2})`
+                    : booking.services.join(", ");
+
+                return (
+                  <tr key={booking.id}>
+                    <td>{booking.time}</td>
+                    <td>{booking.customer}</td>
+                    <td>{booking.barber}</td>
+                    <td title={booking.services.join(", ")}>{displayedServices || "—"}</td>
+                    <td>{booking.branch}</td>
+                    <td>{booking.subTotal.toLocaleString("vi-VN")}đ</td>
+                    <td
+                      className={
+                        booking.status === "Completed"
+                          ? styles.completed
+                          : booking.status === "Cancelled"
+                          ? styles.cancelled
+                          : styles.pending
+                      }
+                    >
+                      {booking.status === "Completed"
+                        ? "Đã cắt xong"
                         : booking.status === "Cancelled"
-                        ? styles.cancelled
-                        : styles.pending
-                    }
-                  >
-                    {booking.status === "Completed"
-                      ? "Đã cắt xong"
-                      : booking.status === "Cancelled"
-                      ? "Đã hủy"
-                      : "Đang chờ"}
-                  </td>
-                  <td className={booking.isPaid ? styles.paid : styles.unpaid}>
-                    {booking.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
-                  </td>
-                  <td style={{ display: "flex", gap: "6px" }}>
-                    {!booking.isPaid && booking.status !== "Cancelled" && (
-                      <button onClick={() => onSelect(booking.raw, fetchBookings)}>Thanh toán</button>
-                    )}
-                    {booking.status === "Pending" && (
-                      <button className={styles.cancelBtn} onClick={() => handleCancel(booking.id)}>
-                        Hủy
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
+                        ? "Đã hủy"
+                        : "Đang chờ"}
+                    </td>
+                    <td className={booking.isPaid ? styles.paid : styles.unpaid}>
+                      {booking.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
+                    </td>
+                    <td style={{ display: "flex", gap: "6px" }}>
+                      {/* ✅ Giữ nguyên sự kiện Thanh toán */}
+                      {!booking.isPaid && booking.status !== "Cancelled" && (
+                        <button onClick={() => onSelect(booking.raw, fetchBookings)}>Thanh toán</button>
+                      )}
+                      {booking.status === "Pending" && (
+                        <button className={styles.cancelBtn} onClick={() => handleCancel(booking.id)}>
+                          Hủy
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -127,3 +127,24 @@ td:nth-child(4) { // cột dịch vụ
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+// // Thêm cuộn
+// .tableContainer {
+//   max-height: 450px; /* chiều cao tối đa */
+//   overflow-y: auto;
+//   border: 1px solid #ddd;
+//   border-radius: 8px;
+// }
+
+// .tableContainer table {
+//   width: 100%;
+//   border-collapse: collapse;
+// }
+
+// .tableContainer th,
+// .tableContainer td {
+//   padding: 8px 12px;
+//   border-bottom: 1px solid #eee;
+//   text-align: left;
+// }
+
