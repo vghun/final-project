@@ -1,5 +1,6 @@
 import express from "express";
 import barberController from "../controllers/barberController.js";
+import { authenticate} from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.post("/", barberController.syncBarbers);
@@ -20,9 +21,11 @@ router.get("/unavailability/:idBarber", barberController.getBarberUnavailabiliti
 
 router.get("/profile/:idBarber", barberController.getBarberProfile);
 router.put(
-  "/profile/:idBarber",
+  "/profile/:idBarber",authenticate,
   barberController.uploadAvatar.single("image"),
   barberController.updateBarberProfile
 );
+
+router.get("/stats/:idBarber", authenticate, barberController.getDashboardStats);
 
 export default router;

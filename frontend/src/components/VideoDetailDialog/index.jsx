@@ -19,9 +19,10 @@ function VideoDetailDialog({
   onClose,
   onToggleLike,
   onChangeVideo,
-  idUser = 5,
+  token,
   globalMuted = true,
   onToggleGlobalMuted = () => {},
+  redirectToLogin = () => console.log('Login modal not passed!'),
   fromReelPlayer = false,
 }) {
   const reel = reels[currentIndex];
@@ -37,6 +38,19 @@ function VideoDetailDialog({
   const videoRef = useRef(null);
   const dialogRef = useRef(null);
   const isViewTrackedRef = useRef(false);
+
+  const handleAction = async (apiCall) => {
+    try {
+      return await apiCall(); 
+    } catch (err) {
+      console.error("Lỗi xác thực/hành động:", err);
+      // Xử lý nếu token bị hết hạn/không hợp lệ khi đang sử dụng
+      if (err.response?.status === 401) {
+        redirectToLogin(); 
+      }
+      return null;
+    }
+  };
 
   // Đồng bộ muted với globalMuted và fromReelPlayer
   useEffect(() => {
@@ -55,8 +69,8 @@ function VideoDetailDialog({
         videoRef.current &&
         videoRef.current.currentTime * 1000 >= MIN_VIEW_DURATION_MS
       ) {
-        if (!isViewTrackedRef.current) {
-          trackReelView(reel.idReel, idUser).catch(console.error);
+        if (!isViewTrackedRef.current && token) { 
+          trackReelView(reel.idReel, token).catch(console.error); 
           isViewTrackedRef.current = true;
         }
         videoRef.current.removeEventListener("timeupdate", handleTimeUpdate);
@@ -66,7 +80,7 @@ function VideoDetailDialog({
     videoRef.current?.addEventListener("timeupdate", handleTimeUpdate);
     return () =>
       videoRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
-  }, [reel, idUser]);
+  }, [reel, token]);
 
   // Load comments
   useEffect(() => {
@@ -112,20 +126,23 @@ function VideoDetailDialog({
   }, [fromReelPlayer, slideDirection]);
 
   const handleLike = async () => {
-    const res = await likeReel(reel.idReel, idUser);
-    onToggleLike(reel.idReel, res.liked, res.likesCount);
+    if (!token) return; // Bảo vệ API (mặc dù đã check ở component cha)
+    const res = await handleAction(() => likeReel(reel.idReel, token));
+    if (res) onToggleLike(reel.idReel, res.liked, res.likesCount);
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim()) return;
-    const cmt = await addComment(reel.idReel, idUser, newComment);
-    setComments([...comments, { ...cmt, replies: [] }]);
-    setNewComment("");
+    if (!newComment.trim() || !token) return; 
+    const cmt = await handleAction(() => addComment(reel.idReel, newComment, token));
+    if (cmt) {
+      setComments([...comments, { ...cmt, replies: [] }]);
+      setNewComment("");
+    }
   };
 
   const handleAddReply = async (commentId) => {
     if (!newReply.trim()) return;
-    const rep = await addReply(commentId, idUser, newReply);
+    const rep = await handleAction(() => addReply(commentId, newReply, token));
     setComments(
       comments.map((c) =>
         c.idComment === commentId

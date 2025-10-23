@@ -4,7 +4,7 @@ import React from "react";
 import styles from "./VideoCard.module.scss";
 import { Heart, MessageCircle, Eye } from "lucide-react"; 
 
-function VideoCard({ reel, onToggleLike, onOpenDetail, idUser }) {
+function VideoCard({ reel, onToggleLike, onOpenDetail}) {
   // Gán trực tiếp reel vào onOpenDetail vì nó đã được bọc bằng () => openDetail(idx) ở parent
   const handleOpenDetail = () => {
     onOpenDetail();
