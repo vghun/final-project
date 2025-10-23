@@ -20,10 +20,30 @@ $text: #fff;
   width: 400px;
   position: relative;
   box-shadow: 0 0 20px rgba(139, 94, 60, 0.4);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh; // giới hạn chiều cao form
+}
 
-  h2 {
-    color: $accent;
-    margin-bottom: 16px;
+h2 {
+  color: $accent;
+  margin-bottom: 16px;
+}
+
+/* ----- Phần nội dung chính cuộn ----- */
+.formContent {
+  flex: 1;
+  overflow-y: auto;
+  margin: 8px 0 12px 0;
+  padding-right: 8px;
+
+  // thanh cuộn nhỏ gọn
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(139, 94, 60, 0.6);
+    border-radius: 4px;
   }
 }
 
@@ -38,6 +58,7 @@ $text: #fff;
   cursor: pointer;
 }
 
+/* ----- Các section trong form ----- */
 .section {
   margin: 12px 0;
   display: flex;
@@ -85,13 +106,21 @@ $text: #fff;
   margin-top: 4px;
 }
 
+/* ----- Footer: nút submit luôn cố định ----- */
+.submitContainer {
+  position: sticky;
+  bottom: 0;
+  background: $bg-dark;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .submitBtn {
   background-color: $accent;
   border: none;
   color: white;
   width: 100%;
   padding: 12px;
-  margin-top: 20px;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
@@ -102,7 +131,7 @@ $text: #fff;
   }
 }
 
-//
+/* ----- Radio chọn loại khách ----- */
 .radioGroup {
   display: flex;
   gap: 16px;
@@ -119,4 +148,67 @@ $text: #fff;
       transform: scale(1.1);
     }
   }
+}
+
+/* ----- Lưới chọn thời gian ----- */
+.timeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.timeSlot {
+  padding: 6px 10px;
+  border: 1px solid $accent;
+  background: #222;
+  color: $text;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+
+  &:hover:not(.booked) {
+    background-color: darken($accent, 10%);
+  }
+
+  &.booked {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &.selected {
+    background-color: $accent;
+    color: white;
+  }
+}
+
+/* ----- Danh sách dịch vụ ----- */
+.serviceList {
+  list-style: none;
+  padding: 0;
+  margin-top: 8px;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #222;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 4px;
+    font-size: 14px;
+
+    button {
+      background: none;
+      border: none;
+      color: #ff6666;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  }
+}
+
+.scrollable {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 8px;
 }
