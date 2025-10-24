@@ -489,3 +489,151 @@ export const updateProfile = async (idBarber, payload) => {
 
   return { message: "Cập nhật hồ sơ thành công." };
 };
+
+const { Reel, ReelView, Booking, BarberRatingSummary } = db; 
+// Hàm tính toán % thay đổi
+const calculateChange = (current, previous) => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - previous) / previous) * 100);
+};
+
+// Hàm lấy thống kê lượt xem Reels
+const getReelViewsStats = async (idBarber, startOfWeek, endOfWeek, startOfLastWeek, endOfLastWeek) => {
+    const barberReels = await Reel.findAll({
+        where: { idBarber },
+        attributes: ['idReel']
+    });
+    const reelIds = barberReels.map(r => r.idReel);
+
+    if (reelIds.length === 0) {
+        return { currentWeekViews: 0, lastWeekViews: 0 };
+    }
+
+    const [currentWeekViews, lastWeekViews] = await Promise.all([
+        ReelView.count({
+            where: {
+                idReel: { [Op.in]: reelIds },
+                lastViewedAt: { [Op.between]: [startOfWeek, endOfWeek] }, 
+            },
+            distinct: true, 
+            col: 'idUser'
+        }),
+        ReelView.count({
+            where: {
+                idReel: { [Op.in]: reelIds },
+                lastViewedAt: { [Op.between]: [startOfLastWeek, endOfLastWeek] },
+            },
+            distinct: true,
+            col: 'idUser'
+        }),
+    ]);
+    
+    return { currentWeekViews, lastWeekViews };
+};
+
+
+export const getDashboardStats = async (idBarber) => {
+    // 1. Tính toán khoảng thời gian (ĐÃ SỬA LỖI)
+    const now = new Date();
+    const today = now.getDay(); 
+    // Logic tính ngày đầu tuần (Thứ 2, nếu today = 0 (CN) thì trừ đi 6 ngày)
+    const diff = now.getDate() - today + (today === 0 ? -6 : 1); 
+
+    // 🟢 SỬA LỖI: CLONE đối tượng Date trước khi setDate
+    const startOfWeek = new Date(new Date().setDate(diff)); 
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    const startOfLastWeek = new Date(startOfWeek);
+    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7); // Phải trừ 7 ngày từ startOfWeek đã sửa
+    const endOfLastWeek = new Date(startOfWeek);
+    endOfLastWeek.setDate(endOfLastWeek.getDate() - 1); // Phải trừ 1 ngày từ startOfWeek đã sửa
+    endOfLastWeek.setHours(23, 59, 59, 999);
+    
+    // 2. Gọi API/Service để lấy dữ liệu song song (ĐÃ THÊM || 0 ĐỂ NGĂN NULL)
+    // Đảm bảo các model BookingDetail và Booking đã được khai báo/import
+    const [
+        reelViewStats,
+        ratingSummary,
+        rawCurrentWeekRevenue, // Đổi tên để dễ xử lý null
+        rawLastWeekRevenue,    // Đổi tên để dễ xử lý null
+        currentWeekAppts,
+        lastWeekAppts
+    ] = await Promise.all([
+        // Reels Views
+        getReelViewsStats(idBarber, startOfWeek, endOfWeek, startOfLastWeek, endOfLastWeek),
+        
+        // Đánh giá
+        db.BarberRatingSummary.findOne({ where: { idBarber } }), 
+        
+        // Doanh thu tuần này
+        db.BookingDetail.sum("price", {
+            include: [{ 
+                model: db.Booking, as: "booking", 
+                where: {
+                    idBarber, isPaid: true, status: 'COMPLETED',
+                    bookingDate: { [Op.between]: [startOfWeek, endOfWeek] }
+                }, 
+                attributes: [] 
+            }]
+        }), // KHÔNG dùng || 0 ở đây, để nó là null nếu sum không có
+        
+        // Doanh thu tuần trước
+        db.BookingDetail.sum("price", {
+            include: [{ 
+                model: db.Booking, as: "booking", 
+                where: {
+                    idBarber, isPaid: true, status: 'COMPLETED',
+                    bookingDate: { [Op.between]: [startOfLastWeek, endOfLastWeek] }
+                }, 
+                attributes: [] 
+            }]
+        }), // KHÔNG dùng || 0 ở đây, để nó là null nếu sum không có
+        
+        // Lịch hẹn tuần này
+        db.Booking.count({
+            where: {
+                idBarber,
+                status: { [Op.in]: ['COMPLETED', 'CONFIRMED'] }, 
+                bookingDate: { [Op.between]: [startOfWeek, endOfWeek] },
+            },
+        }),
+        
+        // Lịch hẹn tuần trước
+        db.Booking.count({
+            where: {
+                idBarber,
+                status: { [Op.in]: ['COMPLETED', 'CONFIRMED'] },
+                bookingDate: { [Op.between]: [startOfLastWeek, endOfLastWeek] },
+            },
+        }),
+    ]);
+    
+    const currentRevenue = parseFloat(rawCurrentWeekRevenue || 0);
+    const lastRevenue = parseFloat(rawLastWeekRevenue || 0);
+    
+    // 3. Tổng hợp kết quả
+    const avgRating = parseFloat(ratingSummary?.avgRating) || 0;
+    const totalRatings = parseInt(ratingSummary?.totalReviews) || 0; 
+
+    return {
+        // 1. Lịch hẹn tuần này
+        appointmentsCount: currentWeekAppts,
+        appointmentsChange: calculateChange(currentWeekAppts, lastWeekAppts),
+
+        // 2. Lượt xem Reels tuần
+        reelViews: reelViewStats.currentWeekViews,
+        reelViewsChange: calculateChange(reelViewStats.currentWeekViews, reelViewStats.lastWeekViews),
+
+        // 3. Doanh thu tuần (ĐÃ SỬA VÀ ĐẢM BẢO KHÔNG CÓ NULL)
+        weeklyRevenue: currentRevenue,
+        weeklyRevenueChange: calculateChange(currentRevenue, lastRevenue),
+
+        // 4. Đánh giá trọn đời
+        avgRating: avgRating,
+        totalRatings: totalRatings,
+    };
+};

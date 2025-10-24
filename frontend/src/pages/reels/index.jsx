@@ -1,17 +1,25 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import styles from "./reels.module.scss";
 import ReelPlayer from "~/components/ReelPlayer";
 import VideoDetailDialog from "~/components/VideoDetailDialog";
-import { fetchReelsPaged } from "~/services/reelService";
+import VideoCard from "~/components/VideoCard"; // dùng lại VideoCard khi search
+import { fetchReelsPaged, searchReels } from "~/services/reelService";
+import { getHashtags } from "~/services/hashtagService";
+import { useAuth } from "~/context/AuthContext";
+import { useToast } from "~/context/ToastContext";
 
-const PAGE_SIZE = 5;
-const SCROLL_COOLDOWN_MS = 500; // thời gian khóa scroll mỗi lần
+const PAGE_SIZE = 3;
+const SCROLL_COOLDOWN_MS = 1500;
 
 function Reel() {
+  const { accessToken, isLogin, loading: isAuthLoading } = useAuth();
+  const { showToast } = useToast();
+
+  const[hashtagSuggestions, setHashtagSuggestions] = useState([]);
+
+  // --- nguyên logic cũ (giữ nguyên)
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [idUser, setIdUser] = useState(5);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -19,158 +27,407 @@ function Reel() {
   const [detailIndex, setDetailIndex] = useState(0);
   const [keyword, setKeyword] = useState("");
   const [canScroll, setCanScroll] = useState(true);
+  const [globalMuted, setGlobalMuted] = useState(true);
+
+  // trạng thái search mới (tách biệt với việc load reels)
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const rightColumnRef = useRef(null);
-  const navigate = useNavigate();
+  const touchStartY = useRef(0);
+  const isFetchingRef = useRef(false);
 
-  /** 📦 Load thêm dữ liệu */
+  // --- loadMore giữ nguyên
   const loadMore = async () => {
-    if (loading || !hasMore) return;
+    if (loading || !hasMore || isFetchingRef.current) return;
+    isFetchingRef.current = true;
     setLoading(true);
     try {
-      const data = await fetchReelsPaged(page, PAGE_SIZE, idUser);
-      setReels((prev) => [...prev, ...data]);
-      setPage((prev) => prev + 1);
-      if (data.length < PAGE_SIZE) setHasMore(false);
+      const data = await fetchReelsPaged(page, PAGE_SIZE, accessToken);
+      if (data.length === 0) setHasMore(false);
+      else {
+        setReels((prev) => {
+          const newOnes = data.filter(
+            (d) => !prev.some((p) => p.idReel === d.idReel)
+          );
+          return [...prev, ...newOnes];
+        });
+        setPage((prev) => prev + 1);
+        if (data.length < PAGE_SIZE) setHasMore(false);
+      }
     } catch (err) {
       console.error("Lỗi tải reels:", err);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
-  /** 🪣 Lần đầu tải dữ liệu */
   useEffect(() => {
-    if (idUser) loadMore();
-  }, [idUser]);
+    const match = keyword.match(/#(\w+)$/);
+    // Nếu keyword kết thúc bằng #<text>
+    if (match && match[1]) {
+      const query = match[1];
+      getHashtags(query)
+        .then(data => setHashtagSuggestions(data || []))
+        .catch(() => setHashtagSuggestions([]));
+    } else {
+      setHashtagSuggestions([]);
+    }
+  }, [keyword]);
 
-  /** 🔄 Tải thêm khi sắp hết video */
   useEffect(() => {
-    if (currentIndex >= reels.length - 2 && hasMore && !loading) {
+    if (!isAuthLoading && reels.length === 0 && page === 1) {
       loadMore();
     }
-  }, [currentIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthLoading]);
 
-  /** 🔄 Tải thêm khi xem chi tiết */
   useEffect(() => {
-    if (detailIndex >= reels.length - 2 && hasMore && !loading) {
+    if (accessToken && page === 1 && reels.length > 0) {
+      setReels([]);
+      setPage(1);
+      setHasMore(true);
+      setCurrentIndex(0);
+      loadMore();
+    } else if (accessToken && currentIndex >= reels.length - 2 && hasMore && !loading) {
       loadMore();
     }
-  }, [detailIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, accessToken, loading]);
 
-  /** ❤️ Xử lý like */
+  // --- like logic giữ nguyên, nhưng update cả searchResults khi cần
   const handleLike = (idReel, liked, count) => {
+    if (!isLogin) {
+      showToast({
+        text: "Vui lòng đăng nhập để thực hiện hành động này",
+        type: "error",
+      });
+      return;
+    }
     setReels((prev) =>
-      prev.map((r) => (r.idReel === idReel ? { ...r, isLiked: liked, likesCount: count } : r))
+      prev.map((r) =>
+        r.idReel === idReel ? { ...r, isLiked: liked, likesCount: count } : r
+      )
+    );
+    // Nếu đang search và có reel đó, cập nhật cả searchResults
+    setSearchResults((prev) =>
+      prev.map((r) =>
+        r.idReel === idReel ? { ...r, isLiked: liked, likesCount: count } : r
+      )
     );
   };
 
-  /** ⬆⬇ Chuyển video */
+  const handleCommentClick = (i) => {
+    if (!isLogin) {
+      showToast({
+        text: "Vui lòng đăng nhập để thực hiện hành động này",
+        type: "error",
+      });
+      return;
+    }
+    setDetailIndex(i);
+    setShowDetail(true);
+  };
+
+  const scrollToVideo = (index) => {
+    const container = rightColumnRef.current;
+    const videoEl = container?.querySelector(`[data-reel-index="${index}"]`);
+    if (videoEl) videoEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   const handleNext = () => {
-    if (currentIndex + 1 < reels.length) setCurrentIndex((prev) => prev + 1);
+    if (currentIndex + 1 >= reels.length) return;
+    const next = currentIndex + 1;
+    setCurrentIndex(next);
+    scrollToVideo(next);
+    setCanScroll(false);
+    setTimeout(() => setCanScroll(true), SCROLL_COOLDOWN_MS);
   };
+
   const handlePrev = () => {
-    if (currentIndex > 0) setCurrentIndex((prev) => prev - 1);
+    if (currentIndex <= 0) return;
+    const prev = currentIndex - 1;
+    setCurrentIndex(prev);
+    scrollToVideo(prev);
+    setCanScroll(false);
+    setTimeout(() => setCanScroll(true), SCROLL_COOLDOWN_MS);
   };
+
   const handleChangeVideo = (newIndex) => setDetailIndex(newIndex);
 
-  /** 🔍 Xử lý tìm kiếm */
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (keyword.trim()) navigate(`/search?q=${encodeURIComponent(keyword.trim())}`);
+  // --- handle search: gọi API ngay trong Reel, không navigate
+  // 🟢 THÊM: Hàm xử lý khi click vào hashtag (từ ReelPlayer hoặc gợi ý)
+  const handleHashtagSearch = (tag) => {
+    const q = `#${tag.trim()}`;
+    setKeyword(q); // Cập nhật input search
+
+    performSearch(q);
   };
 
-  /** 🖱️ Scroll chỉ trong cột video */
+  // 🟢 TẠO: Hàm thực hiện search API
+  const performSearch = async (q) => {
+    if (!q) return;
+
+    try {
+      setSearchLoading(true);
+      const data = await searchReels(q, accessToken);
+      setSearchResults(data || []);
+      setIsSearching(true);
+      // Sau khi search, cuộn lên đầu cột phải
+      rightColumnRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      console.error("Lỗi tìm kiếm:", err);
+      showToast({
+        text: "Lỗi tìm kiếm video, vui lòng thử lại",
+        type: "error",
+      });
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const q = keyword.trim();
+    if (!q) {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
+    performSearch(q);
+  };
+
+  // nếu người dùng xóa keyword thủ công, reset về reel (Option A)
+  useEffect(() => {
+    if (!keyword || !keyword.trim()) {
+      setIsSearching(false);
+      setSearchResults([]);
+    }
+  }, [keyword]);
+
+  // wheel/touch handlers - giữ nguyên nhưng không xử lý khi đang search
   useEffect(() => {
     const container = rightColumnRef.current;
     if (!container) return;
 
     const handleWheel = (e) => {
+      // khi đang search thì không chặn scroll, grid dùng scroll default
+      if (isSearching) return;
       e.preventDefault();
       if (!canScroll) return;
+      const dir = e.deltaY > 50 ? "down" : e.deltaY < -50 ? "up" : null;
+      if (dir === "down") handleNext();
+      else if (dir === "up") handlePrev();
+    };
 
-      setCanScroll(false);
-      e.deltaY > 0 ? handleNext() : handlePrev();
-      setTimeout(() => setCanScroll(true), SCROLL_COOLDOWN_MS);
+    const handleTouchStart = (e) => (touchStartY.current = e.touches[0].clientY);
+    const handleTouchEnd = (e) => {
+      if (isSearching) return;
+      if (!canScroll) return;
+      const delta = touchStartY.current - e.changedTouches[0].clientY;
+      if (Math.abs(delta) < 50) return;
+      if (delta > 0) handleNext();
+      else handlePrev();
     };
 
     container.addEventListener("wheel", handleWheel, { passive: false });
-    return () => container.removeEventListener("wheel", handleWheel);
-  }, [canScroll, currentIndex, reels]);
+    container.addEventListener("touchstart", handleTouchStart, { passive: true });
+    container.addEventListener("touchend", handleTouchEnd, { passive: true });
 
-  /** ⏳ Trạng thái tải */
-  if (loading && reels.length === 0)
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [canScroll, currentIndex, reels, isSearching]);
+
+  // pause/play video logic chỉ áp dụng cho mode reel
+  useEffect(() => {
+    const container = rightColumnRef.current;
+    if (!container) return;
+
+    const videos = container.querySelectorAll(`[data-reel-index] video`);
+    videos.forEach((video) => {
+      if (showDetail) {
+        video.pause();
+      } else if (video.closest(`[data-reel-index="${currentIndex}"]`)) {
+        video.play().catch(() => { });
+      }
+    });
+  }, [showDetail, currentIndex]);
+
+  // render fallback khi chưa có data (chỉ ảnh hưởng mode reel)
+  if (!isSearching && loading && reels.length === 0)
     return (
       <div className={styles.centerContainer}>
         <p>Đang tải...</p>
       </div>
     );
-  if (reels.length === 0)
+  if (!isSearching && reels.length === 0)
     return (
       <div className={styles.centerContainer}>
         <p>Không có Reel nào.</p>
       </div>
     );
 
-  const currentReel = reels[currentIndex];
-
   return (
     <div className={styles.pageWrapper}>
-      {/* 🧭 Cột trái: Tìm kiếm */}
       <div className={styles.leftColumn}>
         <form onSubmit={handleSearchSubmit} className={styles.searchBar}>
           <input
             type="text"
-            placeholder="Tìm kiếm video theo tiêu đề hoặc mô tả..."
+            placeholder="Tìm kiếm video..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
           />
           <button type="submit">Tìm</button>
         </form>
+
+        {/* 🟢 HIỂN THỊ GỢI Ý HASHTAG */}
+        {hashtagSuggestions.length > 0 && (
+          <div className={styles.suggestionBox}>
+            <p className={styles.suggestionTitle}>Gợi ý Hashtag:</p>
+            <div className={styles.hashtagList}>
+              {hashtagSuggestions.map(tag => (
+                <button
+                  key={tag.idHashtag}
+                  className={styles.hashtagItem}
+                  onClick={() => handleHashtagSearch(tag.name)}
+                >
+                  #{tag.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {keyword && (
+          <button
+            type="button"
+            className={styles.clearBtn}
+            onClick={() => {
+              setKeyword("");
+              setIsSearching(false);
+              setSearchResults([]);
+            }}
+          >
+            Clear search
+          </button>
+        )}
       </div>
 
-      {/* 🎬 Cột phải: Video + Background */}
       <div
         className={styles.rightColumn}
         ref={rightColumnRef}
         style={{
           position: "relative",
-          backgroundImage: 'url("/Reel.png")', // 👉 ảnh trong public
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
+          backgroundColor: "#E8E8E8",
+
+          overflow: isSearching ? "auto" : "hidden",
+          scrollBehavior: "smooth",
+          minHeight: "100vh",
         }}
       >
-        {/* Lớp phủ giúp video nổi bật hơn */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: "rgba(0, 0, 0, 0.25)", // overlay mờ đen
+            background: isSearching ? "transparent" : "rgba(0,0,0,0.25)", // Tắt mờ khi search để hiển thị rõ Grid
             zIndex: 0,
           }}
         />
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <ReelPlayer
-            reel={currentReel}
-            idUser={idUser}
-            onLike={handleLike}
-            onComment={() => {
-              setDetailIndex(currentIndex);
-              setShowDetail(true);
-            }}
-            onNavUp={handlePrev}
-            onNavDown={handleNext}
-          />
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1, // Đảm bảo lớp này luôn ở trên lớp nền (zIndex: 0)
+            width: "100%", // Đảm bảo chiếm full chiều rộng
+            minHeight: isSearching ? "auto" : "100vh",
+            display: "flex", // Cần thiết để căn giữa và sắp xếp nội dung
+            flexDirection: "column",
+            alignItems: "center", // Giữ lại căn giữa để tương thích với styles.rightColumn
+          }}
+        >
+          {isSearching ? (
+            <>
+              {searchLoading && <p style={{ textAlign: "center", color: "#333", padding: "20px 0" }}>Đang tìm...</p>}
 
+              {!searchLoading && searchResults.length > 0 ? (
+                <div
+                  className={styles.gridContainer}
+                  style={{ marginTop: '20px', marginBottom: '20px' }} // Thêm margin để nội dung không dính sát viền
+                >
+                  {searchResults.map((reel, i) => (
+                    <div key={reel.idReel} className={styles.gridItem}>
+                      <VideoCard
+                        reel={reel}
+                        onToggleLike={() =>
+                          handleLike(
+                            reel.idReel,
+                            !reel.isLiked,
+                            reel.likesCount + (reel.isLiked ? -1 : 1)
+                          )
+                        }
+                        onOpenDetail={() => {
+                          setDetailIndex(i);
+                          setShowDetail(true);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                !searchLoading && <p className={styles.noResult}>Không có video nào.</p>
+              )}
+            </>
+          ) : (
+            // MODE REEL (giữ nguyên mã gốc, vẫn là các div 100vh)
+            reels.map((reel, i) => (
+              <div
+                key={reel.idReel}
+                data-reel-index={i}
+                style={{
+                  height: "100vh",
+                  display: i === currentIndex ? "block" : "none",
+                }}
+              >
+                <ReelPlayer
+                  reel={reel}
+                  token={accessToken}
+                  isActive={i === currentIndex && !showDetail}
+                  globalMuted={globalMuted}
+                  onToggleGlobalMuted={() => setGlobalMuted((prev) => !prev)}
+                  onLike={() =>
+                    handleLike(
+                      reel.idReel,
+                      !reel.isLiked,
+                      reel.likesCount + (reel.isLiked ? -1 : 1)
+                    )
+                  }
+                  onComment={() => handleCommentClick(i)}
+                  onNavUp={handlePrev}
+                  onNavDown={handleNext}
+                  onHashtagClick={handleHashtagSearch}
+                  hasPrev={currentIndex > 0}
+                  hasNext={currentIndex + 1 < reels.length}
+                />
+              </div>
+            ))
+          )}
+
+          {/* VideoDetailDialog - KHÔNG ĐỔI */}
           {showDetail && (
             <VideoDetailDialog
-              reels={reels}
+              reels={isSearching ? searchResults : reels}
               currentIndex={detailIndex}
               onClose={() => setShowDetail(false)}
               onToggleLike={handleLike}
               onChangeVideo={handleChangeVideo}
-              idUser={idUser}
+              token={accessToken}
+              globalMuted={globalMuted}
+              onToggleGlobalMuted={() => setGlobalMuted((prev) => !prev)}
+              fromReelPlayer={!isSearching}
             />
           )}
         </div>

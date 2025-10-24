@@ -7,9 +7,11 @@ import {
   addReply,
   trackReelView,
 } from "~/services/reelService";
-import { Heart, Share2, ChevronUp, ChevronDown, Send } from "lucide-react";
+import { Heart, Share2, ChevronUp, ChevronDown, Send, Volume2, VolumeX } from "lucide-react";
 
 const MIN_VIEW_DURATION_MS = 3000;
+const ANIMATION_DURATION_MS = 600;
+const ANIMATION_LOCK_MS = 1000;
 
 function VideoDetailDialog({
   reels,
@@ -17,17 +19,47 @@ function VideoDetailDialog({
   onClose,
   onToggleLike,
   onChangeVideo,
-  idUser = 5,
+  token,
+  globalMuted = true,
+  onToggleGlobalMuted = () => {},
+  redirectToLogin = () => console.log('Login modal not passed!'),
+  fromReelPlayer = false,
 }) {
   const reel = reels[currentIndex];
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [activeReply, setActiveReply] = useState(null);
   const [newReply, setNewReply] = useState("");
+  const [slideDirection, setSlideDirection] = useState(null);
+  const [isScrollLocked, setIsScrollLocked] = useState(false);
+  const [showNavButtons, setShowNavButtons] = useState(!fromReelPlayer);
+  const [localMuted, setLocalMuted] = useState(globalMuted); // Add localMuted state
 
   const videoRef = useRef(null);
   const dialogRef = useRef(null);
   const isViewTrackedRef = useRef(false);
+
+  const handleAction = async (apiCall) => {
+    try {
+      return await apiCall(); 
+    } catch (err) {
+      console.error("Lỗi xác thực/hành động:", err);
+      // Xử lý nếu token bị hết hạn/không hợp lệ khi đang sử dụng
+      if (err.response?.status === 401) {
+        redirectToLogin(); 
+      }
+      return null;
+    }
+  };
+
+  // Đồng bộ muted với globalMuted và fromReelPlayer
+  useEffect(() => {
+    if (videoRef.current) {
+      const shouldMute = fromReelPlayer ? globalMuted : false; // Unmute if not from ReelPlayer
+      videoRef.current.muted = shouldMute;
+      setLocalMuted(shouldMute);
+    }
+  }, [globalMuted, currentIndex, fromReelPlayer]);
 
   // Track view after 3s
   useEffect(() => {
@@ -37,8 +69,8 @@ function VideoDetailDialog({
         videoRef.current &&
         videoRef.current.currentTime * 1000 >= MIN_VIEW_DURATION_MS
       ) {
-        if (!isViewTrackedRef.current) {
-          trackReelView(reel.idReel, idUser).catch(console.error);
+        if (!isViewTrackedRef.current && token) { 
+          trackReelView(reel.idReel, token).catch(console.error); 
           isViewTrackedRef.current = true;
         }
         videoRef.current.removeEventListener("timeupdate", handleTimeUpdate);
@@ -48,7 +80,7 @@ function VideoDetailDialog({
     videoRef.current?.addEventListener("timeupdate", handleTimeUpdate);
     return () =>
       videoRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
-  }, [reel, idUser]);
+  }, [reel, token]);
 
   // Load comments
   useEffect(() => {
@@ -78,21 +110,39 @@ function VideoDetailDialog({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
+  // Xử lý hiệu ứng chuyển tiếp
+  useEffect(() => {
+    if (slideDirection) {
+      const timer = setTimeout(() => setSlideDirection(null), ANIMATION_DURATION_MS);
+      return () => clearTimeout(timer);
+    }
+  }, [slideDirection]);
+
+  // Show navigation buttons after first navigation
+  useEffect(() => {
+    if (fromReelPlayer && slideDirection) {
+      setShowNavButtons(true);
+    }
+  }, [fromReelPlayer, slideDirection]);
+
   const handleLike = async () => {
-    const res = await likeReel(reel.idReel, idUser);
-    onToggleLike(reel.idReel, res.liked, res.likesCount);
+    if (!token) return; // Bảo vệ API (mặc dù đã check ở component cha)
+    const res = await handleAction(() => likeReel(reel.idReel, token));
+    if (res) onToggleLike(reel.idReel, res.liked, res.likesCount);
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim()) return;
-    const cmt = await addComment(reel.idReel, idUser, newComment);
-    setComments([...comments, { ...cmt, replies: [] }]);
-    setNewComment("");
+    if (!newComment.trim() || !token) return; 
+    const cmt = await handleAction(() => addComment(reel.idReel, newComment, token));
+    if (cmt) {
+      setComments([...comments, { ...cmt, replies: [] }]);
+      setNewComment("");
+    }
   };
 
   const handleAddReply = async (commentId) => {
     if (!newReply.trim()) return;
-    const rep = await addReply(commentId, idUser, newReply);
+    const rep = await handleAction(() => addReply(commentId, newReply, token));
     setComments(
       comments.map((c) =>
         c.idComment === commentId
@@ -105,11 +155,23 @@ function VideoDetailDialog({
   };
 
   const handleEnded = () => {
-    if (currentIndex < reels.length - 1) onChangeVideo(currentIndex + 1);
+    if (currentIndex < reels.length - 1) {
+      handleNavClick("down");
+    }
+  };
+
+  const handleNavClick = (direction) => {
+    if (isScrollLocked) return;
+    const canNav = direction === "down" ? currentIndex < reels.length - 1 : currentIndex > 0;
+    if (!canNav) return;
+    setSlideDirection(direction);
+    onChangeVideo(direction === "down" ? currentIndex + 1 : currentIndex - 1);
+    setIsScrollLocked(true);
+    setTimeout(() => setIsScrollLocked(false), ANIMATION_LOCK_MS);
   };
 
   return (
-    <div className={styles.overlay}>
+    <div className={`${styles.overlay} ${slideDirection === "up" ? styles.slideUp : slideDirection === "down" ? styles.slideDown : ""}`}>
       <div className={styles.dialog} ref={dialogRef}>
         {/* 🎬 Video Section */}
         <div className={styles.videoSection}>
@@ -119,30 +181,45 @@ function VideoDetailDialog({
             controls
             autoPlay
             loop
-            muted
+            playsInline
+            muted={localMuted}
             onEnded={handleEnded}
           />
           <button className={styles.closeBtn} onClick={onClose}>
             ✖
           </button>
 
-          {/* ✅ Navigation Buttons nằm trong video */}
-          <div className={styles.navContainer}>
-            <button
-              className={`${styles.navBtn} ${styles.prevBtn}`}
-              disabled={currentIndex === 0}
-              onClick={() => onChangeVideo(currentIndex - 1)}
-            >
-              <ChevronUp size={24} />
-            </button>
-            <button
-              className={`${styles.navBtn} ${styles.nextBtn}`}
-              disabled={currentIndex === reels.length - 1}
-              onClick={() => onChangeVideo(currentIndex + 1)}
-            >
-              <ChevronDown size={24} />
-            </button>
-          </div>
+          {/* 🔊 Nút bật/tắt âm thanh */}
+          <button
+            className={styles.soundToggle}
+            onClick={() => {
+              setLocalMuted((prev) => !prev);
+              onToggleGlobalMuted();
+            }}
+            title={localMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+          >
+            {localMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+          </button>
+
+          {/* ✅ Navigation Buttons */}
+          {showNavButtons && (
+            <div className={styles.navContainer}>
+              <button
+                className={`${styles.navBtn} ${styles.prevBtn} ${currentIndex === 0 ? styles.navDisabled : ""}`}
+                disabled={currentIndex === 0 || isScrollLocked}
+                onClick={() => handleNavClick("up")}
+              >
+                <ChevronUp size={24} />
+              </button>
+              <button
+                className={`${styles.navBtn} ${styles.nextBtn} ${currentIndex === reels.length - 1 ? styles.navDisabled : ""}`}
+                disabled={currentIndex === reels.length - 1 || isScrollLocked}
+                onClick={() => handleNavClick("down")}
+              >
+                <ChevronDown size={24} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 📝 Info + Comments */}
@@ -165,8 +242,12 @@ function VideoDetailDialog({
             </div>
           </div>
 
+          <div className={styles.titleSection}>
+            <h3 className={styles.reelTitle}>{reel.title || "Không có tiêu đề"}</h3>
+          </div>
+
           <div className={styles.descriptionBox}>
-            <p className={styles.desc}>{reel.description || "Chưa có mô tả"}</p>
+            <pre className={styles.desc}>{reel.description || "Chưa có mô tả chi tiết"}</pre> 
           </div>
 
           <div className={styles.commentsContainer}>

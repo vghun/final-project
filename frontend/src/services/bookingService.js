@@ -12,9 +12,9 @@ export const getBooking = async () => {
 };
 
 // Lấy booking của barber theo khoảng ngày
-export const fetchBookingsForBarber = async (idBarber, start, end) => {
+export const fetchBookingsForBarber = async (idBarber, start, end, token) => {
   try {
-    const res = await bookingApi.getForBarber(idBarber, start, end);
+    const res = await bookingApi.getForBarber(idBarber, start, end, token);
     return res.data;
   } catch (error) {
     console.error("Error fetching barber bookings:", error);
