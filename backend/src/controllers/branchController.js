@@ -53,3 +53,33 @@ export const syncBranchesToPinecone = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+export const assignServiceToBranch = async (req, res) => {
+  try {
+    const { idBranch, idService } = req.body;
+    if (!idBranch || !idService)
+      return res.status(400).json({ message: "Thiếu idBranch hoặc idService" });
+
+    const result = await branchService.assignServiceToBranch(idBranch, idService);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("❌ assignServiceToBranch error:", error);
+    res.status(500).json({ message: "Lỗi khi gán dịch vụ cho chi nhánh" });
+  }
+};
+
+
+export const unassignServiceFromBranch = async (req, res) => {
+  try {
+    const { idBranch, idService } = req.body;
+    if (!idBranch || !idService)
+      return res.status(400).json({ message: "Thiếu idBranch hoặc idService" });
+
+    const result = await BranchService.unassignServiceFromBranch(idBranch, idService);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("❌ unassignServiceFromBranch error:", error);
+    res.status(500).json({ message: "Lỗi khi bỏ gán dịch vụ khỏi chi nhánh" });
+  }
+};
