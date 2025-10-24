@@ -637,3 +637,31 @@ export const getDashboardStats = async (idBarber) => {
         totalRatings: totalRatings,
     };
 };
+export const getBarbersForDisplay = async () => {
+  try {
+    const barbers = await db.Barber.findAll({
+      include: [
+        { model: db.User,   as: "user",   attributes: ["fullName", "image"] },
+        { model: db.Branch, as: "branch", attributes: ["name", "address"] },
+        { model: db.BarberRatingSummary, as: "ratingSummary", attributes: ["avgRate"] },
+      ],
+      where: {
+        isLocked: false
+      }
+    });
+
+    const result = barbers.map(b => ({
+      name:        b.user?.fullName   || "Chưa có tên",
+      branch:      b.branch?.name     || "Chưa có chi nhánh",
+      address:     b.branch?.address  || "Chưa có địa chỉ",
+      description: b.profileDescription || "",
+      rating:      Number(b.ratingSummary?.avgRate || 0).toFixed(1),
+      avatar:      b.user?.image      || ""
+    }));
+
+    return result;
+  } catch (err) {
+    console.error("Error in getBarbersForDisplay:", err);
+    throw new Error("Lỗi server khi lấy danh sách thợ cắt tóc");
+  }
+};

@@ -27,5 +27,5 @@ router.put(
 );
 
 router.get("/stats/:idBarber", authenticate, barberController.getDashboardStats);
-
+router.get("/home", barberController.getBarbersForHome);
 export default router;

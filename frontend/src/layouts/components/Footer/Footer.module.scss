@@ -1,0 +1,105 @@
+.footer {
+  background-color: #0a0a0a;
+  color: #eee;
+  font-family: 'Poppins', sans-serif;
+  padding: 60px 20px 20px;
+
+  .footerContent {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    h2, h3 {
+      color: #d4a373;
+      margin-bottom: 15px;
+    }
+
+    p, li, a {
+      color: #eee;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    a {
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    a:hover {
+      color: #d4a373;
+    }
+
+    .footerBrand {
+      p {
+        margin-top: 10px;
+        font-style: italic;
+        color: #ccc;
+      }
+    }
+
+    .footerLinks ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        margin-bottom: 10px;
+      }
+    }
+
+    .footerSocial {
+      .socialIcons {
+        display: flex;
+        gap: 15px;
+
+        a {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background-color: #d4a373;
+          overflow: hidden;
+          transition: transform 0.3s ease, background-color 0.3s ease;
+
+          img {
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+    
+            transition: filter 0.3s ease;
+          }
+
+          &:hover {
+            transform: scale(1.1);
+            background-color: #fff;
+
+            img {
+              filter: brightness(0) invert(0); // icon đen khi hover
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .footerBottom {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 13px;
+    color: #777;
+  }
+
+  @media (max-width: 768px) {
+    .footerContent {
+      grid-template-columns: 1fr;
+      text-align: center;
+
+      .footerSocial .socialIcons {
+        justify-content: center;
+      }
+    }
+  }
+}
