@@ -622,3 +622,77 @@ $highlight: #ffb84d;
   font-style: italic;
   margin-left: 8px;
 }
+
+.paymentSummary {
+  margin-top: 1.2rem;
+  background: #fdfdfd;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 15px;
+
+    .label {
+      font-weight: 500;
+      color: #444;
+    }
+    .value {
+      font-weight: 500;
+      color: #111;
+    }
+  }
+
+  .finalPrice {
+    margin-top: 6px;
+    border-top: 1px dashed #ccc;
+    padding-top: 8px;
+    font-size: 17px;
+    color: #0a7f25;
+
+    .totalValue {
+      color: #0a7f25;
+      font-weight: 700;
+    }
+  }
+
+  .voucherBox {
+    margin: 10px 0;
+    background: #fff6e5;
+    border: 1px dashed #f1b441;
+    border-radius: 8px;
+    padding: 10px 12px;
+
+    .voucherHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .discountText {
+      color: #e67e22;
+      font-weight: 600;
+    }
+
+    .voucherExpiry {
+      font-size: 13px;
+      color: #777;
+      margin-top: 4px;
+      text-align: right;
+    }
+  }
+
+  .voucherBoxEmpty {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #888;
+    text-align: center;
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 8px;
+  }
+}
