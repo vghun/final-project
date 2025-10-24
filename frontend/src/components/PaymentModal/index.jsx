@@ -20,6 +20,7 @@ export default function PaymentModal({ booking, onClose, onPaidSuccess }) {
         time: booking.bookingTime || "Không rõ",
         branch: booking.branch?.name || "",
         barberId: booking.barber?.idBarber || booking.barber?.id,
+        idVoucher: booking.idVoucher || null, // ✅ thêm dòng này
       },
       services:
         booking.services?.map((s) => ({

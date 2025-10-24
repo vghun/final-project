@@ -5,7 +5,6 @@ export default function BookingList({ onSelect, date }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Hàm lấy danh sách booking theo ngày
   const fetchBookings = useCallback(async () => {
     try {
       const res = await fetch("http://localhost:8088/api/bookings/details");
@@ -13,29 +12,36 @@ export default function BookingList({ onSelect, date }) {
 
       if (data?.data) {
         const mapped = data.data
-          .filter((booking) => booking.bookingDate.startsWith(date))
+          .filter((booking) => booking.bookingDate?.startsWith(date))
           .map((booking) => {
             const serviceTotal =
               booking.services?.reduce((sum, s) => sum + (parseFloat(s.price) || 0) * (s.quantity || 1), 0) || 0;
-            const tipAmount = parseFloat(booking.tip || 0);
+
+            const tipAmount = Number(booking.tip) || 0;
+            const discountPercent = Number(booking.voucher?.discountPercent) || 0;
+            const discountAmount = (serviceTotal * discountPercent) / 100;
+
             const subTotal = serviceTotal + tipAmount;
+            const finalTotal = subTotal - discountAmount;
 
             return {
               id: booking.idBooking,
-              time: booking.bookingTime,
+              time: booking.bookingTime || "—",
               customer: booking.customer?.name || "Khách lẻ",
               barber: booking.barber?.name || "Chưa chỉ định",
               services: booking.services?.map((s) => s.name) || [],
               branch: booking.branch?.name || "",
-              total: parseFloat(booking.total),
+              serviceTotal,
               tip: tipAmount,
+              discountPercent,
+              discountAmount,
               subTotal,
-              isPaid: booking.isPaid,
-              status: booking.status,
+              finalTotal,
+              isPaid: booking.isPaid || false,
+              status: booking.status || "Pending",
               raw: booking,
             };
           })
-          // ✅ Sắp xếp theo thời gian giảm dần
           .sort((a, b) => b.time.localeCompare(a.time));
 
         setBookings(mapped);
@@ -47,19 +53,16 @@ export default function BookingList({ onSelect, date }) {
     }
   }, [date]);
 
-  // ✅ Load lại danh sách mỗi khi đổi ngày
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
 
-  // ✅ Truyền hàm reload ra ngoài cho parent mà không reset onSelect
   useEffect(() => {
     if (onSelect) {
-      onSelect((prev) => prev, fetchBookings); // giữ nguyên handler
+      onSelect((prev) => prev, fetchBookings);
     }
   }, [fetchBookings, onSelect]);
 
-  // ✅ Hủy đặt lịch
   const handleCancel = async (id) => {
     if (!window.confirm("Bạn có chắc muốn hủy lịch hẹn này không?")) return;
     try {
@@ -85,7 +88,6 @@ export default function BookingList({ onSelect, date }) {
     <div className={styles.list}>
       <h2>Lịch hẹn {date}</h2>
 
-      {/* ✅ Bọc table để có phần cuộn khi dài */}
       <div className={styles.tableContainer}>
         <table>
           <thead>
@@ -95,7 +97,7 @@ export default function BookingList({ onSelect, date }) {
               <th>Thợ cắt</th>
               <th>Dịch vụ</th>
               <th>Chi nhánh</th>
-              <th>Tạm tính</th>
+              <th>Chi tiết thanh toán</th>
               <th>Tiến trình</th>
               <th>Thanh toán</th>
               <th>Thao tác</th>
@@ -123,7 +125,31 @@ export default function BookingList({ onSelect, date }) {
                     <td>{booking.barber}</td>
                     <td title={booking.services.join(", ")}>{displayedServices || "—"}</td>
                     <td>{booking.branch}</td>
-                    <td>{booking.subTotal.toLocaleString("vi-VN")}đ</td>
+
+                    {/* ✅ Hiển thị chi tiết tạm tính / giảm / tổng */}
+                    <td>
+                      <div>
+                        <div>
+                          <strong>Tạm tính:</strong> {Number(booking.subTotal).toLocaleString("vi-VN")}đ
+                        </div>
+
+                        {booking.discountPercent > 0 && (
+                          <div style={{ color: "#e67e22" }}>
+                            Giảm {booking.discountPercent}% ( -{Number(booking.discountAmount).toLocaleString("vi-VN")}
+                            đ)
+                          </div>
+                        )}
+
+                        <div>
+                          <strong>Tip:</strong> {Number(booking.tip).toLocaleString("vi-VN")}đ
+                        </div>
+
+                        <div style={{ color: "#0a7f25", fontWeight: 600 }}>
+                          Tổng cộng: {Number(booking.finalTotal).toLocaleString("vi-VN")}đ
+                        </div>
+                      </div>
+                    </td>
+
                     <td
                       className={
                         booking.status === "Completed"
@@ -139,11 +165,12 @@ export default function BookingList({ onSelect, date }) {
                         ? "Đã hủy"
                         : "Đang chờ"}
                     </td>
+
                     <td className={booking.isPaid ? styles.paid : styles.unpaid}>
                       {booking.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
                     </td>
+
                     <td style={{ display: "flex", gap: "6px" }}>
-                      {/* ✅ Giữ nguyên sự kiện Thanh toán */}
                       {!booking.isPaid && booking.status !== "Cancelled" && (
                         <button onClick={() => onSelect(booking.raw, fetchBookings)}>Thanh toán</button>
                       )}
