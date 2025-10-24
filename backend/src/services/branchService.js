@@ -2,6 +2,8 @@ import db from "../models/index.js";
 import { upsertBranches } from "./pineconeService.js";
 
 const Branch = db.Branch;
+const Service = db.Service;
+
 
 const createBranch = async (data) => {
   try {
@@ -91,7 +93,14 @@ const getAllBranches = async () => {
           "totalBarbers",
         ],
       ],
-      // ❌ Bỏ include manager
+      include: [
+        {
+          model: db.Service,
+          as: "services",
+          attributes: ["idService", "name", "price", "duration", "status"],
+          through: { attributes: [] },
+        },
+      ],
       order: [["idBranch", "ASC"]],
     });
 
@@ -105,6 +114,7 @@ const getAllBranches = async () => {
     throw error;
   }
 };
+
 
 const syncBranchesToPinecone = async () => {
   try {
@@ -169,6 +179,31 @@ const syncBranchesToPinecone = async () => {
   }
 };
 
+const assignServiceToBranch = async (idBranch, idService) => {
+  const branch = await Branch.findByPk(idBranch);
+  const service = await Service.findByPk(idService);
+
+  if (!branch || !service) throw new Error("Không tìm thấy chi nhánh hoặc dịch vụ");
+
+  // Nếu dùng quan hệ N-N (belongsToMany)
+  await branch.addService(service);
+
+  return { message: "Gán dịch vụ thành công!" };
+};
+
+// 🔹 Bỏ gán dịch vụ khỏi chi nhánh
+const unassignServiceFromBranch = async (idBranch, idService) => {
+  const branch = await Branch.findByPk(idBranch);
+  const service = await Service.findByPk(idService);
+
+  if (!branch || !service) throw new Error("Không tìm thấy chi nhánh hoặc dịch vụ");
+
+  await branch.removeService(service);
+
+  return { message: "Bỏ gán dịch vụ thành công!" };
+};
+
+
 export default {
   createBranch,
   updateBranch,
@@ -176,4 +211,6 @@ export default {
   toggleBranchStatus,
   getAllBranches,
   syncBranchesToPinecone,
+  assignServiceToBranch,
+  unassignServiceFromBranch,
 };

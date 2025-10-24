@@ -61,10 +61,22 @@ function Login({ onSwitch, onClose, onLoginSuccess }) {
       }
     } catch (err) {
       console.error("Login error:", err);
+
+      const status = err.response?.status;
+      const message = err.response?.data?.message;
+
+      // 🔒 Nếu tài khoản bị khóa
+      if (status === 403 || message?.includes("bị khóa")) {
+        showToast({
+          text: message || "Tài khoản của bạn đã bị khóa!",
+          type: "error",
+        });
+        return; // ⛔ Dừng luôn, không show lỗi khác
+      }
+
+      // 🔹 Lỗi thông thường khác
       showToast({
-        text:
-          err.response?.data?.message ||
-          "Đăng nhập không thành công, vui lòng thử lại sau",
+        text: message || "Đăng nhập không thành công, vui lòng thử lại sau",
         type: "error",
       });
     }

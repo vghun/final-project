@@ -19,7 +19,17 @@ class AuthService {
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) throw { status: 401, message: "Email hoặc mật khẩu không đúng." };
-
+    
+    if (user.role === "barber") {
+      const Barber = db.Barber; // lấy model Barber
+      const barber = await Barber.findOne({ where: { idBarber: user.idUser } });
+      if (barber && Number(barber.isLocked) === 1) {
+        throw {
+          status: 403,
+          message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản lý để mở lại.",
+        };
+      }
+    }
     // Payload token dùng idUser
     const payload = { idUser: user.idUser, email: user.email, role: user.role };
 
