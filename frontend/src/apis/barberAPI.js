@@ -45,7 +45,7 @@ export const BarberAPI = {
     const result = await barberService.getProfile(idBarber);
     return result;
   },
-  updateProfile: async (idBarber, payload) => {
-    return await barberService.updateProfile(idBarber, payload);
+  updateProfile: async (idBarber, payload, token) => {
+    return await barberService.updateProfile(idBarber, payload, token);
   },
 };

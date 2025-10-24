@@ -1,108 +1,175 @@
 import React, { useRef, useEffect, forwardRef, useState } from "react";
 import styles from "./reelplayer.module.scss";
 import {
-  User,
   Heart,
   MessageCircle,
   ChevronUp,
   ChevronDown,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { trackReelView } from "~/services/reelService";
+import { Link } from "react-router-dom";
+import { useAuth } from "~/context/AuthContext";
+import { useToast } from "~/context/ToastContext";
+import { likeReel } from "~/services/reelService";
 
 const MIN_VIEW_DURATION_MS = 3000;
-const SCROLL_THRESHOLD = 10;
-const ANIMATION_LOCK_MS = 600; // thời gian khóa sau mỗi cuộn (khớp với CSS animation)
+const ANIMATION_DURATION_MS = 600;
+const ANIMATION_LOCK_MS = 1000;
 
 const ReelPlayer = forwardRef(
-  ({ reel, idUser, onLike, onComment, onNavUp, onNavDown }, ref) => {
+  (
+    {
+      reel,
+      token,
+      isActive = false,
+      globalMuted = true,
+      onToggleGlobalMuted = () => { },
+      onLike,
+      onComment,
+      onNavUp,
+      onNavDown,
+      onHashtagClick,
+      hasPrev,
+      hasNext,
+    },
+    ref
+  ) => {
     const videoRef = useRef(null);
     const internalRef = useRef(null);
     const isViewTrackedRef = useRef(false);
-    const isScrollLockedRef = useRef(false); // khóa khi đang chuyển video
-
+    const isScrollLockedRef = useRef(false);
     const [slideDirection, setSlideDirection] = useState(null);
+    const { isLogin } = useAuth();
+    const { showToast } = useToast();
 
     const creator = reel?.Barber?.user;
     const creatorFullName = creator?.fullName || "Barber ẩn danh";
     const creatorAvatar = creator?.image || "/user.png";
-    const isLiked = reel?.isLiked ?? false;
+    const creatorId = reel?.Barber?.idBarber;
 
-    // 🎬 Hiệu ứng slide khi đổi video
+    useEffect(() => {
+      if (videoRef.current) videoRef.current.muted = globalMuted;
+    }, [globalMuted]);
+
+    useEffect(() => {
+      const v = videoRef.current;
+      if (!v) return;
+      if (isActive) {
+        v.muted = globalMuted;
+        v.play().catch(() => { });
+      } else {
+        v.pause();
+        v.currentTime = 0;
+      }
+    }, [isActive, globalMuted]);
+
     useEffect(() => {
       if (slideDirection) {
-        const timer = setTimeout(() => setSlideDirection(null), 400);
+        const timer = setTimeout(
+          () => setSlideDirection(null),
+          ANIMATION_DURATION_MS
+        );
         return () => clearTimeout(timer);
       }
     }, [slideDirection]);
 
-    // 👁️ Theo dõi lượt xem ≥ 3s
     useEffect(() => {
-      if (!reel || !idUser) return;
+      if (!reel || !token) return;
       isViewTrackedRef.current = false;
-
       const handleTimeUpdate = () => {
         if (
           videoRef.current &&
           videoRef.current.currentTime * 1000 >= MIN_VIEW_DURATION_MS
         ) {
           if (!isViewTrackedRef.current) {
-            trackReelView(reel.idReel, idUser).catch((err) =>
-              console.error("View tracking failed:", err)
-            );
+            trackReelView(reel.idReel, token).catch(() => { });
             isViewTrackedRef.current = true;
           }
         }
       };
+      const v = videoRef.current;
+      v?.addEventListener("timeupdate", handleTimeUpdate);
+      return () => v?.removeEventListener("timeupdate", handleTimeUpdate);
+    }, [reel, token]);
 
-      const videoElement = videoRef.current;
-      videoElement?.addEventListener("timeupdate", handleTimeUpdate);
-      return () =>
-        videoElement?.removeEventListener("timeupdate", handleTimeUpdate);
-    }, [reel, idUser]);
+    const renderTitleWithHashtags = (text) => {
+        // Regex tìm kiếm hashtag (#word)
+        const hashtagRegex = /#(\w+)/g;
+        
+        // Chia chuỗi thành các phần text và hashtag
+        const parts = text.split(hashtagRegex);
+        
+        return parts.map((part, index) => {
+            // Nếu index chẵn, đó là text bình thường
+            if (index % 2 === 0) {
+                return part;
+            } 
+            // Nếu index lẻ, đó là hashtag (là nội dung bên trong dấu ngoặc đơn của regex)
+            else {
+                const tag = part;
+                return (
+                    <span 
+                        key={index}
+                        className={styles.hashtagLink}
+                        onClick={(e) => {
+                            e.stopPropagation(); // Ngăn sự kiện click lan ra video/container
+                            onHashtagClick(tag);
+                        }}
+                    >
+                        #{tag}
+                    </span>
+                );
+            }
+        });
+    };
 
-    // 🖱️ Xử lý scroll chuyển video
-// 🖱️ Xử lý scroll chuyển video
-useEffect(() => {
-  const container = internalRef.current;
-  if (!container) return;
+    const handleNavClick = (direction) => {
+      if (isScrollLockedRef.current) return;
+      const canNav = direction === "down" ? hasNext : hasPrev;
+      if (!canNav) return;
+      setSlideDirection(direction);
+      direction === "down" ? onNavDown?.() : onNavUp?.();
+      isScrollLockedRef.current = true;
+      setTimeout(() => (isScrollLockedRef.current = false), ANIMATION_LOCK_MS);
+    };
 
-  let lastScrollTime = 0; // thời điểm lần cuộn gần nhất
+    const handleLikeClick = async () => { // Đổi thành async function
+      if (!isLogin) {
+        showToast({
+          text: "Vui lòng đăng nhập để thực hiện hành động này",
+          type: "error",
+        });
+        return;
+      }
 
-  const handleWheel = (e) => {
-    e.preventDefault();
+      // Bắt đầu xử lý like API
+      try {
+        // Gọi API like Reel
+        const res = await likeReel(reel.idReel, token);
 
-    const now = Date.now();
-    if (now - lastScrollTime < ANIMATION_LOCK_MS) return; // khóa tạm thời
-
-    // Cập nhật thời điểm mới
-    lastScrollTime = now;
-
-    const direction =
-      e.deltaY > SCROLL_THRESHOLD
-        ? "down"
-        : e.deltaY < -SCROLL_THRESHOLD
-        ? "up"
-        : null;
-
-    if (!direction) return;
-
-    if (direction === "down") {
-      setSlideDirection("down");
-      onNavDown?.();
-    } else if (direction === "up") {
-      setSlideDirection("up");
-      onNavUp?.();
-    }
-  };
-
-  // Dùng passive: false để có thể preventDefault
-  container.addEventListener("wheel", handleWheel, { passive: false });
-
-  return () => {
-    container.removeEventListener("wheel", handleWheel);
-  };
-}, [onNavUp, onNavDown]);
-
+        if (res) {
+          onLike(reel.idReel, res.liked, res.likesCount);
+        }
+      } catch (error) {
+        console.error("Lỗi khi gọi API like:", error);
+        showToast({
+          text: "Lỗi thực hiện hành động. Vui lòng thử lại.",
+          type: "error",
+        });
+      }
+    };
+    const handleCommentClick = () => {
+      if (!isLogin) {
+        showToast({
+          text: "Vui lòng đăng nhập để thực hiện hành động này",
+          type: "error",
+        });
+        return;
+      }
+      onComment();
+    };
 
     if (!reel) return null;
 
@@ -113,15 +180,13 @@ useEffect(() => {
           if (typeof ref === "function") ref(node);
           else if (ref) ref.current = node;
         }}
-        className={`${styles.reelItemContainer} ${
-          slideDirection === "up"
+        className={`${styles.reelItemContainer} ${slideDirection === "up"
             ? styles.slideUp
             : slideDirection === "down"
-            ? styles.slideDown
-            : ""
-        }`}
+              ? styles.slideDown
+              : ""
+          }`}
       >
-        {/* 🎥 Video */}
         <div className={styles.videoWrapper}>
           <video
             ref={videoRef}
@@ -130,70 +195,70 @@ useEffect(() => {
             poster={reel.thumbnail}
             autoPlay
             loop
-            muted
             playsInline
+            muted={globalMuted}
           />
 
-          {/* 🧾 Thông tin người đăng */}
-          <div className={styles.contentOverlay}>
-            <div className={styles.profileInfo}>
-              {creatorAvatar === "/user.png" ? (
-                <User size={28} color="#fff" />
-              ) : (
-                <img
-                  src={creatorAvatar}
-                  alt={`${creatorFullName}'s Avatar`}
-                  className={styles.avatar}
-                />
-              )}
-              <span className={styles.username}>{creatorFullName}</span>
-            </div>
-            <p className={styles.titleText}>
-              {reel.title || "Không có tiêu đề"}
-            </p>
-          </div>
+          <button
+            className={styles.soundToggle}
+            onClick={() => onToggleGlobalMuted()}
+            title={globalMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+          >
+            {globalMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+          </button>
 
-          {/* ❤️ Thanh tương tác */}
           <div className={styles.interactionBar}>
-            <div
-              className={styles.actionIcon}
-              onClick={() =>
-                onLike?.(
-                  reel.idReel,
-                  !isLiked,
-                  reel.likesCount + (isLiked ? -1 : 1)
-                )
-              }
+            <Link
+              to={`/barber/${creatorId}`}
+              className={styles.userLink}
+              title={`Xem trang của ${creatorFullName}`}
             >
+              <img
+                src={creatorAvatar}
+                alt="avatar"
+                className={styles.avatarSmall}
+              />
+            </Link>
+
+            <div className={styles.actionIcon} onClick={handleLikeClick}>
               <Heart
                 size={28}
-                fill={isLiked ? "#ff385c" : "none"}
-                stroke={isLiked ? "#ff385c" : "#fff"}
+                fill={reel.isLiked ? "#ff385c" : "none"}
+                stroke={reel.isLiked ? "#ff385c" : "#fff"}
               />
+              <span className={styles.iconLabel}>{reel.likesCount || 0}</span>
             </div>
-            <div className={styles.actionIcon} onClick={onComment}>
+
+            <div className={styles.actionIcon} onClick={handleCommentClick}>
               <MessageCircle size={28} stroke="#fff" />
             </div>
           </div>
+
+          <div className={styles.contentOverlay}>
+            <Link
+              to={`/barber/${creatorId}`}
+              className={styles.userNameLink}
+              title={`Xem trang của ${creatorFullName}`}
+            >
+              <span className={styles.username}>{creatorFullName}</span>
+            </Link>
+            <p className={styles.titleText}>
+              {renderTitleWithHashtags(reel.title || "Không có tiêu đề")}
+            </p>
+          </div>
         </div>
 
-        {/* ⬆️⬇️ Nút điều hướng bằng chuột */}
         <div className={styles.navButtons}>
           <div
-            className={styles.navUp}
-            onClick={() => {
-              setSlideDirection("up");
-              onNavUp?.();
-            }}
+            className={`${styles.navUp} ${!hasPrev ? styles.navDisabled : ""}`}
+            onClick={() => hasPrev && handleNavClick("up")}
           >
             <ChevronUp size={20} stroke="#fff" />
           </div>
           <div
-            className={styles.navDown}
-            onClick={() => {
-              setSlideDirection("down");
-              onNavDown?.();
-            }}
+            className={`${styles.navDown} ${!hasNext ? styles.navDisabled : ""
+              }`}
+            onClick={() => hasNext && handleNavClick("down")}
           >
             <ChevronDown size={20} stroke="#fff" />
           </div>

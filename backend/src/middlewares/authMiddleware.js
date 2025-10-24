@@ -29,3 +29,31 @@
       next();
     };
   }
+
+  export const optionalAuthenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  
+  // 1. Kiểm tra header:
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    // Không có token: ĐẶT req.user = undefined và CHUYỂN TIẾP (next())
+    req.user = undefined; 
+    return next(); 
+  }
+
+  // 2. Có token: Tiến hành xác thực
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = {
+      idUser: decoded.idUser,
+      email: decoded.email,
+      role: decoded.role,
+    };
+    next();
+  } catch (err) {
+    // ĐẶT req.user = undefined và CHUYỂN TIẾP (next()) để cho phép truy cập Public
+    console.warn("Token không hợp lệ, truy cập dưới quyền Public.");
+    req.user = undefined; 
+    next(); 
+  }
+};

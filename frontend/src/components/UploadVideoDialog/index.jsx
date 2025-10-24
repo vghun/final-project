@@ -1,13 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./UploadVideoDialog.module.scss";
 import { uploadReel } from "~/services/reelService";
+import { getHashtags } from "~/services/hashtagService"; 
+import { useAuth } from "~/context/AuthContext";
 
 function UploadVideoDialog({ open, onClose, onUpload }) {
+  const { accessToken, isLogin } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [videoFile, setVideoFile] = useState(null);
   const [thumbnailFile, setThumbnailFile] = useState(null);
-  const [loading, setLoading] = useState(false); // ⬅️ trạng thái đang upload
+  const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]); // ✅ thêm
+
+  useEffect(() => {
+    const match = title.match(/#(\w+)$/);
+    if (match && match[1]) {
+      const query = match[1];
+      getHashtags(query)
+        .then(setSuggestions)
+        .catch(() => setSuggestions([]));
+    } else {
+      setSuggestions([]);
+    }
+  }, [title]);
+
+  // ✅ Khi chọn hashtag trong danh sách
+  const handleSelectHashtag = (tag) => {
+    setTitle((prev) => prev.replace(/#\w*$/, `#${tag.name} `));
+    setSuggestions([]);
+  };
 
   if (!open) return null;
 
@@ -17,24 +39,36 @@ function UploadVideoDialog({ open, onClose, onUpload }) {
       return;
     }
 
-    setLoading(true); // bắt đầu upload
+    if (!accessToken) {
+      alert("Vui lòng đăng nhập để tải video lên!");
+      return;
+    }
+
+    setLoading(true);
+
+    // ✅ Tự động trích xuất các hashtag trong tiêu đề
+    const extractedTags = Array.from(
+      new Set(title.match(/#(\w+)/g)?.map((t) => t.slice(1)) || [])
+    );
 
     const formData = new FormData();
     formData.append("video", videoFile);
     if (thumbnailFile) formData.append("thumbnail", thumbnailFile);
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("idBarber", 8);
+    formData.append("idBarber", 8); // Giữ nguyên, có lẽ là id cứng tạm thời
+    formData.append("hashtags", JSON.stringify(extractedTags));
 
     try {
-      const newReel = await uploadReel(formData);
+      // 🟢 TRUYỀN formData VÀ accessToken VÀO HÀM uploadReel
+      const newReel = await uploadReel(formData, accessToken); 
       onUpload(newReel);
       onClose();
     } catch (err) {
       console.error(err);
-      alert("Lỗi khi upload video");
+      alert("Lỗi khi upload video. Vui lòng kiểm tra lại thông tin và đăng nhập.");
     } finally {
-      setLoading(false); // kết thúc upload
+      setLoading(false);
     }
   };
 
@@ -50,7 +84,7 @@ function UploadVideoDialog({ open, onClose, onUpload }) {
         <p className={styles.description}>Chia sẻ kỹ năng và thu hút khách hàng mới</p>
 
         <div className={styles.body}>
-          <div className={styles.formGroup}>
+          <div className={styles.formGroup} style={{ position: "relative" }}>
             <label>Tiêu đề video</label>
             <input
               type="text"
@@ -58,6 +92,16 @@ function UploadVideoDialog({ open, onClose, onUpload }) {
               onChange={(e) => setTitle(e.target.value)}
               disabled={loading}
             />
+            {/* ✅ Hiển thị gợi ý hashtag */}
+            {suggestions.length > 0 && (
+              <ul className={styles.suggestionList}>
+                {suggestions.map((tag) => (
+                  <li key={tag.idHashtag} onClick={() => handleSelectHashtag(tag)}>
+                    #{tag.name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className={styles.formGroup}>
             <label>Mô tả</label>
@@ -91,18 +135,10 @@ function UploadVideoDialog({ open, onClose, onUpload }) {
         </div>
 
         <div className={styles.footer}>
-          <button
-            className={styles.cancelBtn}
-            onClick={onClose}
-            disabled={loading}
-          >
+          <button className={styles.cancelBtn} onClick={onClose} disabled={loading}>
             Hủy
           </button>
-          <button
-            className={styles.submitBtn}
-            onClick={handleSubmit}
-            disabled={loading}
-          >
+          <button className={styles.submitBtn} onClick={handleSubmit} disabled={loading}>
             {loading ? "Đang tải..." : "Tải lên"}
           </button>
         </div>

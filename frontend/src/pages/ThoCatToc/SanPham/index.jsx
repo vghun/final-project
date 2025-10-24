@@ -2,18 +2,26 @@ import React, { useEffect, useState } from "react";
 import styles from "./SanPham.module.scss";
 import WorkCard from "~/components/CustomerGalleryCard";
 import { fetchBarberGallery } from "~/services/customerGalleryService";
+import { useAuth } from "~/context/AuthContext";
 
 function SanPham() {
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user, loading: isAuthLoading } = useAuth();
+  const idBarber = user?.idUser;
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const idBarber = 7; // 👈 fix cứng tạm
-        const data = await fetchBarberGallery(idBarber);
+    if (isAuthLoading || !idBarber) {
+      if (!isAuthLoading) setLoading(false);
+      return;
+    }
 
-        // ✅ Gom nhóm theo idbooking (mỗi booking có tối đa 4 ảnh)
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchBarberGallery(idBarber); 
+
+        // ✅ Gom nhóm theo idbooking (giữ nguyên logic)
         const grouped = {};
         data.forEach((item) => {
           const id = item.idbooking;
@@ -40,7 +48,15 @@ function SanPham() {
     };
 
     loadData();
-  }, []);
+  }, [idBarber, isAuthLoading]);
+
+  if (isAuthLoading || loading) {
+    return <p className={styles.loading}>Đang tải...</p>;
+  }
+  
+  if (!idBarber) {
+     return <p className={styles.empty}>Vui lòng đăng nhập bằng tài khoản Barber để xem sản phẩm của mình.</p>;
+  }
 
   if (loading) {
     return <p className={styles.loading}>Đang tải...</p>;

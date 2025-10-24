@@ -10,8 +10,8 @@
   justify-content: center;
   align-items: center;
 
-  overflow: hidden; /* quan trọng: scroll không kéo cả màn hình */
-  border-radius: 40px; /* bo góc container */
+  overflow: hidden;
+  border-radius: 40px;
 }
 
 .videoWrapper {
@@ -23,7 +23,7 @@
   border-radius: 20px;
   overflow: hidden;
   background: #000;
-  z-index: 1;
+  zIndex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -37,73 +37,97 @@
   border-radius: 20px;
 }
 
-.contentOverlay {
+/* 🔊 Nút âm thanh góc trên phải */
+.soundToggle {
   position: absolute;
-  right: 10px;
-  bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  max-width: 180px;
-  z-index: 10;
-  font-family: 'Inter', sans-serif;
-  color: #fff;
+  top: 15px;
+  right: 15px;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
   background: rgba(0, 0, 0, 0.5);
-  padding: 8px 10px;
-  border-radius: 12px;
-}
-
-.profileInfo {
+  color: #fff;
+  cursor: pointer;
+  zIndex: 15;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+  }
+}
+
+/* ❤️ Avatar, tim, comment nằm dọc bên phải video */
+.interactionBar {
+  position: absolute;
+  right: 15px;
+  bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  zIndex: 10;
+}
+
+.avatarSmall {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.avatarSmall:hover {
+  transform: scale(1.1);
+}
+
+.actionIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.actionIcon:hover {
+  transform: scale(1.15);
+}
+.iconLabel {
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+/* 🧾 Góc trái dưới: tên + tiêu đề */
+.contentOverlay {
+  position: absolute;
+  left: 15px;
+  bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #fff;
+  zIndex: 10;
+  font-family: "Inter", sans-serif;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 .username {
   font-weight: 600;
-  font-size: 14px;
-  line-height: 16px;
+  font-size: 15px;
 }
 
 .titleText {
   font-weight: 400;
-  font-size: 12px;
-  line-height: 14px;
-  word-wrap: break-word;
+  font-size: 13px;
+  opacity: 0.9;
 }
 
-.avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.interactionBar {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  align-items: center;
-  z-index: 10;
-}
-
-.actionIcon {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s, color 0.2s;
-}
-
-.actionIcon:hover {
-  transform: scale(1.2);
-  color: #ff385c;
-}
-
+/* Điều hướng bằng chuột */
 .navButtons {
   position: fixed;
   right: 10px;
@@ -112,7 +136,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  z-index: 20;
+  zIndex: 20;
 }
 
 .navUp,
@@ -136,12 +160,21 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* * ======================================================
- * BỔ SUNG HIỆU ỨNG TRƯỢT
- * ======================================================
- */
+.navDisabled {
+  opacity: 0.3; /* Làm mờ nút */
+  cursor: default; /* Đổi con trỏ */
+  pointer-events: none; /* Ngăn chặn sự kiện click */
+}
 
-/* Định nghĩa animation trượt vào từ trên */
+.navDisabled:hover {
+  transform: none; /* Bỏ hiệu ứng hover */
+  background: rgba(0, 0, 0, 0.5); /* Giữ nguyên nền */
+}
+
+/* ======================================================
+   BỔ SUNG HIỆU ỨNG TRƯỢT
+   ====================================================== */
+
 @keyframes slideInFromTop {
   from {
     transform: translateY(-100%);
@@ -151,7 +184,6 @@
   }
 }
 
-/* Định nghĩa animation trượt vào từ dưới */
 @keyframes slideInFromBottom {
   from {
     transform: translateY(100%);
@@ -161,12 +193,20 @@
   }
 }
 
-/* Áp dụng animation khi có class .slideUp */
 .slideUp {
   animation: slideInFromTop 0.4s ease-out;
 }
 
-/* Áp dụng animation khi có class .slideDown */
 .slideDown {
   animation: slideInFromBottom 0.4s ease-out;
+}
+.userLink,
+.userNameLink {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.7;
+  }
 }

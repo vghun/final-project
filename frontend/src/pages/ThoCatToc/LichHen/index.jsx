@@ -3,30 +3,48 @@ import styles from "./LichHen.module.scss";
 import AppointmentCard from "~/components/AppointmentCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchBookingsForBarber } from "~/services/bookingService";
+import { useAuth } from "~/context/AuthContext";
 
 function LichHen() {
-  const BARBER_ID = 7; // 👈 ID thợ (có thể đổi sau này)
+  const { user, accessToken, loading: isAuthLoading } = useAuth();
+  const BARBER_ID = user?.idUser;
 
   const [calendarView, setCalendarView] = useState("day");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 🟢 DỪNG NẾU AUTH CHƯA XONG HOẶC CHƯA CÓ ID THỢ/TOKEN
+    if (isAuthLoading || !BARBER_ID || !accessToken) {
+        if (!isAuthLoading) setLoading(false);
+        return;
+    }
+
     const loadBookings = async () => {
+      setLoading(true);
+
       const start = new Date(currentDate);
-      start.setDate(currentDate.getDate() - currentDate.getDay() + 1);
+      start.setDate(currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() === 0 ? -6 : 1));
+      
       const end = new Date(start);
       end.setDate(start.getDate() + 6);
 
       const startStr = start.toISOString().split("T")[0];
       const endStr = end.toISOString().split("T")[0];
-
-      const data = await fetchBookingsForBarber(BARBER_ID, startStr, endStr);
-      setAppointments(data);
+      
+      try {
+        const data = await fetchBookingsForBarber(BARBER_ID, startStr, endStr, accessToken);
+        setAppointments(data);
+      } catch (err) {
+        console.error("Lỗi tải lịch hẹn:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadBookings();
-  }, [currentDate]);
+  }, [currentDate, BARBER_ID, accessToken, isAuthLoading]);
 
   // Điều hướng ngày/tuần
   const navigateDate = (direction) => {
@@ -76,6 +94,8 @@ function LichHen() {
           (appt) => new Date(appt.bookingDate).toDateString() === currentDate.toDateString()
         )
       : [];
+  if (isAuthLoading || loading) return <div className={styles.loading}>Đang tải lịch hẹn...</div>;
+  if (!BARBER_ID || !accessToken) return <div className={styles.empty}>Vui lòng đăng nhập để xem lịch hẹn.</div>;
 
   return (
     <div className={styles.container}>
