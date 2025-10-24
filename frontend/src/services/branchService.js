@@ -69,3 +69,36 @@ export const toggleBranchStatus = async (id) => {
     throw error.response?.data || error;
   }
 };
+
+// 📋 Gán dịch vụ cho chi nhánh
+export const assignServiceToBranch = async (idBranch, idService) => {
+  try {
+    const res = await request.post("/api/branches/assign-service", {
+      idBranch,
+      idService,
+    });
+    return res;
+  } catch (error) {
+    console.error(
+      "Lỗi khi gọi API assignServiceToBranch:",
+      error.response?.data || error
+    );
+    throw error.response?.data || error;
+  }
+};
+
+// 📋 Bỏ gán dịch vụ khỏi chi nhánh
+export const unassignServiceFromBranch = async (idBranch, idService) => {
+  try {
+    const res = await request.del("/api/branches/unassign-service", {
+      data: { idBranch, idService },
+    });
+    return res;
+  } catch (error) {
+    console.error(
+      "Lỗi khi gọi API unassignServiceFromBranch:",
+      error.response?.data || error
+    );
+    throw error.response?.data || error;
+  }
+};
