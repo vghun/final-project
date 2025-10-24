@@ -204,4 +204,17 @@ export const fetchBarberDashboardStats = async (idBarber, token) => {
     throw error.response?.data || error;
   }
 };
+export const getBarbersForHome = async () => {
+  try {
+    const res = await request.get("/api/barbers/home");
+    console.log("API getBarbersForHome trả về:", res);
+    return res;
+  } catch (error) {
+    console.error(
+      "Lỗi khi gọi API getBarbersForHome:",
+      error.response?.data || error
+    );
+    throw error.response?.data || error;
+  }
+};
 

@@ -4,12 +4,11 @@ import ratingService from "./ratingService.js"; // default export
 import axios from "axios";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL_STRATEGIC = "gemini-2.5-pro";   
-const GEMINI_MODEL_ANALYTICS = "gemini-2.5-flash";
+const GEMINI_MODEL_STRATEGIC = "gemini-2.5-flash";   
+const GEMINI_MODEL_ANALYTICS = "gemini-2.0-flash-lite";
 
 const taskQueue = [];
 let isProcessing = false;
-
 // ---------------------- HELPER ----------------------
 async function callGemini(modelName, payload) {
   if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY chưa được cấu hình.");

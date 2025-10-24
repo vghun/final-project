@@ -29,9 +29,10 @@ function AnimatedRoutes() {
                   exit={{ opacity: 0, y: -50 }}
                   transition={{ duration: 0.4, ease: "easeInOut" }}
                 >
-                  <Layout>
-                    <Page />
-                  </Layout>
+                  <Layout hideFooter={route.hideFooter}>
+                  <Page />
+                </Layout>
+
                 </motion.div>
               }
             />
