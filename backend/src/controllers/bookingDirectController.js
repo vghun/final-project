@@ -111,23 +111,23 @@ export const createBookingDirect = async (req, res) => {
     }
 
     // Gửi email xác nhận nếu có idCustomer
-    if (idCustomer && idCustomer !== 0) {
-      const customer = await db.Customer.findByPk(idCustomer, {
-        include: [{ model: db.User, as: "user", attributes: ["email", "fullName"] }],
-      });
+    // if (idCustomer && idCustomer !== 0) {
+    //   const customer = await db.Customer.findByPk(idCustomer, {
+    //     include: [{ model: db.User, as: "user", attributes: ["email", "fullName"] }],
+    //   });
 
-      if (customer?.user?.email) {
-        await sendBookingEmail(customer.user.email, {
-          branch: branch?.name || "Tên chi nhánh",
-          branchAddress: branch?.address || "",
-          barber: barber?.user?.fullName || "Tên barber",
-          bookingDate,
-          bookingTime,
-          services,
-          total,
-        });
-      }
-    }
+    //   if (customer?.user?.email) {
+    //     await sendBookingEmail(customer.user.email, {
+    //       branch: branch?.name || "Tên chi nhánh",
+    //       branchAddress: branch?.address || "",
+    //       barber: barber?.user?.fullName || "Tên barber",
+    //       bookingDate,
+    //       bookingTime,
+    //       services,
+    //       total,
+    //     });
+    //   }
+    // }
 
     return res.status(201).json({
       success: true,

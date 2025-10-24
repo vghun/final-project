@@ -10,8 +10,10 @@ export default function DirectBooking({ onClose, onSuccess }) {
   const [branches, setBranches] = useState([]);
   const [barbers, setBarbers] = useState([]);
   const [services, setServices] = useState([]);
+
   const [times, setTimes] = useState([]);
-  const [bookedTimes, setBookedTimes] = useState([]);
+  const [bookedTimesByDate, setBookedTimesByDate] = useState({});
+  const [unavailableDates, setUnavailableDates] = useState([]);
 
   const [form, setForm] = useState({
     customerType: "existing",
@@ -58,6 +60,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
       setBarbers(data.barbers || []);
       setServices(data.services || []);
 
+      // Tạo khung giờ làm việc
       if (data.openTime && data.closeTime && data.slotDuration) {
         const start = new Date(`2000-01-01T${data.openTime}`);
         const end = new Date(`2000-01-01T${data.closeTime}`);
@@ -80,31 +83,74 @@ export default function DirectBooking({ onClose, onSuccess }) {
     const barberId = Number(e.target.value);
     setForm((prev) => ({ ...prev, barberId }));
 
-    if (!barberId || !form.date) return;
+    if (!barberId) return;
 
     try {
-      const res = await fetch(`http://localhost:8088/api/bookings/barbers/${barberId}?date=${form.date}`);
+      const res = await fetch(`http://localhost:8088/api/bookings/barbers/${barberId}`);
       const data = await res.json();
-      setBookedTimes(data.bookedSlots || []);
+
+      // Gom các giờ đã đặt theo ngày
+      const grouped = {};
+      data.bookings?.forEach((b) => {
+        const dateStr = new Date(b.bookingDate).toISOString().split("T")[0];
+        if (!grouped[dateStr]) grouped[dateStr] = [];
+        grouped[dateStr].push(b.bookingTime);
+      });
+      setBookedTimesByDate(grouped);
+
+      // Lưu ngày nghỉ
+      const unava = [];
+      data.unavailabilities?.forEach((u) => {
+        const start = new Date(u.startDate);
+        const end = new Date(u.endDate);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          unava.push(d.toISOString().split("T")[0]);
+        }
+      });
+      setUnavailableDates(unava);
     } catch (err) {
       console.error("Error fetch booked slots:", err);
     }
   };
 
   // ====== CHỌN NGÀY ======
-  const handleDateChange = (e) => {
+  const handleDateChange = async (e) => {
     const date = e.target.value;
     setForm((prev) => ({ ...prev, date, time: "" }));
-    if (form.barberId) {
-      handleBarberChange({ target: { value: form.barberId } });
+
+    if (!form.barberId) return;
+
+    try {
+      const res = await fetch(`http://localhost:8088/api/bookings/barbers/${form.barberId}?date=${date}`);
+      const data = await res.json();
+
+      const grouped = {};
+      grouped[date] =
+        data.bookings
+          ?.filter((b) => new Date(b.bookingDate).toISOString().split("T")[0] === date)
+          .map((b) => b.bookingTime) || [];
+
+      setBookedTimesByDate((prev) => ({ ...prev, ...grouped }));
+
+      // Ngày nghỉ
+      const unava = [];
+      data.unavailabilities?.forEach((u) => {
+        const start = new Date(u.startDate);
+        const end = new Date(u.endDate);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          unava.push(d.toISOString().split("T")[0]);
+        }
+      });
+      setUnavailableDates(unava);
+    } catch (err) {
+      console.error("Error fetch booked slots on date change:", err);
     }
   };
 
   // ====== CHỌN GIỜ ======
   const handleTimeSelect = (time) => {
-    if (!bookedTimes.includes(time)) {
-      setForm((prev) => ({ ...prev, time }));
-    }
+    const bookedTimes = form.date ? bookedTimesByDate[form.date] || [] : [];
+    if (!bookedTimes.includes(time)) setForm((prev) => ({ ...prev, time }));
   };
 
   // ====== DỊCH VỤ ======
@@ -161,7 +207,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
     }
 
     const payload = {
-      idCustomer: customerId || 0,
+      idCustomer: customerId || 0, // ✅ nếu không có id thì gán 0
       idBranch: form.branchId,
       idBarber: form.barberId,
       bookingDate: form.date,
@@ -192,7 +238,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
       }
 
       alert("✅ Đặt lịch trực tiếp thành công!");
-      if (onSuccess) onSuccess(); // ✅ gọi callback reload
+      if (onSuccess) onSuccess();
       else onClose();
     } catch (err) {
       console.error("Network error:", err);
@@ -201,7 +247,9 @@ export default function DirectBooking({ onClose, onSuccess }) {
   };
 
   const totalPrice = form.services.reduce((sum, s) => sum + Number(s.price), 0);
+  const bookedTimes = form.date ? bookedTimesByDate[form.date] || [] : [];
 
+  // ====== UI ======
   return (
     <div className={styles.overlay}>
       <div className={styles.form}>
@@ -210,7 +258,6 @@ export default function DirectBooking({ onClose, onSuccess }) {
         </button>
         <h2>Đặt lịch trực tiếp</h2>
 
-        {/* Cuộn nếu nội dung dài */}
         <div className={styles.scrollable}>
           <div className={styles.formContent}>
             {/* Loại khách hàng */}
@@ -228,11 +275,11 @@ export default function DirectBooking({ onClose, onSuccess }) {
                         ...prev,
                         customerType: "existing",
                         name: "",
-                        services: [],
                         branchId: "",
                         barberId: "",
                         date: "",
                         time: "",
+                        services: [],
                       }))
                     }
                   />
@@ -249,11 +296,11 @@ export default function DirectBooking({ onClose, onSuccess }) {
                         ...prev,
                         customerType: "new",
                         name: "Khách vãng lai",
-                        services: [],
                         branchId: "",
                         barberId: "",
                         date: "",
                         time: "",
+                        services: [],
                       }))
                     }
                   />
@@ -262,7 +309,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
               </div>
             </div>
 
-            {/* Nếu khách có tài khoản */}
+            {/* Số điện thoại */}
             {form.customerType === "existing" && (
               <>
                 <div className={styles.section}>
@@ -289,7 +336,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
               </>
             )}
 
-            {/* Chọn chi nhánh */}
+            {/* Chi nhánh */}
             <div className={styles.section}>
               <label>Chi nhánh:</label>
               <select value={form.branchId} onChange={handleBranchChange}>
@@ -302,7 +349,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
               </select>
             </div>
 
-            {/* Thợ cắt */}
+            {/* Barber */}
             <div className={styles.section}>
               <label>Thợ cắt:</label>
               <select value={form.barberId} onChange={handleBarberChange} disabled={!barbers.length}>
@@ -320,7 +367,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
               <label>Ngày:</label>
               <select value={form.date} onChange={handleDateChange}>
                 <option value="">-- Chọn ngày --</option>
-                {[...Array(7)].map((_, i) => {
+                {[...Array(8)].map((_, i) => {
                   const d = new Date();
                   d.setDate(today.getDate() + i);
                   const value = d.toISOString().split("T")[0];
@@ -328,10 +375,12 @@ export default function DirectBooking({ onClose, onSuccess }) {
                     weekday: "short",
                     day: "2-digit",
                     month: "2-digit",
+                    year: "numeric",
                   });
+                  const isUnavailable = unavailableDates.includes(value);
                   return (
-                    <option key={i} value={value}>
-                      {label}
+                    <option key={i} value={value} disabled={isUnavailable}>
+                      {label} {isUnavailable ? "(Nghỉ)" : ""}
                     </option>
                   );
                 })}
@@ -343,16 +392,29 @@ export default function DirectBooking({ onClose, onSuccess }) {
               <label>Giờ:</label>
               <div className={styles.timeGrid}>
                 {times.map((time, i) => {
+                  let isPast = false;
+                  if (form.date) {
+                    const todayStr = today.toISOString().split("T")[0];
+                    if (form.date === todayStr) {
+                      const [hh, mm] = time.split(":").map(Number);
+                      const slotDate = new Date(today);
+                      slotDate.setHours(hh, mm, 0, 0);
+                      if (slotDate < today) isPast = true;
+                    }
+                  }
+
                   const isBooked = bookedTimes.includes(time);
+                  const disabled = isBooked || isPast || !form.date;
+
                   return (
                     <button
                       key={i}
                       type="button"
-                      className={`${styles.timeSlot} ${isBooked ? styles.booked : ""} ${
+                      className={`${styles.timeSlot} ${isBooked || isPast ? styles.booked : ""} ${
                         form.time === time ? styles.selected : ""
                       }`}
                       onClick={() => handleTimeSelect(time)}
-                      disabled={isBooked}
+                      disabled={disabled}
                     >
                       {time}
                     </button>

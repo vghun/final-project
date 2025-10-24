@@ -242,6 +242,19 @@ export const getAllBookingDetails = async (req, res) => {
           as: "BookingTip",
           attributes: ["tipAmount"],
         },
+
+        // ✅ Thêm phần này để lấy voucher thông qua CustomerVoucher
+        {
+          model: db.CustomerVoucher,
+          include: [
+            {
+              model: db.Voucher,
+              as: "voucher",
+              attributes: ["idVoucher", "title", "discountPercent", "description"],
+            },
+          ],
+          attributes: ["id", "voucherCode", "status", "usedAt"],
+        },
       ],
       order: [["bookingDate", "DESC"]],
     });
@@ -255,6 +268,9 @@ export const getAllBookingDetails = async (req, res) => {
       const isPaid =
         booking.isPaid !== undefined ? Boolean(booking.isPaid) : booking.status?.toLowerCase() === "completed";
 
+      // ✅ Lấy voucher nếu có
+      const voucher = booking.CustomerVoucher?.voucher;
+
       return {
         idBooking: booking.idBooking,
         bookingDate: booking.bookingDate,
@@ -262,7 +278,14 @@ export const getAllBookingDetails = async (req, res) => {
         status: booking.status || "Pending",
         isPaid,
         description: booking.description || "",
-
+        idVoucher: voucher?.idVoucher || null,
+        voucher: voucher
+          ? {
+              title: voucher.title,
+              discountPercent: parseFloat(voucher.discountPercent),
+              description: voucher.description,
+            }
+          : null,
         customer: booking.Customer
           ? {
               id: booking.Customer.idCustomer,
@@ -271,7 +294,6 @@ export const getAllBookingDetails = async (req, res) => {
               phone: booking.Customer.user?.phoneNumber,
             }
           : null,
-
         barber: booking.barber
           ? {
               id: booking.barber.idBarber,
@@ -279,7 +301,6 @@ export const getAllBookingDetails = async (req, res) => {
               branch: booking.barber.branch?.name,
             }
           : null,
-
         branch: booking.barber?.branch
           ? {
               id: booking.barber.branch.idBranch,
@@ -287,28 +308,32 @@ export const getAllBookingDetails = async (req, res) => {
               address: booking.barber.branch.address,
             }
           : null,
-
         services: details.map((d) => ({
           id: d.service?.idService,
           name: d.service?.name,
           price: parseFloat(d.service?.price),
           quantity: d.quantity,
         })),
-
         subTotal: subTotal.toFixed(2),
         tip: tip.toFixed(2),
         total: total.toFixed(2),
       };
     });
 
-    res.status(200).json({ message: "Lấy danh sách booking thành công", data: result });
+    res.status(200).json({
+      message: "Lấy danh sách booking thành công",
+      data: result,
+    });
   } catch (error) {
     console.error("❌ Lỗi khi lấy danh sách booking chi tiết:", error);
-    res.status(500).json({ message: "Lỗi khi lấy danh sách booking chi tiết", error });
+    res.status(500).json({
+      message: "Lỗi khi lấy danh sách booking chi tiết",
+      error,
+    });
   }
 };
 
-// ✅ Thanh toán booking
+// ✅ Thanh toán booking + cộng điểm theo rule linh hoạt
 export const payBooking = async (req, res) => {
   const t = await db.sequelize.transaction();
 
@@ -327,6 +352,7 @@ export const payBooking = async (req, res) => {
       return res.status(400).json({ message: "Lịch hẹn này đã được thanh toán" });
     }
 
+    // ✅ Cập nhật dịch vụ
     if (Array.isArray(services) && services.length > 0) {
       await db.BookingDetail.destroy({ where: { idBooking }, transaction: t });
       const newDetails = services.map((idService) => ({
@@ -337,17 +363,12 @@ export const payBooking = async (req, res) => {
       await db.BookingDetail.bulkCreate(newDetails, { transaction: t });
     }
 
+    // ✅ Nếu có tip
     if (tip && Number(tip) > 0) {
-      await db.BookingTip.create(
-        {
-          idBooking,
-          idBarber: booking.idBarber,
-          tipAmount: tip,
-        },
-        { transaction: t }
-      );
+      await db.BookingTip.create({ idBooking, idBarber: booking.idBarber, tipAmount: tip }, { transaction: t });
     }
 
+    // ✅ Cập nhật trạng thái booking
     await booking.update(
       {
         isPaid: true,
@@ -357,8 +378,45 @@ export const payBooking = async (req, res) => {
       { transaction: t }
     );
 
-    await t.commit();
+    // ===== 🎯 CỘNG ĐIỂM LOYALTY =====
+    const customer = await db.Customer.findByPk(booking.idCustomer, { transaction: t });
+    if (customer) {
+      const now = new Date();
+      const orderTotal = total || booking.total;
 
+      // 🔍 Tìm rule phù hợp nhất
+      let rule = await db.LoyaltyRule.findOne({
+        where: {
+          is_active: true,
+          [db.Sequelize.Op.or]: [{ start_date: null }, { start_date: { [db.Sequelize.Op.lte]: now } }],
+          [db.Sequelize.Op.or]: [{ end_date: null }, { end_date: { [db.Sequelize.Op.gte]: now } }],
+          min_order_amount: { [db.Sequelize.Op.lte]: orderTotal },
+        },
+        order: [["min_order_amount", "DESC"]],
+        transaction: t,
+      });
+
+      // Nếu không có rule phù hợp → rule mặc định
+      if (!rule) {
+        rule = await db.LoyaltyRule.findOne({
+          where: { is_default: true, is_active: true },
+          transaction: t,
+        });
+      }
+
+      if (rule) {
+        const points = Math.floor((orderTotal / rule.money_per_point) * rule.point_multiplier);
+        if (points > 0) {
+          const newPoints = customer.loyaltyPoint + points;
+          await customer.update({ loyaltyPoint: newPoints }, { transaction: t });
+
+          console.log(`🎁 Cộng ${points} điểm (rule min ${rule.min_order_amount}) cho khách #${customer.idCustomer}`);
+        }
+      }
+    }
+
+    // ===== ✅ HOÀN TẤT =====
+    await t.commit();
     return res.status(200).json({
       message: "Thanh toán thành công 🎉",
       booking: { idBooking: booking.idBooking, total, isPaid: true },
@@ -382,11 +440,7 @@ export const getBookedSlotsByBarber = async (req, res) => {
     }
 
     // 🧠 Gọi service
-    const result = await bookingService.getBookedSlotsByBarber(
-      parseInt(branchId),
-      parseInt(idBarber),
-      date
-    );
+    const result = await bookingService.getBookedSlotsByBarber(parseInt(branchId), parseInt(idBarber), date);
 
     return res.status(200).json(result);
   } catch (error) {
