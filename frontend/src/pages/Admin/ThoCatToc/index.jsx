@@ -148,17 +148,26 @@ function ThoCatToc() {
     setShowModal(true);
   };
 
-  const openEditModal = (barber) => {
+  const openEditModal = async (barber) => {
     setSelectedBarber(barber);
-    setEditData({
-      fullName: barber.fullName || "",
-      phoneNumber: barber.phoneNumber || "",
-      email: barber.email || "",
-      password: "",
-      idBranch: barber.idBranch || "",
-      profileDescription: barber.profileDescription || "",
-    });
-    setShowEditModal(true);
+    try {
+      // 🔹 Gọi API lấy thông tin chi tiết thợ
+      const detail = await BarberAPI.getProfile(barber.idBarber);
+
+      setEditData({
+        fullName: detail.fullName || "",
+        phoneNumber: detail.phoneNumber || "",
+        email: detail.email || "",
+        password: "",
+        idBranch: detail.idBranch || "",
+        profileDescription: detail.profileDescription?.trim() || "",
+      });
+
+      setShowEditModal(true);
+    } catch (error) {
+      console.error("❌ Lỗi khi tải chi tiết thợ:", error);
+      alert("Không thể tải thông tin thợ để chỉnh sửa!");
+    }
   };
 
   const handleEditSubmit = async (e) => {
@@ -577,10 +586,6 @@ function ThoCatToc() {
           <div className={cx("modal")}>
             <h3>Thêm lịch nghỉ phép cho thợ</h3>
             <form onSubmit={handleLeaveSubmit}>
-              <p>
-                Thợ: <strong>{leaveData.idBarber}</strong>
-              </p>
-
               <label>Từ ngày</label>
               <input
                 type="date"

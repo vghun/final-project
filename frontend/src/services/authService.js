@@ -7,7 +7,7 @@ export const login = async ({ email, password }) => {
     console.log("API login trả về:", res);
     return res;
   } catch (error) {
-    throw error.response?.data || error;
+    throw error;
   }
 };
 
@@ -58,7 +58,10 @@ export const verifyForgotOtp = async ({ email, otp }) => {
 // Đặt lại mật khẩu mới
 export const resetPassword = async ({ email, newPassword }) => {
   try {
-    const res = await request.post("/auth/reset-password", { email, newPassword });
+    const res = await request.post("/auth/reset-password", {
+      email,
+      newPassword,
+    });
     return res;
   } catch (error) {
     throw error.response?.data || error;
