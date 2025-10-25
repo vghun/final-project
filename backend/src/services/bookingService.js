@@ -1,7 +1,7 @@
 import db from "../models/index.js";
-import { Op,Sequelize } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import moment from "moment";
-import { sendBookingEmail } from "./mailService.js"; 
+import { sendBookingEmail } from "./mailService.js";
 
 // Lấy tất cả chi nhánh
 export const getBranches = async (req, res) => {
@@ -112,7 +112,7 @@ export const createBookingService = async ({
   });
 
   // Tính tổng giá
-  const total = services.reduce((sum, s) => sum + (s.price * (s.quantity || 1)), 0);
+  const total = services.reduce((sum, s) => sum + s.price * (s.quantity || 1), 0);
 
   // Tạo booking
   const booking = await db.Booking.create({
@@ -128,26 +128,26 @@ export const createBookingService = async ({
   });
 
   // Tạo chi tiết dịch vụ
-const serviceDetails = [];
-for (const s of services) {
-  const service = await db.Service.findByPk(s.idService);
-  if (service) {
-    serviceDetails.push({
-      idService: service.idService,
-      name: service.name,
-      price: s.price, // giữ giá từ booking
-      quantity: s.quantity || 1,
+  const serviceDetails = [];
+  for (const s of services) {
+    const service = await db.Service.findByPk(s.idService);
+    if (service) {
+      serviceDetails.push({
+        idService: service.idService,
+        name: service.name,
+        price: s.price, // giữ giá từ booking
+        quantity: s.quantity || 1,
+      });
+    }
+  }
+  for (const s of serviceDetails) {
+    await db.BookingDetail.create({
+      idBooking: booking.idBooking,
+      idService: s.idService,
+      quantity: s.quantity,
+      price: s.price,
     });
   }
-}
-for (const s of serviceDetails) {
-  await db.BookingDetail.create({
-    idBooking: booking.idBooking,
-    idService: s.idService,
-    quantity: s.quantity,
-    price: s.price,
-  });
-}
   // Lấy email khách
   const customer = await db.Customer.findByPk(idCustomer, {
     include: [{ model: db.User, as: "user", attributes: ["email", "fullName"] }],
@@ -288,12 +288,7 @@ export const getBookedSlotsByBarber = async (idBranch, idBarber, bookingDate) =>
     const bookings = await db.Booking.findAll({
       where: {
         idBarber,
-        [Op.and]: [
-          Sequelize.where(
-            Sequelize.fn("DATE", Sequelize.col("bookingDate")),
-            normalizedDate
-          ),
-        ],
+        [Op.and]: [Sequelize.where(Sequelize.fn("DATE", Sequelize.col("bookingDate")), normalizedDate)],
         status: { [Op.not]: "Cancelled" },
       },
       attributes: ["bookingTime"],

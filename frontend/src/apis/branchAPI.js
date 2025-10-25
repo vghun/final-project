@@ -24,4 +24,21 @@ export const BranchAPI = {
     const result = await branchService.toggleBranchStatus(id);
     return result;
   },
+
+  assignService: async (idBranch, idService) => {
+    const result = await branchService.assignServiceToBranch(
+      idBranch,
+      idService
+    );
+    return result;
+  },
+
+  // 🔹 Bỏ gán dịch vụ khỏi chi nhánh
+  unassignService: async (idBranch, idService) => {
+    const result = await branchService.unassignServiceFromBranch(
+      idBranch,
+      idService
+    );
+    return result;
+  },
 };

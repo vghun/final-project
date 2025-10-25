@@ -1,0 +1,121 @@
+.card {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 10px;
+  background: #fff; // nền trắng
+  cursor: pointer;
+  overflow: visible;
+  overflow: visible;   // quan trọng, cho phép panel "tràn" ra
+  z-index: 1;        
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  // Nổi lên ngay cả khi không hover
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); // nhẹ nhàng
+  border: 1px solid rgba(0,0,0,0.05);
+
+  &:hover {
+    z-index: 100; 
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2); // khi hover nổi bật hơn
+    border-color: rgba(0,0,0,0.1);
+  }
+}
+
+
+.imageWrap {
+  width: 120px;         // avatar lớn hơn
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.ratingBadge {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;    // font lớn hơn
+  padding: 3px 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  .name {
+    font-size: 18px;      // to hơn
+    font-weight: 700;
+    margin: 0 0 4px 0;
+  }
+
+  .branch {
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 6px;
+  }
+
+  .bookBtn {
+    margin-top: auto;
+    padding: 8px 16px;   // button lớn hơn
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+      background: #eee;
+    }
+  }
+
+  .hoverPanel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 440px;         // panel rộng hơn
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    margin-top: 12px;
+    padding: 16px;        // padding lớn hơn
+    display: flex;
+    gap: 16px;
+    z-index: 1000;
+
+    .panelLeft {
+      flex: 0 0 160px;    // avatar lớn trong panel
+      img {
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        object-fit: cover;
+      }
+    }
+
+.panelRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;   // khoảng cách trên/dưới cố định
+  justify-content: flex-start;
+}
+
+  }
+}

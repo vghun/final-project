@@ -8,6 +8,7 @@ const routes = {
   thoCatToc: "/tho-cat-toc",
   booking: "/booking",
   barberProfile: "/barber/:id",
+  team: "/team",
 
 };
 

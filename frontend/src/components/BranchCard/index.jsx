@@ -22,6 +22,7 @@ function BranchCard({
   onEdit,
   onDelete,
   onToggle,
+  onManageServices,
 }) {
   const isActive = status === "Hoạt động";
 
@@ -50,6 +51,9 @@ function BranchCard({
       </div>
 
       <div className={cx("actions")}>
+        <button className={cx("serviceBtn")} onClick={onManageServices}>
+          ⚙️ Dịch vụ
+        </button>
         <button className={cx("editBtn")} onClick={onEdit}>
           <FontAwesomeIcon icon={faPenToSquare} /> Sửa
         </button>

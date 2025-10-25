@@ -48,4 +48,8 @@ export const BarberAPI = {
   updateProfile: async (idBarber, payload, token) => {
     return await barberService.updateProfile(idBarber, payload, token);
   },
+  getBarberForHome : async () => {
+    const result = await barberService.getBarbersForHome();
+    return result;
+  }
 };
