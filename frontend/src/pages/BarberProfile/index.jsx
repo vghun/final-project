@@ -7,6 +7,7 @@ import VideoCard from "~/components/VideoCard";
 import VideoDetailDialog from "~/components/VideoDetailDialog";
 import { useAuth } from "~/context/AuthContext"; // 🟢 THÊM
 import { useToast } from "~/context/ToastContext";
+import { useNavigate } from "react-router-dom";
 
 function BarberProfile() {
   const { id } = useParams(); // /barber/:id
@@ -17,6 +18,7 @@ function BarberProfile() {
   const [loading, setLoading] = useState(true);
   const { accessToken, isLogin, loading: isAuthLoading } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Hoãn việc tải data cho đến khi AuthContext xác định xong trạng thái
@@ -40,6 +42,12 @@ function BarberProfile() {
     };
     loadData();
   }, [id, accessToken, isAuthLoading]);
+
+  const handleHashtagClick = (tag) => {
+  navigate("/reels", {
+    state: { keyword: `#${tag}` }
+  });
+};
 
   const handleOpenDetail = (idx) => {
     if (!isLogin) {
@@ -131,6 +139,7 @@ function BarberProfile() {
           onToggleLike={handleLike}
           onToggleGlobalMuted={() => setGlobalMuted((prev) => !prev)}
           fromReelPlayer={false}
+          onHashtagClick={handleHashtagClick}
         />
       )}
     </div>

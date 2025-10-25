@@ -5,7 +5,7 @@ import { completeBooking } from "~/services/bookingService";
 function CompleteAppointmentDialog({ open, onClose, appointment }) {
   const [description, setDescription] = useState("");
   // Thêm state để kiểm soát trạng thái tải (loading)
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
   const [images, setImages] = useState({
     front: null,
     left: null,
@@ -19,24 +19,35 @@ function CompleteAppointmentDialog({ open, onClose, appointment }) {
     const file = e.target.files[0];
     if (file) {
       setImages((prev) => ({ ...prev, [position]: file }));
+    } else {
+      setImages((prev) => ({ ...prev, [position]: null }));
     }
   };
+
+  const truncateFileName = (name, maxLength = 12) => {
+      if (name.length <= maxLength) return name;
+      const ext = name.split(".").pop();
+      return name.substring(0, maxLength) + "... ." + ext;
+    };
 
   const handleSubmit = async () => {
     // 1. Kiểm tra nếu đang tải, THOÁT NGAY để tránh ấn liên tục
     if (isLoading) {
       return;
     }
-
+    // 🌟 THAY ĐỔI: BẮT BUỘC upload đủ 4 ảnh
     const uploadedCount = Object.values(images).filter((img) => img !== null).length;
-    if (uploadedCount === 0) {
-      alert("Vui lòng upload ít nhất 1 ảnh trước khi hoàn thành.");
+
+    // Nếu chưa đủ 4 ảnh, hiện cảnh báo và thoát
+    if (uploadedCount < 4) {
+      alert("Vui lòng upload đủ 4 ảnh (FRONT, LEFT, RIGHT, BACK) trước khi hoàn thành.");
       return;
     }
 
     // Bắt đầu tải: Set isLoading = true
-    setIsLoading(true); 
+    setIsLoading(true);
 
+    // ... (logic tạo formData và gọi API giữ nguyên)
     const formData = new FormData();
     formData.append("description", description);
     formData.append("idBarber", appointment.idBarber);
@@ -44,6 +55,7 @@ function CompleteAppointmentDialog({ open, onClose, appointment }) {
     formData.append("idBooking", appointment.idBooking);
 
     Object.entries(images).forEach(([key, file]) => {
+      // Ở đây có thể bỏ kiểm tra if (file) vì đã chắc chắn có 4 file
       if (file) formData.append(key, file);
     });
 
@@ -57,11 +69,12 @@ function CompleteAppointmentDialog({ open, onClose, appointment }) {
       alert("Lỗi khi hoàn tất dịch vụ.");
     } finally {
       // Kết thúc tải: Set isLoading = false
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
-  const isSubmitDisabled = Object.values(images).every((img) => img === null) || isLoading;
+  const isAllImagesUploaded = Object.values(images).every((img) => img !== null);
+  const isSubmitDisabled = !isAllImagesUploaded || isLoading;
 
   return (
     <div className={styles.overlay}>
@@ -77,7 +90,7 @@ function CompleteAppointmentDialog({ open, onClose, appointment }) {
 
         <div className={styles.body}>
           {/* Vô hiệu hóa toàn bộ input khi đang tải */}
-          <fieldset disabled={isLoading}> 
+          <fieldset disabled={isLoading}>
             {/* Tên khách hàng */}
             <div className={styles.formGroup}>
               <label>Tên khách hàng</label>
@@ -113,8 +126,11 @@ function CompleteAppointmentDialog({ open, onClose, appointment }) {
                       onChange={(e) => handleFileChange(e, pos)}
                     />
                     {images[pos] && (
-                      <span className={styles.fileName}>{images[pos].name}</span>
+                      <span className={styles.fileName}>
+                        {truncateFileName(images[pos].name)}
+                      </span>
                     )}
+
                   </div>
                 ))}
               </div>

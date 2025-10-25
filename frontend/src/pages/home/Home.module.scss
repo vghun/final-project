@@ -139,8 +139,8 @@
 }
 
 .slideItem {
-  flex: 0 0 calc(33.333% - 1rem); /* Hiển thị khoảng 3 thẻ */
-  min-width: calc(33.333% - 1rem);
+  flex: 0 0 calc(25% - 1rem); /* Hiển thị khoảng 3 thẻ */
+  min-width: calc(25% - 1rem);
   max-width: 200px; /* Giới hạn chiều rộng thẻ */
   background: #fff;
   border-radius: 12px;
