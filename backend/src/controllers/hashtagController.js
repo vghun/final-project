@@ -1,4 +1,4 @@
-import { getHashtagsService, linkHashtagsToReelService } from "../services/hashtagService.js";
+import { getHashtagsService, linkHashtagsToReelService, getTopHashtagsService } from "../services/hashtagService.js";
 
 // Lấy danh sách hashtag gợi ý
 export const getHashtags = async (req, res) => {
@@ -32,4 +32,14 @@ export const linkHashtagsToReel = async (req, res) => {
         console.error("Lỗi khi liên kết hashtag với reel:", err);
         res.status(500).json({ error: "Lỗi nội bộ khi liên kết hashtag." });
     }
+};
+
+export const getTopHashtags = async (req, res) => {
+  try {
+    const topTags = await getTopHashtagsService();
+    res.json(topTags);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Lỗi khi lấy top hashtag" });
+  }
 };
