@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"; // nhớ thêm dòng này đầu file
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./VideoDetailDialog.module.scss";
 import {
@@ -21,10 +22,12 @@ function VideoDetailDialog({
   onChangeVideo,
   token,
   globalMuted = true,
-  onToggleGlobalMuted = () => {},
-  redirectToLogin = () => console.log('Login modal not passed!'),
+  onToggleGlobalMuted = () => { },
+  redirectToLogin = () => console.log("Login modal not passed!"),
   fromReelPlayer = false,
+  onHashtagClick = () => { }, // 🆕 thêm prop mới
 }) {
+
   const reel = reels[currentIndex];
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -41,12 +44,12 @@ function VideoDetailDialog({
 
   const handleAction = async (apiCall) => {
     try {
-      return await apiCall(); 
+      return await apiCall();
     } catch (err) {
       console.error("Lỗi xác thực/hành động:", err);
       // Xử lý nếu token bị hết hạn/không hợp lệ khi đang sử dụng
       if (err.response?.status === 401) {
-        redirectToLogin(); 
+        redirectToLogin();
       }
       return null;
     }
@@ -69,8 +72,8 @@ function VideoDetailDialog({
         videoRef.current &&
         videoRef.current.currentTime * 1000 >= MIN_VIEW_DURATION_MS
       ) {
-        if (!isViewTrackedRef.current && token) { 
-          trackReelView(reel.idReel, token).catch(console.error); 
+        if (!isViewTrackedRef.current && token) {
+          trackReelView(reel.idReel, token).catch(console.error);
           isViewTrackedRef.current = true;
         }
         videoRef.current.removeEventListener("timeupdate", handleTimeUpdate);
@@ -132,7 +135,7 @@ function VideoDetailDialog({
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || !token) return; 
+    if (!newComment.trim() || !token) return;
     const cmt = await handleAction(() => addComment(reel.idReel, newComment, token));
     if (cmt) {
       setComments([...comments, { ...cmt, replies: [] }]);
@@ -225,7 +228,12 @@ function VideoDetailDialog({
         {/* 📝 Info + Comments */}
         <div className={styles.infoSection}>
           <div className={styles.header}>
-            <div className={styles.reelMeta}>
+            <Link
+              to={`/barber/${reel.Barber?.idBarber}`}
+              className={styles.reelMeta}
+              onClick={onClose} // ✅ Đóng dialog trước khi điều hướng
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
               <img
                 src={reel.Barber?.user?.image || "/user.png"}
                 alt="avatar"
@@ -239,15 +247,36 @@ function VideoDetailDialog({
                   {new Date(reel.createdAt).toLocaleString("vi-VN")}
                 </span>
               </div>
-            </div>
+            </Link>
           </div>
 
           <div className={styles.titleSection}>
-            <h3 className={styles.reelTitle}>{reel.title || "Không có tiêu đề"}</h3>
+            <h3 className={styles.reelTitle}>
+              {reel.title
+                ? reel.title.split(/(\s+)/).map((word, i) =>
+                  word.startsWith("#") ? (
+                    <span
+                      key={i}
+                      className={styles.hashtag}
+                      onClick={() => {
+                        onClose(); // 🆕 Đóng dialog trước
+                        setTimeout(() => onHashtagClick(word.substring(1)), 300); // Gọi tìm kiếm hashtag sau 0.3s
+                      }}
+                      style={{ color: "#1DA1F2", cursor: "pointer" }}
+                    >
+                      {word}
+                    </span>
+                  ) : (
+                    word
+                  )
+                )
+                : "Không có tiêu đề"}
+            </h3>
           </div>
 
+
           <div className={styles.descriptionBox}>
-            <pre className={styles.desc}>{reel.description || "Chưa có mô tả chi tiết"}</pre> 
+            <pre className={styles.desc}>{reel.description || "Chưa có mô tả chi tiết"}</pre>
           </div>
 
           <div className={styles.commentsContainer}>
@@ -307,9 +336,8 @@ function VideoDetailDialog({
                         type="text"
                         value={newReply}
                         onChange={(e) => setNewReply(e.target.value)}
-                        placeholder={`Trả lời ${
-                          cmt.User?.fullName || "bình luận"
-                        }...`}
+                        placeholder={`Trả lời ${cmt.User?.fullName || "bình luận"
+                          }...`}
                       />
                       <button
                         onClick={() => handleAddReply(cmt.idComment)}

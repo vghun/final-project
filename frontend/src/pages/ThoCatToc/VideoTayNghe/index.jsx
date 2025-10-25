@@ -4,8 +4,9 @@ import VideoCard from "~/components/VideoCard";
 import VideoDetailDialog from "~/components/VideoDetailDialog";
 import UploadVideoDialog from "~/components/UploadVideoDialog";
 import { fetchReelsByBarberId } from "~/services/reelService";
-import { useAuth } from "~/context/AuthContext"; 
+import { useAuth } from "~/context/AuthContext";
 import { useToast } from "~/context/ToastContext";
+import { useNavigate } from "react-router-dom";
 
 function VideoTayNghe() {
 
@@ -14,34 +15,41 @@ function VideoTayNghe() {
   const [reels, setReels] = useState([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(null);
-  const [globalMuted, setGlobalMuted] = useState(true); 
+  const [globalMuted, setGlobalMuted] = useState(true);
   const [loading, setLoading] = useState(true);
   const idBarber = user.idUser; // Add globalMuted state
+  const navigate = useNavigate();
 
   const openDetail = (index) => {
     setCurrentIndex(index);
     setGlobalMuted(false); // Unmute when opening VideoDetailDialog
   };
 
+  const handleHashtagClick = (tag) => {
+    navigate("/reels", {
+      state: { keyword: `#${tag}` }
+    });
+  };
+
   useEffect(() => {
-        if (isAuthLoading || !idBarber) {
-            setLoading(false); 
-            return;
-        }
-        const loadReels = async () => {
-            setLoading(true);
-            try {
-                const data = await fetchReelsByBarberId(idBarber, 1, 20, accessToken);
-                setReels(data);
-            } catch (error) {
-                console.error("Lỗi khi tải reels của Barber:", error);
-                showToast({ text: "Không thể tải video, vui lòng thử lại.", type: "error" });
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadReels();
-    }, [idBarber, accessToken, isAuthLoading, showToast]);
+    if (isAuthLoading || !idBarber) {
+      setLoading(false);
+      return;
+    }
+    const loadReels = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchReelsByBarberId(idBarber, 1, 20, accessToken);
+        setReels(data);
+      } catch (error) {
+        console.error("Lỗi khi tải reels của Barber:", error);
+        showToast({ text: "Không thể tải video, vui lòng thử lại.", type: "error" });
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadReels();
+  }, [idBarber, accessToken, isAuthLoading, showToast]);
 
   const toggleLike = (idReel, isLiked, likesCount) => {
     setReels((prev) =>
@@ -89,7 +97,8 @@ function VideoTayNghe() {
           token={accessToken}
           globalMuted={globalMuted}
           onToggleGlobalMuted={() => setGlobalMuted((prev) => !prev)}
-          fromReelPlayer={false} // Indicate not from ReelPlayer
+          fromReelPlayer={false}
+          onHashtagClick={handleHashtagClick} 
         />
       )}
 
