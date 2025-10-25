@@ -32,3 +32,19 @@ export const linkHashtagsToReelService = async (idReel, hashtags = []) => {
     
     return { linkedCount };
 };
+
+export const getTopHashtagsService = async () => {
+  const [results] = await db.sequelize.query(`
+    SELECT 
+      h.idHashtag,
+      h.name,
+      COUNT(rh.idReel) AS usageCount
+    FROM hashtags h
+    LEFT JOIN reel_hashtags rh ON h.idHashtag = rh.idHashtag
+    GROUP BY h.idHashtag, h.name
+    ORDER BY usageCount DESC
+    LIMIT 10;
+  `);
+
+  return results;
+};

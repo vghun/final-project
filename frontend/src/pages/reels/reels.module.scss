@@ -88,7 +88,7 @@
 
   .videoContainer {
     width: 100%;
-    max-width: 500px;
+    max-width: 300px;
     aspect-ratio: 9/16;
     background-color: #fff;
     border-radius: 20px;
@@ -228,4 +228,40 @@
             text-decoration: underline;
         }
     }
+}
+
+.topHashtagBox {
+  margin-top: 20px;
+  padding: 12px 15px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+
+  .topHashtagTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 8px;
+  }
+
+  .hashtagList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hashtagItem {
+    color: #060270;
+    border: none;
+    border-radius: 15px;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #ffcc80;
+    }
+  }
 }

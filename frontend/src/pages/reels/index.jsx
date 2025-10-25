@@ -4,18 +4,21 @@ import ReelPlayer from "~/components/ReelPlayer";
 import VideoDetailDialog from "~/components/VideoDetailDialog";
 import VideoCard from "~/components/VideoCard"; // dùng lại VideoCard khi search
 import { fetchReelsPaged, searchReels } from "~/services/reelService";
-import { getHashtags } from "~/services/hashtagService";
+import { getHashtags, getTopHashtags } from "~/services/hashtagService";
 import { useAuth } from "~/context/AuthContext";
 import { useToast } from "~/context/ToastContext";
+import { useLocation } from "react-router-dom";
 
 const PAGE_SIZE = 3;
 const SCROLL_COOLDOWN_MS = 1500;
 
 function Reel() {
+  const location = useLocation();
   const { accessToken, isLogin, loading: isAuthLoading } = useAuth();
   const { showToast } = useToast();
 
-  const[hashtagSuggestions, setHashtagSuggestions] = useState([]);
+  const [hashtagSuggestions, setHashtagSuggestions] = useState([]);
+  const [topHashtags, setTopHashtags] = useState([]);
 
   // --- nguyên logic cũ (giữ nguyên)
   const [reels, setReels] = useState([]);
@@ -37,6 +40,7 @@ function Reel() {
   const rightColumnRef = useRef(null);
   const touchStartY = useRef(0);
   const isFetchingRef = useRef(false);
+
 
   // --- loadMore giữ nguyên
   const loadMore = async () => {
@@ -63,6 +67,45 @@ function Reel() {
       isFetchingRef.current = false;
     }
   };
+
+  useEffect(() => {
+    const tag = location.state?.keyword;
+
+    // ✅ Nếu đi từ BarberProfile (có keyword)
+    if (tag) {
+      setKeyword(tag);
+      performSearch(tag);
+    }
+    // ✅ Nếu không có keyword => reset search state
+    else {
+      setIsSearching(false);
+      setSearchResults([]);
+      setKeyword("");
+    }
+
+    // ✅ Reset scroll UI
+    window.scrollTo({ top: 0 });
+    if (rightColumnRef.current) {
+      rightColumnRef.current.scrollTop = 0;
+    }
+
+  }, [location.state]);
+
+  useEffect(() => {
+    if (location.state?.keyword) {
+      const tag = location.state.keyword;
+      setKeyword(tag);
+      performSearch(tag); // ✅ Tự động gọi search luôn
+    }
+  }, [location.state]);
+
+
+  useEffect(() => {
+    getTopHashtags()
+      .then(data => setTopHashtags(data || []))
+      .catch(err => console.error("Lỗi load top hashtag:", err));
+  }, []);
+
 
   useEffect(() => {
     const match = keyword.match(/#(\w+)$/);
@@ -175,8 +218,12 @@ function Reel() {
       const data = await searchReels(q, accessToken);
       setSearchResults(data || []);
       setIsSearching(true);
-      // Sau khi search, cuộn lên đầu cột phải
-      rightColumnRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+
+      setTimeout(() => {
+        if (rightColumnRef.current) {
+          rightColumnRef.current.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }, 50);
     } catch (err) {
       console.error("Lỗi tìm kiếm:", err);
       showToast({
@@ -185,8 +232,10 @@ function Reel() {
       });
     } finally {
       setSearchLoading(false);
+      window.history.replaceState({}, document.title);
     }
   };
+
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -316,6 +365,22 @@ function Reel() {
             Clear search
           </button>
         )}
+        {topHashtags.length > 0 && (
+          <div className={styles.topHashtagBox}>
+            <p className={styles.topHashtagTitle}>🔥 Hashtag nổi bật</p>
+            <div className={styles.hashtagList}>
+              {topHashtags.map(tag => (
+                <button
+                  key={tag.idHashtag}
+                  className={styles.hashtagItem}
+                  onClick={() => handleHashtagSearch(tag.name)}
+                >
+                  #{tag.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div
@@ -323,7 +388,12 @@ function Reel() {
         ref={rightColumnRef}
         style={{
           position: "relative",
-          backgroundColor: "#E8E8E8",
+
+          backgroundImage: 'url("/Reel.png")',
+          backgroundSize: "cover", // Đảm bảo ảnh phủ kín toàn bộ phần tử
+          backgroundPosition: "center", // Căn giữa ảnh
+          backgroundRepeat: "no-repeat", // Tránh lặp lại ảnh
+          // ------------------------
 
           overflow: isSearching ? "auto" : "hidden",
           scrollBehavior: "smooth",
@@ -370,6 +440,13 @@ function Reel() {
                           )
                         }
                         onOpenDetail={() => {
+                          if (!isLogin) {
+                            showToast({
+                              text: "Vui lòng đăng nhập để xem chi tiết video",
+                              type: "error"
+                            });
+                            return;
+                          }
                           setDetailIndex(i);
                           setShowDetail(true);
                         }}
@@ -428,6 +505,7 @@ function Reel() {
               globalMuted={globalMuted}
               onToggleGlobalMuted={() => setGlobalMuted((prev) => !prev)}
               fromReelPlayer={!isSearching}
+              onHashtagClick={handleHashtagSearch} // 🆕 truyền logic xuống
             />
           )}
         </div>
