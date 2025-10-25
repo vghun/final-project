@@ -49,14 +49,12 @@
         allowNull: true,
       },
 
-      // 💰 Tổng tiền booking
       total: {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
         defaultValue: 0.0,
       },
 
-      // 💳 Thanh toán: true = đã thanh toán, false = chưa thanh toán
       isPaid: {
         type: Sequelize.BOOLEAN,
         allowNull: false,

@@ -87,3 +87,97 @@
   border: none;
   border-radius: 6px;
 }
+
+/* ======================= MODAL QUẢN LÝ DỊCH VỤ ======================= */
+.serviceListModal {
+  margin-top: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+
+  /* Tùy chỉnh thanh cuộn cho đẹp */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #059669;
+    border-radius: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #e5e7eb;
+  }
+}
+
+.serviceItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 6px;
+  margin-bottom: 6px;
+  background: #fff;
+  border: 1px solid #d1fae5;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  &:hover {
+    background: #ecfdf5;
+    transform: translateX(2px);
+  }
+}
+
+/* Header modal dịch vụ */
+.modal h3 {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #064e3b;
+  margin-bottom: 10px;
+}
+
+/* Nút trong modal dịch vụ */
+.modalActions .saveBtn {
+  background: #059669;
+  color: white;
+  font-weight: 500;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover {
+    background: #047857;
+  }
+}
+
+.modalActions .cancelBtn {
+  background: #e5e7eb;
+  color: #374151;
+  font-weight: 500;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover {
+    background: #d1d5db;
+  }
+}
+
+.serviceListModal label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  margin: 6px 0;
+}

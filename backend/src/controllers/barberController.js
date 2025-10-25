@@ -223,7 +223,18 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-
+export const getBarbersForHome = async (req, res) => {
+  try {
+    const barbers = await BarberService.getBarbersForDisplay();
+    return res.status(200).json({
+      total: barbers.length,
+      data: barbers
+    });
+  } catch (error) {
+    console.error("Lỗi getBarbersForHome:", error);
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
 export default {
   getAllBarbers,
   syncBarbers,
@@ -241,5 +252,6 @@ export default {
   getBarberProfile,
   updateBarberProfile,
   uploadAvatar,
-  getDashboardStats
+  getDashboardStats,
+   getBarbersForHome,
 };

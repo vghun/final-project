@@ -11,6 +11,7 @@ import {
   faBuilding,
 } from "@fortawesome/free-solid-svg-icons";
 import ServiceAPI from "~/apis/serviceAPI";
+import { BranchAPI } from "~/apis/branchAPI";
 
 const cx = classNames.bind(styles);
 
@@ -34,6 +35,10 @@ function DichVu() {
   const [selectedService, setSelectedService] = useState(null);
   const [selectedBranches, setSelectedBranches] = useState([]);
 
+  const fetchBranches = async () => {
+    const data = await BranchAPI.getAll();
+    setBranches(data);
+  };
   // ==========================================================
   // 🔹 Hàm tải danh sách dịch vụ + chi nhánh
   // ==========================================================
@@ -63,6 +68,7 @@ function DichVu() {
 
   useEffect(() => {
     fetchServices();
+    fetchBranches();
   }, []);
 
   // ==========================================================

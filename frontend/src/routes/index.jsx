@@ -6,14 +6,17 @@ import Admin from "~/pages/Admin";
 import ThoCatToc from "~/pages/ThoCatToc";
 import BookingPage from "~/pages/booking";
 import Reel from "~/pages/reels";
+import BarberPage from "~/pages/team";
 import  BarberProfile from "~/pages/BarberProfile";
 import { ProtectedRoute } from "../components/ProtectedRoute";
+import { DefaultLayout } from "~/layouts"; 
 
 export const publicRouter = [
   { path: config.routes.home, component: Home },
   { path: config.routes.profile, component: Profile },
   { path: config.routes.about, component: About },
   { path: config.routes.reels, component: Reel },
+  { path: config.routes.team, component: BarberPage },
   { path: config.routes.barberProfile, component: BarberProfile },
   
   {
@@ -41,6 +44,8 @@ export const publicRouter = [
         <BookingPage />
       </ProtectedRoute>
     ),
+    layout: DefaultLayout,
+    hideFooter: true,
   },
 ];
 

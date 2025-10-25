@@ -74,7 +74,15 @@ export default function PaymentBookingPage() {
         + Booking trực tiếp
       </button>
 
-      {showBookingForm && <DirectBooking onClose={() => setShowBookingForm(false)} />}
+      {showBookingForm && (
+        <DirectBooking
+          onClose={() => setShowBookingForm(false)}
+          onSuccess={() => {
+            reloadBookings(); // ✅ reload bảng khi đặt lịch thành công
+            setShowBookingForm(false);
+          }}
+        />
+      )}
     </div>
   );
 }
