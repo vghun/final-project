@@ -207,7 +207,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
     }
 
     const payload = {
-      idCustomer: customerId || 0, // ✅ nếu không có id thì gán 0
+      idCustomer: customerId || 6, // ✅ nếu không có id thì gán 0
       idBranch: form.branchId,
       idBarber: form.barberId,
       bookingDate: form.date,
