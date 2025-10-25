@@ -2,7 +2,8 @@
 
 export async function up(queryInterface, Sequelize) {
   await queryInterface.bulkInsert("reel_hashtags", [
-    { idReel: 1, idHashtag: 1, createdAt: new Date() }, // Fade
+    { idReel: 1, idHashtag: 1, createdAt: new Date() },
+    { idReel: 2, idHashtag: 1, createdAt: new Date()}, // Fade
     { idReel: 1, idHashtag: 2, createdAt: new Date() }, // BarberStyle
     { idReel: 2, idHashtag: 3, createdAt: new Date() }, // LayerCut
     { idReel: 2, idHashtag: 4, createdAt: new Date()}, // StylePro

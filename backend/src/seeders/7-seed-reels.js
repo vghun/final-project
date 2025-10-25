@@ -13,7 +13,7 @@ export async function up(queryInterface, Sequelize) {
     },
     {
       idBarber: 7,
-      title: "Tạo kiểu tóc nữ #LayerCut #StylePro",
+      title: "Tạo kiểu tóc nữ #LayerCut #StylePro #Fade",
       url: "https://res.cloudinary.com/xuandung/video/upload/v1761365409/reels/yvchoyhllajhix6i2u10.mp4",
       thumbnail: "https://res.cloudinary.com/xuandung/video/upload/so_1/v1761365409/reels/yvchoyhllajhix6i2u10.jpg",
       description: "Mẫu tóc layer tự nhiên dành cho tóc dài.",

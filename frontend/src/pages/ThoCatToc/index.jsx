@@ -72,7 +72,6 @@ function ThoCatToc() {
                     <h1 className={cx("title")}>Dashboard Thợ cắt tóc</h1>
                     <p className={cx("subtitle")}>Chào mừng trở lại, {barberName}!</p>
                 </div>
-                <button className={cx("settingBtn")}>Cài đặt</button>
             </div>
 
             {/* Stats - ĐÃ DÙNG DỮ LIỆU ĐỘNG */}
