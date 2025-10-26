@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import DefaultLayout from "../../layouts/DefaultLayout";
 import styles from "./Booking.module.scss";
 import VoucherPopup from "../../components/VoucherPopup";
+import { useAuth } from "~/context/AuthContext";
 import { fetchBookedSlots } from "~/services/bookingService";
 
 function BookingPage() {
-  
+  const { user } = useAuth();
   const [booking, setBooking] = useState({
     branch: "",
     branchId: null,

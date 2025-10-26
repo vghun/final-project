@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import DefaultLayout from "../../layouts/DefaultLayout";
 import styles from "./Booking.module.scss";
 import VoucherPopup from "../../components/VoucherPopup";
-import { fetchBookedSlots } from "~/services/bookingService";
+import { useAuth } from "~/context/AuthContext";
+import { fetchBookedSlots, createBooking } from "~/services/bookingService";
 
 function BookingPage() {
-  
+  const { user } = useAuth();
   const [booking, setBooking] = useState({
     branch: "",
     branchId: null,
@@ -16,7 +17,6 @@ function BookingPage() {
     services: [],
     discount: 0,
     voucher: null,
-    idCustomerVoucher: null,
   });
 
   const [showVoucherList, setShowVoucherList] = useState(false);
@@ -85,6 +85,7 @@ function BookingPage() {
       const res = await fetch(`http://localhost:8088/api/bookings/barbers/${barberId}`);
       const data = await res.json();
 
+      // Gom booking theo ngày
       const grouped = {};
       data.bookedSlots?.forEach((time) => {
         const date = booking.date;
@@ -93,6 +94,7 @@ function BookingPage() {
       });
       setBookedTimesByDate(grouped);
 
+      // Lưu ngày nghỉ
       const unava = [];
       data.unavailabilities?.forEach((u) => {
         const start = new Date(u.startDate);
@@ -156,65 +158,85 @@ function BookingPage() {
   const handleRemoveService = (idService) =>
     setBooking({ ...booking, services: booking.services.filter((s) => Number(s.idService) !== Number(idService)) });
 
-  const handleVoucherSelect = (voucher) => {
-    setBooking({
-      ...booking,
-      discount: voucher.discount,
-      voucher,
-      idCustomerVoucher: voucher.idCustomerVoucher || null,
-    });
-    setShowVoucherList(false);
-  };
+const handleVoucherSelect = (voucher) => {
+  setBooking({
+    ...booking,
+    discount: voucher.discount,
+    voucher,
+    idCustomerVoucher: voucher.idCustomerVoucher || null, // thêm dòng này
+  });
+  setShowVoucherList(false);
+};
+
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
+  const discountAmount = (totalPrice * booking.discount) / 100;
+  const finalPrice = totalPrice - discountAmount;
 
-    // Kiểm tra thông tin bắt buộc
-    if (!booking.branchId) return alert("Vui lòng chọn cơ sở!");
-    if (!booking.barberId) return alert("Vui lòng chọn kỹ thuật viên!");
-    if (!booking.date) return alert("Vui lòng chọn ngày!");
-    if (!booking.time) return alert("Vui lòng chọn thời gian!");
-    if (!booking.services.length) return alert("Vui lòng chọn ít nhất một dịch vụ!");
+  try {
+    const token = localStorage.getItem("accessToken"); // hoặc lấy từ context nếu bạn lưu token ở đó
+    const res = await fetch("http://localhost:8088/api/bookings/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // gửi token
+      },
+      body: JSON.stringify({
+        idBranch: booking.branchId,
+        idBarber: booking.barberId,
+        bookingDate: booking.date,
+        bookingTime: booking.time,
+        services: booking.services.map((s) => ({
+          idService: s.idService,
+          price: s.price,
+          quantity: 1,
+        })),
+        description: booking.services.map((s) => s.name).join(", "),
+        idCustomerVoucher: booking.idCustomerVoucher || null
+      }),
+    });
+    console.log("Payload gửi lên API:", {
+    idBranch: booking.branchId,
+    idBarber: booking.barberId,
+    bookingDate: booking.date,
+    bookingTime: booking.time,
+    services: booking.services.map((s) => ({
+      idService: s.idService,
+      price: s.price,
+      quantity: 1,
+  })),
+  description: booking.services.map((s) => s.name).join(", "),
+  idCustomerVoucher: booking.idCustomerVoucher || null
+});
 
-    const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
-    const discountAmount = (totalPrice * booking.discount) / 100;
-    const finalPrice = totalPrice - discountAmount;
-
-    try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch("http://localhost:8088/api/bookings/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          idBranch: booking.branchId,
-          idBarber: booking.barberId,
-          bookingDate: booking.date,
-          bookingTime: booking.time,
-          services: booking.services.map((s) => ({
-            idService: s.idService,
-            price: s.price,
-            quantity: 1,
-          })),
-          description: booking.services.map((s) => s.name).join(", "),
-          idCustomerVoucher: booking.idCustomerVoucher || null,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Lỗi khi tạo booking");
-      }
-
-      alert(`Đặt lịch thành công!\nThành tiền: ${finalPrice.toLocaleString()}đ`);
-      window.location.reload();
-    } catch (err) {
-      console.error(err);
-      alert("Không thể kết nối server!");
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Lỗi khi tạo booking");
     }
-  };
+      console.log("Payload gửi lên API:", {
+    idBranch: booking.branchId,
+    idBarber: booking.barberId,
+    bookingDate: booking.date,
+    bookingTime: booking.time,
+    services: booking.services.map((s) => ({
+      idService: s.idService,
+      price: s.price,
+      quantity: 1,
+  })),
+  description: booking.services.map((s) => s.name).join(", "),
+  idCustomerVoucher: booking.idCustomerVoucher || null
+});
+    const data = await res.json();
+    alert(`Đặt lịch thành công!\nThành tiền: ${finalPrice.toLocaleString()}đ`);
+    window.location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("Không thể kết nối server!");
+  }
+};
+
 
   const totalPrice = booking.services.reduce((sum, s) => sum + Number(s.price), 0);
   const discountAmount = (totalPrice * booking.discount) / 100;
@@ -294,9 +316,12 @@ function BookingPage() {
                       const [hh, mm] = time.split(":").map(Number);
                       const slotDate = new Date(today);
                       slotDate.setHours(hh, mm, 0, 0);
-                      if (slotDate < today) isPast = true;
+                      if (slotDate < today) {
+                        isPast = true;
+                      }
                     }
                   }
+
                   const isBooked = bookedTimes.includes(time);
                   const disabled = isBooked || isPast || !booking.date;
 

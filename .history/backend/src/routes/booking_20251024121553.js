@@ -23,7 +23,7 @@ router.get("/branches", getBranches);
 router.get("/branches/:idBranch", getBranchDetails);
 
 // 🧑‍💼 Booking theo barber
-router.get("/barbers/:idBarber",authenticate, getBookingsByBarber);
+router.get("/barbers/:idBarber", getBookingsByBarber);
 
 // 📋 Danh sách booking admin
 router.get("/details", getAllBookingDetails);
