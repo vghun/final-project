@@ -533,110 +533,82 @@ const getReelViewsStats = async (idBarber, startOfWeek, endOfWeek, startOfLastWe
 
 
 export const getDashboardStats = async (idBarber) => {
-    // 1. Tính toán khoảng thời gian (ĐÃ SỬA LỖI)
-    const now = new Date();
-    const today = now.getDay(); 
-    // Logic tính ngày đầu tuần (Thứ 2, nếu today = 0 (CN) thì trừ đi 6 ngày)
-    const diff = now.getDate() - today + (today === 0 ? -6 : 1); 
+  const now = new Date();
 
-    // 🟢 SỬA LỖI: CLONE đối tượng Date trước khi setDate
-    const startOfWeek = new Date(new Date().setDate(diff)); 
-    startOfWeek.setHours(0, 0, 0, 0);
+  // 🗓️ Tính đầu tuần (Thứ 2) & cuối tuần (Chủ nhật)
+  const currentDay = now.getDay(); // Chủ nhật = 0
+  const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+  const startOfWeek = new Date(now.setDate(diff));
+  startOfWeek.setHours(0, 0, 0, 0);
 
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999);
 
-    const startOfLastWeek = new Date(startOfWeek);
-    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7); // Phải trừ 7 ngày từ startOfWeek đã sửa
-    const endOfLastWeek = new Date(startOfWeek);
-    endOfLastWeek.setDate(endOfLastWeek.getDate() - 1); // Phải trừ 1 ngày từ startOfWeek đã sửa
-    endOfLastWeek.setHours(23, 59, 59, 999);
-    
-    // 2. Gọi API/Service để lấy dữ liệu song song (ĐÃ THÊM || 0 ĐỂ NGĂN NULL)
-    // Đảm bảo các model BookingDetail và Booking đã được khai báo/import
-    const [
-        reelViewStats,
-        ratingSummary,
-        rawCurrentWeekRevenue, // Đổi tên để dễ xử lý null
-        rawLastWeekRevenue,    // Đổi tên để dễ xử lý null
-        currentWeekAppts,
-        lastWeekAppts
-    ] = await Promise.all([
-        // Reels Views
-        getReelViewsStats(idBarber, startOfWeek, endOfWeek, startOfLastWeek, endOfLastWeek),
-        
-        // Đánh giá
-        db.BarberRatingSummary.findOne({ where: { idBarber } }), 
-        
-        // Doanh thu tuần này
-        db.BookingDetail.sum("price", {
-            include: [{ 
-                model: db.Booking, as: "booking", 
-                where: {
-                    idBarber, isPaid: true, status: 'COMPLETED',
-                    bookingDate: { [Op.between]: [startOfWeek, endOfWeek] }
-                }, 
-                attributes: [] 
-            }]
-        }), // KHÔNG dùng || 0 ở đây, để nó là null nếu sum không có
-        
-        // Doanh thu tuần trước
-        db.BookingDetail.sum("price", {
-            include: [{ 
-                model: db.Booking, as: "booking", 
-                where: {
-                    idBarber, isPaid: true, status: 'COMPLETED',
-                    bookingDate: { [Op.between]: [startOfLastWeek, endOfLastWeek] }
-                }, 
-                attributes: [] 
-            }]
-        }), // KHÔNG dùng || 0 ở đây, để nó là null nếu sum không có
-        
-        // Lịch hẹn tuần này
-        db.Booking.count({
+  // 📅 Đầu tháng & cuối tháng
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  endOfMonth.setHours(23, 59, 59, 999);
+
+  // 🚀 Truy vấn song song
+  const [weeklyAppointments, totalReelViews, monthlyRevenue, ratingSummary] =
+    await Promise.all([
+      // 1️⃣ Tổng số lịch hẹn tuần này
+      db.Booking.count({
+        where: {
+          idBarber,
+          bookingDate: { [Op.between]: [startOfWeek, endOfWeek] },
+          status: { [Op.in]: ["Completed", "Pending"] },
+        },
+      }),
+
+      // 2️⃣ Tổng số lượt xem (tất cả reels của barber)
+      db.ReelView.count({
+        include: [
+          {
+            model: db.Reel,
+            where: { idBarber },
+            attributes: [],
+          },
+        ],
+      }),
+
+      // 3️⃣ Doanh thu tháng này (đã thanh toán)
+      db.BookingDetail.sum("price", {
+        include: [
+          {
+            model: db.Booking,
+            as: "booking",
             where: {
-                idBarber,
-                status: { [Op.in]: ['COMPLETED', 'CONFIRMED'] }, 
-                bookingDate: { [Op.between]: [startOfWeek, endOfWeek] },
+              idBarber,
+              isPaid: true,
+              bookingDate: { [Op.between]: [startOfMonth, endOfMonth] },
             },
-        }),
-        
-        // Lịch hẹn tuần trước
-        db.Booking.count({
-            where: {
-                idBarber,
-                status: { [Op.in]: ['COMPLETED', 'CONFIRMED'] },
-                bookingDate: { [Op.between]: [startOfLastWeek, endOfLastWeek] },
-            },
-        }),
+            attributes: [],
+          },
+        ],
+      }),
+
+      // 4️⃣ Lấy điểm đánh giá trung bình
+      db.BarberRatingSummary.findOne({
+        where: { idBarber },
+        attributes: ["avgRate"],
+      }),
     ]);
-    
-    const currentRevenue = parseFloat(rawCurrentWeekRevenue || 0);
-    const lastRevenue = parseFloat(rawLastWeekRevenue || 0);
-    
-    // 3. Tổng hợp kết quả
-    const avgRating = parseFloat(ratingSummary?.avgRating) || 0;
-    const totalRatings = parseInt(ratingSummary?.totalReviews) || 0; 
 
-    return {
-        // 1. Lịch hẹn tuần này
-        appointmentsCount: currentWeekAppts,
-        appointmentsChange: calculateChange(currentWeekAppts, lastWeekAppts),
+  // ⚙️ Xử lý dữ liệu null
+  const revenue = parseFloat(monthlyRevenue || 0);
+  const avgRate = parseFloat(ratingSummary?.avgRate || 0);
 
-        // 2. Lượt xem Reels tuần
-        reelViews: reelViewStats.currentWeekViews,
-        reelViewsChange: calculateChange(reelViewStats.currentWeekViews, reelViewStats.lastWeekViews),
-
-        // 3. Doanh thu tuần (ĐÃ SỬA VÀ ĐẢM BẢO KHÔNG CÓ NULL)
-        weeklyRevenue: currentRevenue,
-        weeklyRevenueChange: calculateChange(currentRevenue, lastRevenue),
-
-        // 4. Đánh giá trọn đời
-        avgRating: avgRating,
-        totalRatings: totalRatings,
-    };
+  // 📊 Kết quả trả về
+  return {
+    totalAppointmentsThisWeek: weeklyAppointments,
+    totalReelViews,
+    monthlyRevenue: revenue,
+    avgRating: avgRate,
+  };
 };
+
 export const getBarbersForDisplay = async () => {
   try {
     const barbers = await db.Barber.findAll({

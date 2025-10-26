@@ -23,32 +23,35 @@ export default (sequelize, DataTypes) => {
       minRevenue: {
         type: DataTypes.DECIMAL(15, 2),
         allowNull: false,
-        comment: "Doanh thu tối thiểu để được thưởng",
-      },
-      maxRevenue: {
-        type: DataTypes.DECIMAL(15, 2),
-        allowNull: true,
-        comment: "Doanh thu tối đa trong khoảng thưởng (có thể null)",
+        comment: "Doanh thu tối thiểu để đạt mức thưởng này",
       },
       bonusPercent: {
         type: DataTypes.DECIMAL(5, 2),
         allowNull: false,
-        comment: "Phần trăm thưởng, ví dụ 5.00 = 5%",
+        validate: { min: 0, max: 100 },
+        comment: "Phần trăm thưởng (VD: 5.00 = 5%)",
       },
       note: {
         type: DataTypes.STRING,
         allowNull: true,
+        comment: "Ghi chú thêm cho quy tắc thưởng",
       },
       active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
+        comment: "Trạng thái kích hoạt quy tắc thưởng",
       },
     },
     {
       sequelize,
       modelName: "BonusRule",
       tableName: "BonusRules",
-      timestamps: true, // tự động map createdAt, updatedAt
+      timestamps: true,
+      indexes: [
+        {
+          fields: ["minRevenue"],
+        },
+      ],
     }
   );
 

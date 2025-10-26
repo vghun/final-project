@@ -38,7 +38,7 @@ export const getBarberSalariesOptimized = async (month, year) => {
   return salaries.map((b) => {
     const serviceRevenue = parseFloat(b.get("serviceRevenue") || 0);
     const tipAmount = parseFloat(b.get("tipAmount") || 0);
-    const baseSalary = 5000000;
+    const baseSalary = 3000000;
     const commission = serviceRevenue * 0.15;
 
     const rule = bonusRules.find(
