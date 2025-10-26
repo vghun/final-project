@@ -111,9 +111,7 @@ export const upload = multer({ storage });
 export const completeBooking = async (req, res) => {
   try {
     const idBooking = req.params.id;
-    const { description } = req.body;
-    const idBarber = 7;
-
+    const { description, idBarber } = req.body;
     const files = req.files || {};
     const uploadedImages = [];
 

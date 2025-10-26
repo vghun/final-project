@@ -23,7 +23,7 @@ router.get("/branches", getBranches);
 router.get("/branches/:idBranch", getBranchDetails);
 
 // 🧑‍💼 Booking theo barber
-router.get("/barbers/:idBarber",authenticate, getBookingsByBarber);
+router.get("/barbers/:idBarber", getBookingsByBarber);
 
 // 📋 Danh sách booking admin
 router.get("/details", getAllBookingDetails);
@@ -34,7 +34,7 @@ router.put("/:idBooking/pay", payBooking);
 // ❌ Hủy booking
 router.put("/:idBooking/cancel", cancelBooking);
 
-router.get("/barber", authenticate,getBookingsForBarber);
+router.get("/barber", getBookingsForBarber);
 router.get("/barbers/:idBarber/booked-slots", getBookedSlotsByBarber);
 
 // ✅ Hoàn tất booking (upload ảnh)

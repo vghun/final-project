@@ -7,13 +7,9 @@ const bookingApi = {
   getBooking: () => axios.get(API_URL),
 
   // Lấy booking của barber theo khoảng ngày
-  getForBarber: (idBarber, start, end, token) => {
-    if (!token) throw new Error("Authentication token is required for viewing bookings.");
-
-    // Vẫn truyền idBarber qua query, nhưng thêm Authorization header
-    return axios.get(`${API_URL}/barber?idBarber=${idBarber}&start=${start}&end=${end}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  getForBarber: (idBarber, start, end) => {
+    // Truyền idBarber, start, end qua query params
+    return axios.get(`${API_URL}/barber?idBarber=${idBarber}&start=${start}&end=${end}`);
   },
 
   // Hoàn tất booking (upload ảnh)
