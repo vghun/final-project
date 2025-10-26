@@ -645,18 +645,17 @@ export const getBarbersForDisplay = async () => {
         { model: db.Branch, as: "branch", attributes: ["name", "address"] },
         { model: db.BarberRatingSummary, as: "ratingSummary", attributes: ["avgRate"] },
       ],
-      where: {
-        isLocked: false
-      }
+      where: { isLocked: false }
     });
 
     const result = barbers.map(b => ({
-      name:        b.user?.fullName   || "Chưa có tên",
-      branch:      b.branch?.name     || "Chưa có chi nhánh",
-      address:     b.branch?.address  || "Chưa có địa chỉ",
+      idBarber: b.idBarber, 
+      name: b.user?.fullName || "Chưa có tên",
+      branch: b.branch?.name || "Chưa có chi nhánh",
+      address: b.branch?.address || "Chưa có địa chỉ",
       description: b.profileDescription || "",
-      rating:      Number(b.ratingSummary?.avgRate || 0).toFixed(1),
-      avatar:      b.user?.image      || ""
+      rating: Number(b.ratingSummary?.avgRate || 0).toFixed(1),
+      avatar: b.user?.image || ""
     }));
 
     return result;

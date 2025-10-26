@@ -1,0 +1,92 @@
+.card {
+  background: rgba(255, 255, 255, 0.15);  // trong suốt
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+  color: #fff;
+  margin-bottom: 20px;
+  backdrop-filter: blur(10px);  // hiệu ứng Glassmorphism
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: 0.3s ease, transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    border-color: #ffb300;
+  }
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+
+  .barberInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ffb300;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .branchName {
+      font-size: 14px;
+      color: #ddd;
+    }
+  }
+}
+
+/* Details */
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  p {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: #f0f0f0;
+
+    svg {
+      color: #ffb300; // icon màu vàng nổi bật
+    }
+  }
+}
+
+/* Footer (nếu cần) */
+.footer {
+  margin-top: 16px;
+  text-align: right;
+
+  .detailBtn {
+    background: rgba(255, 179, 0, 0.8);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #111;
+    transition: 0.3s ease, transform 0.3s ease;
+
+    &:hover {
+      background: rgba(255, 179, 0, 1);
+      transform: scale(1.05);
+    }
+  }
+}

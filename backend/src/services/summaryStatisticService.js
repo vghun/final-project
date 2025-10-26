@@ -64,6 +64,7 @@ Phân tích đã có:
 3. Đánh giá Thợ: ${preSummaries.ratingsSummary}
 
 **YÊU CẦU:**
+Các thông tin bảo mật như ID không được đề cập trong phản hồi.
 Phải trả về **JSON hợp lệ duy nhất**, không chứa markdown hay text khác. Cấu trúc:
 {
   "barberRevenue": "...",

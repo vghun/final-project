@@ -9,6 +9,7 @@ const routes = {
   booking: "/booking",
   barberProfile: "/barber/:id",
   team: "/team",
+  bookingHistory: "/booking-history",
 
 };
 

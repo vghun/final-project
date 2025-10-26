@@ -2,48 +2,74 @@
 
 export async function up(queryInterface, Sequelize) {
   const now = new Date();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const customers = [2, 3, 4, 5, 6];
+  const barbers = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 
-  const customers = [2, 3, 4, 5, 6]; // danh sách id customer
-  const barbers = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; // danh sách thợ
+  // Lấy thông tin branch
+  const branches = await queryInterface.sequelize.query(
+    `SELECT idBranch, openTime, closeTime, slotDuration FROM branches`,
+    { type: queryInterface.sequelize.QueryTypes.SELECT }
+  );
+
+  const totalBookings = 10000;
+  const months = 12;
+  const bookingsPerMonth = Math.floor(totalBookings / months);
   const bookings = [];
 
-  for (const barberId of barbers) {
-    // random số booking của mỗi thợ (2–3 khung giờ)
-    const numBookings = 2 + Math.floor(Math.random() * 2);
+  for (let month = 0; month < months; month++) {
+    const daysInMonth = new Date(2025, month + 1, 0).getDate();
+    const bookingsPerDay = Math.ceil(bookingsPerMonth / daysInMonth);
 
-    // random giờ bắt đầu (ví dụ: 9 -> 17)
-    const startHour = 9 + Math.floor(Math.random() * (18 - numBookings));
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(2025, month, day);
 
-    for (let j = 0; j < numBookings; j++) {
-      const bookingHour = startHour + j; // cách nhau 1 tiếng
-      const bookingTime = `${bookingHour.toString().padStart(2, '0')}:00`;
+      for (const barberId of barbers) {
+        // Chọn ngẫu nhiên một chi nhánh cho thợ này
+        const branch = branches[Math.floor(Math.random() * branches.length)];
 
-      const customerId = customers[Math.floor(Math.random() * customers.length)];
+        // Tính số slot trong ngày
+        const [openH, openM, openS] = branch.openTime.split(':').map(Number);
+        const [closeH, closeM, closeS] = branch.closeTime.split(':').map(Number);
+        const openMinutes = openH * 60 + openM;
+        const closeMinutes = closeH * 60 + closeM;
+        const slotDuration = branch.slotDuration;
+        const totalSlots = Math.floor((closeMinutes - openMinutes) / slotDuration);
 
-      bookings.push({
-        idCustomer: customerId,
-        idBarber: barberId,
-        bookingDate: today,
-        bookingTime,
-        status: ["Pending", "Completed", "Cancelled"][Math.floor(Math.random() * 3)],
-        description: `Booking ${bookingTime} ngày ${today.toISOString().split('T')[0]} - Barber ${barberId}`,
-        total: 0,
-        isPaid: Math.random() > 0.5,
-        createdAt: now,
-        updatedAt: now,
-      });
+        for (let i = 0; i < Math.ceil(bookingsPerDay / barbers.length); i++) {
+          // Chọn ngẫu nhiên một slot
+          const slotIndex = Math.floor(Math.random() * totalSlots);
+          const bookingMinutes = openMinutes + slotIndex * slotDuration;
+          const hour = Math.floor(bookingMinutes / 60);
+          const minute = bookingMinutes % 60;
+          const bookingTime = `${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')}`;
+
+          const customerId = customers[Math.floor(Math.random() * customers.length)];
+
+          bookings.push({
+            idCustomer: customerId,
+            idBarber: barberId,
+            bookingDate: date,
+            bookingTime,
+            status: ["Pending", "Completed", "Cancelled"][Math.floor(Math.random() * 3)],
+            description: `Booking ${bookingTime} ngày ${date.toISOString().split('T')[0]} - Barber ${barberId} - Branch ${branch.idBranch}`,
+            total: 0,
+            isPaid: Math.random() > 0.5,
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+      }
     }
   }
 
+  console.log(`Tổng booking sẽ tạo: ${bookings.length}`);
   await queryInterface.bulkInsert('bookings', bookings);
 }
 
 export async function down(queryInterface, Sequelize) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
   await queryInterface.bulkDelete('bookings', {
-    bookingDate: today,
+    bookingDate: {
+      [Sequelize.Op.between]: [new Date("2025-01-01"), new Date("2025-12-31")]
+    }
   });
 }

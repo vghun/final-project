@@ -5,6 +5,7 @@ import About from "~/pages/about";
 import Admin from "~/pages/Admin";
 import ThoCatToc from "~/pages/ThoCatToc";
 import BookingPage from "~/pages/booking";
+import BookingHistory from "~/pages/bookingHistory";
 import Reel from "~/pages/reels";
 import BarberPage from "~/pages/team";
 import  BarberProfile from "~/pages/BarberProfile";
@@ -42,6 +43,16 @@ export const publicRouter = [
     component: () => (
       <ProtectedRoute>
         <BookingPage />
+      </ProtectedRoute>
+    ),
+    layout: DefaultLayout,
+    hideFooter: true,
+  },
+  {
+    path: config.routes.bookingHistory,
+    component: () => (
+      <ProtectedRoute>
+        <BookingHistory />
       </ProtectedRoute>
     ),
     layout: DefaultLayout,
