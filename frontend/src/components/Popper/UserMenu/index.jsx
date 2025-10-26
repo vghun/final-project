@@ -42,8 +42,7 @@ function UserMenu({ children }) {
   const menuItemsByRole = {
     customer: [
       { icon: faUserCircle, label: "Hồ sơ cá nhân", onClick: handleProfileClick },
-      { icon: faCalendar, label: "Lịch hẹn của tôi", onClick: () => navigate("/appointments") },
-      { icon: faGift, label: "Điểm tích luỹ", onClick: () => navigate("/points") },
+      { icon: faCalendar, label: "Lịch hẹn của tôi", onClick: () => navigate("/booking-history") },
     ],
     barber: [
       { icon: faBoxOpen, label: "Quản lý dịch vụ", onClick: () => navigate("/tho-cat-toc") },

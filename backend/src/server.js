@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import cors from "cors";
 
+import bookingHistory from "./routes/bookingHistory.js";
 import barberRoutes from "./routes/barber.js";
 import viewEngine from "./config/viewEngine.js";
 import authRoutes from "./routes/auth.js";
@@ -46,7 +47,8 @@ app.use("/api/bookings", bookingRoute);
 app.use("/api/reels", reelRoute);
 app.use("/api/reels", reelCommentRoutes);
 app.use("/api/customer-gallery", customerGalleryRoutes);
-
+app.use("/api/booking-history", bookingHistory);
+app.use("/api/vouchers", voucherRoutes);
 app.use("/api/vouchers", voucherRoutes);
 app.use("/api/loyalty-rules", loyaltyRuleRoute);
 app.use("/api/salary", authenticate, authorize(["admin"]), salaryRoute);

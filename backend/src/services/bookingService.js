@@ -135,11 +135,12 @@ export const createBookingService = async ({
       serviceDetails.push({
         idService: service.idService,
         name: service.name,
-        price: s.price, // giữ giá từ booking
+        price: s.price,
         quantity: s.quantity || 1,
       });
     }
   }
+
   for (const s of serviceDetails) {
     await db.BookingDetail.create({
       idBooking: booking.idBooking,
@@ -148,6 +149,20 @@ export const createBookingService = async ({
       price: s.price,
     });
   }
+
+  // ✅ Nếu có voucher thì update status thành 'used'
+  if (idCustomerVoucher) {
+    await db.CustomerVoucher.update(
+      {
+        status: "used",
+        usedAt: new Date(),
+      },
+      {
+        where: { id: idCustomerVoucher },
+      }
+    );
+  }
+
   // Lấy email khách
   const customer = await db.Customer.findByPk(idCustomer, {
     include: [{ model: db.User, as: "user", attributes: ["email", "fullName"] }],

@@ -9,12 +9,16 @@ export async function up(queryInterface, Sequelize) {
     { type: queryInterface.sequelize.QueryTypes.SELECT }
   );
 
+  // Danh sách dịch vụ thực tế (theo seeder services)
   const services = [
-    { idService: 1, name: "Gội đầu", price: 100000 },
-    { idService: 2, name: "Cạo mặt", price: 150000 },
-    { idService: 3, name: "Cắt tóc", price: 200000 },
-    { idService: 4, name: "Nhuộm tóc", price: 250000 },
-    { idService: 5, name: "Massage đầu", price: 300000 },
+    { idService: 1, name: "Cắt tóc nam basic", price: 100000 },
+    { idService: 2, name: "Cắt tóc nam tạo kiểu", price: 150000 },
+    { idService: 3, name: "Cạo mặt / tạo kiểu râu", price: 100000 },
+    { idService: 4, name: "Gội đầu nam", price: 50000 },
+    { idService: 5, name: "Uốn / Nhuộm tóc nam", price: 300000 },
+    { idService: 6, name: "Cắt tóc nữ layer", price: 200000 },
+    { idService: 7, name: "Nhuộm highlight", price: 500000 },
+    { idService: 8, name: "Uốn tóc xoăn sóng", price: 600000 },
   ];
 
   const bookingDetails = [];
@@ -43,7 +47,10 @@ export async function up(queryInterface, Sequelize) {
     );
   }
 
-  await queryInterface.bulkInsert('booking_details', bookingDetails);
+  // Chèn tất cả booking_details
+  if (bookingDetails.length > 0) {
+    await queryInterface.bulkInsert('booking_details', bookingDetails);
+  }
 }
 
 export async function down(queryInterface, Sequelize) {

@@ -5,16 +5,23 @@ import styles from "./BarberCard.module.scss";
 
 export default function BarberCard({ barber }) {
   const [hover, setHover] = useState(false);
-  const navigate = useNavigate(); // <-- hook navigate
+  const navigate = useNavigate();
 
-  const handleBooking = () => {
-    // Nhảy sang trang /booking, có thể truyền data barber nếu muốn
+  // Click card → mở trang thông tin thợ
+  const handleOpenProfile = () => {
+    navigate(`/barber/${barber.idBarber}`, { state: { barber } });
+  };
+
+  // Click nút Đặt lịch → không mở profile
+  const handleBooking = (e) => {
+    e.stopPropagation(); // ❗ Chặn sự kiện click lan lên card
     navigate("/booking", { state: { barber } });
   };
 
   return (
     <div
       className={styles.card}
+      onClick={handleOpenProfile}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
@@ -43,7 +50,7 @@ export default function BarberCard({ barber }) {
               <p><strong>Tên thợ:</strong> {barber.name}</p>
               <p><strong>Chi nhánh:</strong> {barber.branch}</p>
               <p>
-                <strong>Rating:</strong> 
+                <strong>Rating:</strong>
                 <Star size={12} className={styles.starIcon} /> {barber.rating}
               </p>
               <p>{barber.description}</p>
