@@ -12,7 +12,7 @@ export async function up(queryInterface, Sequelize) {
   );
 
   const totalBookings = 10000;
-  const months = 12;
+  const months = 9;
   const bookingsPerMonth = Math.floor(totalBookings / months);
   const bookings = [];
 
@@ -53,7 +53,7 @@ export async function up(queryInterface, Sequelize) {
             status: ["Pending", "Completed", "Cancelled"][Math.floor(Math.random() * 3)],
             description: `Booking ${bookingTime} ngày ${date.toISOString().split('T')[0]} - Barber ${barberId} - Branch ${branch.idBranch}`,
             total: 0,
-            isPaid: Math.random() > 0.5,
+            isPaid: true,
             createdAt: now,
             updatedAt: now,
           });

@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 class BookingHistoryService {
   async getBookingsByCustomer(idCustomer) {
     const bookings = await db.Booking.findAll({
-      where: { idCustomer },
+      where: { idCustomer,isPaid: false  },
       include: [
         {
           model: db.Barber,
