@@ -75,32 +75,37 @@ function ThoCatToc() {
             </div>
 
             {/* Stats - ĐÃ DÙNG DỮ LIỆU ĐỘNG */}
-            <div className={cx("stats")}>
-                {/* 1. Lịch hẹn tuần này */}
-                <StatCard
-                    title="Lịch hẹn tuần này"
-                    value={stats.appointmentsCount.toLocaleString("vi-VN")}
-                    desc={`+${stats.appointmentsChange}% so với tuần trước`}
-                />
-                {/* 2. Lượt xem Reels tuần */}
-                <StatCard
-                    title="Lượt xem Reels tuần"
-                    value={stats.reelViews.toLocaleString("vi-VN")}
-                    desc={`+${stats.reelViewsChange}% so với tuần trước`}
-                />
-                {/* 3. Doanh thu tuần */}
-                <StatCard
-                    title="Doanh thu tuần"
-                    value={formatCurrency(stats.weeklyRevenue)}
-                    desc={`+${stats.weeklyRevenueChange}% so với tuần trước`}
-                />
-                {/* 4. Đánh giá trung bình */}
-                <StatCard
-                    title="Đánh giá trung bình"
-                    value={stats.avgRating.toFixed(1)}
-                    desc={`Từ ${stats.totalRatings.toLocaleString("vi-VN")} khách hàng`}
-                />
-            </div>
+       {/* Stats - ĐÃ DÙNG DỮ LIỆU ĐỘNG MỚI */}
+<div className={cx("stats")}>
+    {/* 1️⃣ Tổng số lịch hẹn tuần này */}
+    <StatCard
+        title="Tổng lịch hẹn tuần này"
+        value={stats.totalAppointmentsThisWeek?.toLocaleString("vi-VN") || "0"}
+        desc="Tổng số cuộc hẹn được đặt trong tuần này"
+    />
+
+    {/* 2️⃣ Tổng số lượt xem */}
+    <StatCard
+        title="Tổng lượt xem"
+        value={stats.totalReelViews?.toLocaleString("vi-VN") || "0"}
+        desc="Tổng lượt xem video của bạn"
+    />
+
+    {/* 3️⃣ Doanh thu tháng này */}
+    <StatCard
+        title="Doanh thu tháng này"
+        value={formatCurrency(stats.monthlyRevenue)}
+        desc="Tổng doanh thu đã thanh toán trong tháng này"
+    />
+
+    {/* 4️⃣ Đánh giá trung bình */}
+    <StatCard
+        title="Đánh giá trung bình"
+        value={stats.avgRating?.toFixed(1) || "0.0"}
+        desc="Điểm trung bình từ khách hàng"
+    />
+</div>
+
 
             {/* Tabs */}
             <TabNav tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />

@@ -11,10 +11,6 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.DECIMAL(15, 2),
       allowNull: false,
     },
-    maxRevenue: {
-      type: Sequelize.DECIMAL(15, 2),
-      allowNull: true,
-    },
     bonusPercent: {
       type: Sequelize.DECIMAL(5, 2),
       allowNull: false,

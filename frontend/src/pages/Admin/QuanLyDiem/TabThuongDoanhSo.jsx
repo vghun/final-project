@@ -25,17 +25,12 @@ export default function TabThuongDoanhSo() {
   };
 
   const handleSaveRule = async (ruleData) => {
-    // Validate dữ liệu trước khi gửi
+    // Validate dữ liệu
     const min = Number(ruleData.minRevenue.toString().replace(/\./g, ""));
-    const max = Number(ruleData.maxRevenue.toString().replace(/\./g, ""));
     const bonus = Number(ruleData.bonusPercent);
 
-    if (isNaN(min) || isNaN(max) || isNaN(bonus)) {
+    if (isNaN(min) || isNaN(bonus)) {
       alert("Các trường phải là số hợp lệ");
-      return;
-    }
-    if (min > max) {
-      alert("Doanh thu tối đa phải lớn hơn hoặc bằng tối thiểu");
       return;
     }
     if (bonus < 0 || bonus > 100) {
@@ -47,7 +42,6 @@ export default function TabThuongDoanhSo() {
       const payload = {
         ...ruleData,
         minRevenue: min,
-        maxRevenue: max,
         bonusPercent: bonus,
       };
 
@@ -77,19 +71,19 @@ export default function TabThuongDoanhSo() {
     }
   };
 
-  const handleEditRule = (rule) => {
-    setEditingRule({
-      ...rule,
-      minRevenue: Number(rule.minRevenue).toLocaleString("vi-VN"),
-      maxRevenue: Number(rule.maxRevenue).toLocaleString("vi-VN"),
-      bonusPercent: rule.bonusPercent.toString(),
-    });
-    setShowModal(true);
-  };
+const handleEditRule = (rule) => {
+  setEditingRule({
+    ...rule,
+    minRevenue: rule.minRevenue, // để nguyên số, không format ở đây
+    bonusPercent: rule.bonusPercent,
+  });
+  setShowModal(true);
+};
+
 
   // Format số khi nhập trong modal
   const handleInputChange = (field, value, setForm) => {
-    if (["minRevenue", "maxRevenue"].includes(field)) {
+    if (field === "minRevenue") {
       const numStr = value.replace(/\D/g, ""); // chỉ giữ số
       setForm((prev) => ({
         ...prev,
@@ -129,7 +123,6 @@ export default function TabThuongDoanhSo() {
             <thead>
               <tr>
                 <th>Doanh thu tối thiểu</th>
-                <th>Doanh thu tối đa</th>
                 <th>% Thưởng</th>
                 <th>Ghi chú</th>
                 <th>Trạng thái</th>
@@ -140,7 +133,6 @@ export default function TabThuongDoanhSo() {
               {bonusRules.map((rule) => (
                 <tr key={rule.id}>
                   <td>{Number(rule.minRevenue).toLocaleString("vi-VN")}</td>
-                  <td>{Number(rule.maxRevenue).toLocaleString("vi-VN")}</td>
                   <td>{rule.bonusPercent}%</td>
                   <td>{rule.note}</td>
                   <td>{rule.active ? "Hoạt động" : "Không hoạt động"}</td>
@@ -172,7 +164,7 @@ export default function TabThuongDoanhSo() {
           initialData={editingRule}
           onClose={() => setShowModal(false)}
           onCreate={handleSaveRule}
-          onInputChange={handleInputChange} // truyền vào modal
+          onInputChange={handleInputChange}
         />
       )}
     </div>

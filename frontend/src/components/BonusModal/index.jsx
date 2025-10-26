@@ -7,7 +7,6 @@ const cx = classNames.bind(styles);
 function BonusModal({ initialData, onClose, onCreate }) {
   const [form, setForm] = useState({
     minRevenue: "",
-    maxRevenue: "",
     bonusPercent: "",
     note: "",
     active: true,
@@ -16,8 +15,9 @@ function BonusModal({ initialData, onClose, onCreate }) {
   useEffect(() => {
     if (initialData) {
       setForm({
-        minRevenue: initialData.minRevenue || "",
-        maxRevenue: initialData.maxRevenue || "",
+        minRevenue: initialData.minRevenue
+          ? Number(initialData.minRevenue).toLocaleString("vi-VN")
+          : "",
         bonusPercent: initialData.bonusPercent || "",
         note: initialData.note || "",
         active: initialData.active ?? true,
@@ -25,17 +25,17 @@ function BonusModal({ initialData, onClose, onCreate }) {
     }
   }, [initialData]);
 
-  // Format số thành tiền VNĐ khi nhập
+  // Format số tiền VNĐ khi nhập
   const formatCurrency = (value) => {
     if (!value) return "";
-    const numeric = value.toString().replace(/\D/g, ""); // chỉ giữ số
+    const numeric = value.toString().replace(/\D/g, "");
     return numeric ? Number(numeric).toLocaleString("vi-VN") : "";
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    if (name === "minRevenue" || name === "maxRevenue") {
+    if (name === "minRevenue") {
       setForm((prev) => ({
         ...prev,
         [name]: formatCurrency(value),
@@ -52,18 +52,15 @@ function BonusModal({ initialData, onClose, onCreate }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!form.minRevenue || !form.bonusPercent) {
       alert("Vui lòng nhập doanh số tối thiểu và phần trăm thưởng!");
       return;
     }
 
-    // Chuyển số tiền về dạng number trước khi gửi API
     const payload = {
       ...form,
       minRevenue: Number(form.minRevenue.toString().replace(/\./g, "")),
-      maxRevenue: form.maxRevenue
-        ? Number(form.maxRevenue.toString().replace(/\./g, ""))
-        : null,
       bonusPercent: Number(form.bonusPercent),
     };
 
@@ -84,17 +81,6 @@ function BonusModal({ initialData, onClose, onCreate }) {
               value={form.minRevenue}
               onChange={handleChange}
               placeholder="Ví dụ: 10.000.000"
-            />
-          </div>
-
-          <div className={cx("form-group")}>
-            <label>Doanh số tối đa (VNĐ)</label>
-            <input
-              type="text"
-              name="maxRevenue"
-              value={form.maxRevenue}
-              onChange={handleChange}
-              placeholder="Bỏ trống nếu không giới hạn"
             />
           </div>
 
