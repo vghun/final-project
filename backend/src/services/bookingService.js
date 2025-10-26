@@ -186,42 +186,54 @@ export const createBookingService = async ({
 
 // Lấy danh sách booking theo id thợ và khoảng ngày
 export const getBarberBookings = async (barberId, startDate, endDate) => {
-  return await db.Booking.findAll({
-    where: {
-      idBarber: barberId,
-      bookingDate: { [Op.between]: [startDate, endDate] },
-    },
-    include: [
-      {
-        model: db.Customer,
+    return await db.Booking.findAll({
+        where: {
+            idBarber: barberId,
+            [Op.and]: [
+                Sequelize.where(
+                    Sequelize.fn("DATE", Sequelize.col("bookingDate")),
+                    ">=",
+                    startDate
+                ),
+                Sequelize.where(
+                    Sequelize.fn("DATE", Sequelize.col("bookingDate")),
+                    "<=",
+                    endDate
+                )
+            ]
+        },
         include: [
-          {
-            model: db.User,
-            as: "user",
-            attributes: ["fullName", "phoneNumber", "image"],
-          },
+            {
+                model: db.Customer,
+                include: [
+                    {
+                        model: db.User,
+                        as: "user",
+                        attributes: ["fullName", "phoneNumber", "image"],
+                    },
+                ],
+                attributes: ["idCustomer"],
+            },
+            {
+                model: db.BookingDetail,
+                as: "BookingDetails",
+                include: [
+                    {
+                        model: db.Service,
+                        as: "service",
+                        attributes: ["name", "duration", "price"],
+                    },
+                ],
+                attributes: ["idBookingDetail", "quantity", "price"],
+            },
         ],
-        attributes: ["idCustomer"], // Chỉ lấy idCustomer từ Customer
-      },
-      {
-        model: db.BookingDetail,
-        as: "BookingDetails",
-        include: [
-          {
-            model: db.Service,
-            as: "service",
-            attributes: ["name", "duration", "price"],
-          },
+        order: [
+            ["bookingDate", "ASC"],
+            ["bookingTime", "ASC"],
         ],
-        attributes: ["idBookingDetail", "quantity", "price"],
-      },
-    ],
-    order: [
-      ["bookingDate", "ASC"],
-      ["bookingTime", "ASC"],
-    ],
-  });
+    });
 };
+
 
 export const completeBooking = async (idBooking, idBarber, uploadedImages, description) => {
   const booking = await db.Booking.findByPk(idBooking);
