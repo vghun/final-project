@@ -10,7 +10,7 @@ import Voucher from "./Voucher";
 import LuongThuong from "./LuongThuong";
 import QuanLyDiem from "./QuanLyDiem";
 import DatLichThanhToan from "./DatLichThanhToan";
-import TongQuan from "./TongQuan"; 
+import TongQuan from "./TongQuan"; // 
 import ChiNhanh from "./ChiNhanh";
 import DichVu from "./DichVu";
 
