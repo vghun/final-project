@@ -14,8 +14,9 @@ import { useAuth } from "~/context/AuthContext";
 const cx = classNames.bind(styles);
 
 const formatCurrency = (num) => {
-    if (typeof num !== 'number' || isNaN(num)) return '0đ';
-    return Math.round(num).toLocaleString("vi-VN") + "đ";
+    const value = parseFloat(num);
+    if (isNaN(value)) return "0đ";
+    return Math.round(value).toLocaleString("vi-VN") + "đ";
 };
 
 const tabs = [
@@ -31,12 +32,11 @@ function ThoCatToc() {
     const [activeTab, setActiveTab] = useState(tabs[0].id);
     const [stats, setStats] = useState(null);
     const [loadingStats, setLoadingStats] = useState(true);
-    
+
     const idBarber = user?.idUser;
-    const barberName = user?.fullName || "Quý khách"; 
+    const barberName = user?.fullName || "Quý khách";
 
     useEffect(() => {
-        // Kiểm tra điều kiện tải: Auth xong VÀ có ID Barber VÀ có Token
         if (isAuthLoading || !idBarber || !accessToken) {
             if (!isAuthLoading) setLoadingStats(false);
             return;
@@ -46,9 +46,7 @@ function ThoCatToc() {
             setLoadingStats(true);
             try {
                 const data = await fetchBarberDashboardStats(idBarber, accessToken);
-                // API trả về res (object chứa data), chúng ta cần lấy data bên trong
-                // Giả định service đã trả về data (như trong hàm mẫu), nên ta dùng data
-                setStats(data); 
+                setStats(data);
             } catch (error) {
                 console.error("Lỗi tải stats dashboard:", error);
                 setStats(null);
@@ -61,7 +59,11 @@ function ThoCatToc() {
     }, [idBarber, accessToken, isAuthLoading]);
 
     if (isAuthLoading || loadingStats) {
-        return <div className={cx("wrapper")}><p className={cx("loading")}>Đang tải Dashboard...</p></div>;
+        return (
+            <div className={cx("wrapper")}>
+                <p className={cx("loading")}>Đang tải Dashboard...</p>
+            </div>
+        );
     }
 
     return (
@@ -69,48 +71,42 @@ function ThoCatToc() {
             {/* Header */}
             <div className={cx("header")}>
                 <div>
-                    <h1 className={cx("title")}>Dashboard Thợ cắt tóc</h1>
+                    <h1 className={cx("title")}>Dashboard Thợ Cắt Tóc</h1>
                     <p className={cx("subtitle")}>Chào mừng trở lại, {barberName}!</p>
                 </div>
             </div>
 
-            {/* Stats - ĐÃ DÙNG DỮ LIỆU ĐỘNG */}
-       {/* Stats - ĐÃ DÙNG DỮ LIỆU ĐỘNG MỚI */}
-<div className={cx("stats")}>
-    {/* 1️⃣ Tổng số lịch hẹn tuần này */}
-    <StatCard
-        title="Tổng lịch hẹn tuần này"
-        value={stats.totalAppointmentsThisWeek?.toLocaleString("vi-VN") || "0"}
-        desc="Tổng số cuộc hẹn được đặt trong tuần này"
-    />
+            {/* Stats */}
+            <div className={cx("stats")}>
+                <StatCard
+                    title="Tổng lịch hẹn tuần này"
+                    value={stats?.totalAppointmentsThisWeek?.toLocaleString("vi-VN") || "0"}
+                    desc="Số cuộc hẹn (Pending + Completed)"
+                />
 
-    {/* 2️⃣ Tổng số lượt xem */}
-    <StatCard
-        title="Tổng lượt xem"
-        value={stats.totalReelViews?.toLocaleString("vi-VN") || "0"}
-        desc="Tổng lượt xem video của bạn"
-    />
+                <StatCard
+                    title="Tổng lượt xem"
+                    value={stats?.totalReelViews?.toLocaleString("vi-VN") || "0"}
+                    desc="Lượt xem video của bạn"
+                />
 
-    {/* 3️⃣ Doanh thu tháng này */}
-    <StatCard
-        title="Doanh thu tháng này"
-        value={formatCurrency(stats.monthlyRevenue)}
-        desc="Tổng doanh thu đã thanh toán trong tháng này"
-    />
+                <StatCard
+                    title="Doanh thu tháng này"
+                    value={formatCurrency(stats?.monthlyRevenue)}
+                    desc="Tổng doanh thu đã thanh toán (bao gồm Tip)"
+                />
 
-    {/* 4️⃣ Đánh giá trung bình */}
-    <StatCard
-        title="Đánh giá trung bình"
-        value={stats.avgRating?.toFixed(1) || "0.0"}
-        desc="Điểm trung bình từ khách hàng"
-    />
-</div>
-
+                <StatCard
+                    title="Đánh giá trung bình"
+                    value={stats?.avgRating ? Number(stats.avgRating).toFixed(1) : "0.0"}
+                    desc="Điểm trung bình từ khách hàng"
+                />
+            </div>
 
             {/* Tabs */}
             <TabNav tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
 
-            {/* Nội dung tab */}
+            {/* Nội dung Tab */}
             <div className={cx("tabContent")}>
                 {activeTab === "lichhen" && <LichHen />}
                 {activeTab === "hoso" && <HoSoCaNhan />}
