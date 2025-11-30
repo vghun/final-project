@@ -8,10 +8,9 @@ Repo: [vghun/final-project](https://github.com/vghun/final-project.git)
 
 | STT | Họ và Tên        | Vai trò             |
 |-----|------------------|---------------------|
-| 1   | Lâm Lực          | Fullstack Developer |
-| 2   | Nguyễn Văn An    | Fullstack Developer |
-| 3   | Nguyễn Văn Hưng  | Fullstack Developer |
-| 4   | Lưu Xuân Dũng    | Fullstack Developer |
+| 1   | Nguyễn Văn An    | Fullstack Developer |
+| 2   | Nguyễn Văn Hưng  | Fullstack Developer |
+| 3   | Lưu Xuân Dũng    | Fullstack Developer |
 
 ## 🧱 Công nghệ chính
 
