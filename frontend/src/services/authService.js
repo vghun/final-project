@@ -12,19 +12,44 @@ export const login = async ({ email, password }) => {
 };
 
 // Gửi OTP khi đăng ký
-export const register = async ({ fullName, email, password, phoneNumber }) => {
+export const register = async ({ fullName, email, phoneNumber, password, confirmPassword }) => {
   try {
-    const payload = { fullName, email, password, phoneNumber };
+    // 1️⃣ Validate dữ liệu trước khi gửi xuống backend
+    if (!fullName || !email || !phoneNumber || !password || !confirmPassword) {
+      throw new Error("Vui lòng điền đầy đủ thông tin");
+    }
+
+    // 2️⃣ Email hợp lệ
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error("Email không hợp lệ");
+    }
+
+    // 3️⃣ Số điện thoại hợp lệ (10-15 số)
+    const phoneRegex = /^[0-9]{10,15}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      throw new Error("Số điện thoại không hợp lệ");
+    }
+
+    // 4️⃣ Password trùng confirmPassword
+    if (password !== confirmPassword) {
+      throw new Error("Mật khẩu và xác nhận mật khẩu không khớp");
+    }
+
+    // ✅ Chuẩn bị payload gửi xuống API (chỉ gửi 1 password)
+    const payload = { fullName, email, phoneNumber, password };
     console.log("Register payload gửi xuống backend:", payload);
 
+    // 5️⃣ Gọi API
     const res = await request.post("/auth/register", payload);
     return res;
-  } catch (error) {
-    console.error("Lỗi khi gọi API register:", error.response?.data || error);
-    throw error.response?.data || error;
-  }
-};
 
+  }catch (error) {
+  console.error("Lỗi khi gọi API register:", error.response?.data || error.message);
+  const message = error.response?.data?.error || error.message;
+  throw message;
+}
+};
 // Xác thực OTP và tạo user
 export const verifyOtp = async ({ email, otp }) => {
   try {

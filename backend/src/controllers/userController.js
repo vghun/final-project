@@ -56,11 +56,33 @@ const resetPassword = async (req, res) => {
     return res.status(400).json({ error: err.message });
   }
 };
+export const createUser = async (req, res) => {
+  try {
+    const { fullName, phoneNumber } = req.body;
+    console.log("BODY RECEIVED:", req.body);
+    const newUser = await otpService.createUserService(fullName, phoneNumber );
+
+    return res.status(201).json({
+      success: true,
+      message: "Tạo khách hàng thành công",
+      idCustomer: newUser.idUser,
+      fullName: newUser.fullName,
+      phoneNumber: newUser.phoneNumber,
+    });
+  } catch (error) {
+    console.error("Lỗi tạo user:", error);
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Lỗi server",
+    });
+  }
+};
 
 export default {
   register,
   verifyOtp,
   forgotPassword,
   verifyForgotOtp,
-  resetPassword
+  resetPassword,
+  createUser
 };

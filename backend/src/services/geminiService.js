@@ -40,7 +40,7 @@ async function callGemini(model, payload, retries = 3, delay = 1000) {
 // ---------------------
 async function analyzeIntent(message) {
   const intentPrompt = `
-Bạn là hệ thống phân loại câu hỏi khách hàng của barbershop.
+Bạn là hệ thống phân loại câu hỏi khách hàng của barbershop Nam.
 Chỉ trả về một từ:
 - "branches" → nếu khách hỏi về chi nhánh hoặc dịch vụ
 - "barbers" → nếu khách hỏi về thợ, kiểu tóc, sản phẩm tóc
@@ -107,7 +107,7 @@ export async function sendMessage({ message }) {
 
     // 3️⃣ Gọi Gemini chính tạo phản hồi
     const systemPrompt = `
-Bạn là trợ lý AI của barbershop nam.
+Bạn là trợ lý AI của barbershop Nam.
 - Phong cách: thân thiện, tự nhiên, lịch sự, cởi mở, dễ gần.
 - Trả lời chi tiết về tóc, kiểu tóc, thợ, chi nhánh hoặc sản phẩm chăm sóc tóc.
 - Nếu có dữ liệu từ Pinecone, hãy sử dụng để tư vấn.

@@ -16,12 +16,12 @@ function Register({ onSwitch, onClose }) {
     fullName: "",
     email: "",
     phoneNumber: "",
-    otp: "",
     password: "",
+    confirmPassword: "", // ✅ thêm confirmPassword
+    otp: "",
   });
   const [otpSent, setOtpSent] = useState(false);
 
-  const { login } = useAuth();
   const { showToast } = useToast();
 
   const handleChange = (e) => {
@@ -29,58 +29,54 @@ function Register({ onSwitch, onClose }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Gửi OTP
- const handleSendOtp = async () => {
-  try {
-    const res = await AuthAPI.register({
-      fullName: formData.fullName,
-      email: formData.email,
-      password: formData.password,
-      phoneNumber: formData.phoneNumber,
-    });
-    console.log("Register response:", res);
+  // Gửi OTP & đăng ký
+  const handleSendOtp = async () => {
+    try {
+      const res = await AuthAPI.register({
+        fullName: formData.fullName,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword, // ✅ truyền confirmPassword
+      });
+      console.log("Register response:", res);
 
-    // Lấy message từ res.data
-    showToast({
-      text: res.message || "OTP đã gửi",
-      type: "success",
-    });
+      showToast({
+        text: res.message || "OTP đã gửi",
+        type: "success",
+      });
 
-    setOtpSent(true);
-  } catch (error) {
-    showToast({
-      text: error.response?.data?.error || error.message || "Không gửi được OTP",
-      type: "error",
-    });
-  }
-};
+      setOtpSent(true);
+    } catch (error) {
+      showToast({
+        text: error.response?.data?.error || error,
+        type: "error",
+      });
+    }
+  };
 
-
-  // Xác thực OTP & đăng ký
+  // Xác thực OTP
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const result = await AuthAPI.verifyOtp({
-      email: formData.email,
-      otp: formData.otp,
-    });
+    e.preventDefault();
+    try {
+      const result = await AuthAPI.verifyOtp({
+        email: formData.email,
+        otp: formData.otp,
+      });
 
-    // Nếu backend trả message thì hiển thị
-    showToast({
-      text: result.message || "Đăng ký thành công",
-      type: "success",
-    });
+      showToast({
+        text: result.message || "Đăng ký thành công",
+        type: "success",
+      });
 
-    // Chuyển sang màn hình đăng nhập
-    onSwitch("Login");
-
-  } catch (error) {
-    showToast({
-      text: error.response?.data?.error || error.message || "Xác thực OTP thất bại",
-      type: "error",
-    });
-  }
-};
+      onSwitch("Login");
+    } catch (error) {
+      showToast({
+        text: error.response?.data?.error || error.message || "Xác thực OTP thất bại",
+        type: "error",
+      });
+    }
+  };
 
   return (
     <div className={cx("wrapper")}>
@@ -129,9 +125,12 @@ function Register({ onSwitch, onClose }) {
             />
             <Input
               primary
+              name="confirmPassword" // ✅ bind confirmPassword
               type="password"
               required
               placeholder="Nhập lại mật khẩu"
+              value={formData.confirmPassword}
+              onChange={handleChange}
             />
 
             <div className={cx("otp")}>

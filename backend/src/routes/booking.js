@@ -11,6 +11,7 @@ import {
   cancelBooking,
   getBookingsForBarber,
   getBookedSlotsByBarber,
+    checkInBooking,
 } from "../controllers/bookingController.js";
 import { authenticate } from "../middlewares/authMiddleware.js";
 
@@ -33,6 +34,7 @@ router.put("/:idBooking/pay", payBooking);
 
 // ❌ Hủy booking
 router.put("/:idBooking/cancel", cancelBooking);
+router.put("/:idBooking/checkin", checkInBooking);
 
 router.get("/barber", getBookingsForBarber);
 router.get("/barbers/:idBarber/booked-slots", getBookedSlotsByBarber);

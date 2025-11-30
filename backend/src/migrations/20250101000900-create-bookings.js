@@ -41,9 +41,10 @@
         allowNull: false,
       },
       status: {
-        type: Sequelize.ENUM('Pending', 'Completed', 'Cancelled'),
-        defaultValue: 'Pending',
-      },
+    type: Sequelize.ENUM('Pending', 'InProgress', 'Completed', 'Cancelled'),
+    defaultValue: 'Pending'
+    },
+
       description: {
         type: Sequelize.TEXT,
         allowNull: true,

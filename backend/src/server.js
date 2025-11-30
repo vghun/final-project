@@ -2,7 +2,6 @@ import express from "express";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import cors from "cors";
-
 import bookingHistory from "./routes/bookingHistory.js";
 import barberRoutes from "./routes/barber.js";
 import viewEngine from "./config/viewEngine.js";
@@ -25,6 +24,7 @@ import ratingRoutes from "./routes/rating.js";
 import summaryRoutes from "./routes/summaryStatistics.js";
 import bookingDirectRoutes from "./routes/bookingDirect.js";
 import hashtagRoutes from "./routes/hashtag.js";
+import hairConsultRoutes from "./routes/hairConsult.js";
 
 import { authenticate, authorize } from "./middlewares/authMiddleware.js";
 
@@ -58,6 +58,7 @@ app.use("/api/statistics/summary", authenticate, authorize(["admin"]), summaryRo
 
 app.use("/api/booking-direct", bookingDirectRoutes);
 app.use("/api/hashtags", hashtagRoutes);
+app.use("/api/hair-consult", hairConsultRoutes);
 
 // View engine & auth routes
 viewEngine(app);

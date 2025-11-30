@@ -12,12 +12,14 @@ export const getProfile = async (token) => {
     throw error.response?.data || error;
   }
 };
-
-// Cập nhật thông tin user (fullName, email, phoneNumber, avatar)
 export const updateProfile = async (token, data) => {
   try {
     const res = await request.put("/user/profile", data, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+      transformRequest: [(formData) => formData], // ⚡ Thêm dòng này để axios không stringify FormData
     });
     console.log("API updateProfile trả về:", res);
     return res;

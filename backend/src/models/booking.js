@@ -37,10 +37,11 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
-      status: {
-        type: DataTypes.ENUM("Pending", "Completed", "Cancelled"),
-        defaultValue: "Pending",
-      },
+     status: {
+      type: DataTypes.ENUM("Pending", "InProgress", "Completed", "Cancelled"),
+      defaultValue: "Pending",
+    },
+
       description: DataTypes.TEXT,
 
       // 💰 Tổng tiền booking

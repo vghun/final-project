@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import styles from "./Home.module.scss";
-import { Link } from "react-router-dom";
 import { useAuth } from "~/context/AuthContext";
-import Button from "~/components/Button";
 import ServiceCard from "~/components/ServiceCard";
 import AIChat from "../../components/AIChat/AIChat";
 import Modal from "~/components/Modal";
 import { fetchHotServicesPaged } from "~/services/serviceService";
+import RevealSection from "~/components/RevealSection/RevealSection";
 
 const Home = () => {
   const { isLogin } = useAuth();
@@ -66,7 +65,7 @@ const Home = () => {
 
   const handleBookingClick = () => {
     if (isLogin) {
-      window.location.href = "/booking"; // Hoặc dùng useNavigate
+      window.location.href = "/booking";
     } else {
       setNextRoute("/booking");
       setShowLoginModal(true);
@@ -76,34 +75,55 @@ const Home = () => {
   return (
     <div className={styles.home}>
       {/* Hero Section */}
-      <section
-        className={styles.heroSection}
-        style={{ backgroundImage: `url(/brand.jpg)` }}
-      >
-        <div className={styles.overlay}></div>
-        <div className={styles.heroContent}>
-          <h1>Barbershop</h1>
-          <p>Chăm sóc tóc cho quý ông – Phong cách & Chất lượng</p>
-          <div className={styles.heroButtons}>
-            <button className={styles.btnPrimary} onClick={handleBookingClick}>
-              Đặt lịch
-            </button>
-            <button className={styles.btnSecondary} onClick={scrollToChat}>
-              Tư vấn
-            </button>
-          </div>
-        </div>
-      </section>
+<RevealSection
+  className={styles.heroSection}
+  style={{ backgroundImage: `url(/brand.jpg)` }}
+>
+  <div className={styles.overlay}></div>
+  <div className={styles.heroContent}>
+    <h1>Barbershop</h1>
+    <p>Chăm sóc tóc cho quý ông – Phong cách & Chất lượng</p>
+    <div className={styles.heroButtons}>
+      <button className={styles.btnPrimary} onClick={handleBookingClick}>
+        Đặt lịch
+      </button>
+      <button className={styles.btnSecondary} onClick={scrollToChat}>
+        Tư vấn
+      </button>
+    </div>
+  </div>
+</RevealSection>
+
+<RevealSection
+  className={styles.quizCTASection}
+  style={{ backgroundImage: `url(/consult.jpeg)` }}
+>
+  <div className={styles.overlay}></div>
+  <div className={styles.quizCTAContent}>
+    <h2>Tìm kiểu tóc hoàn hảo cho bạn!</h2>
+    <p>
+      Bạn chưa chắc chắn kiểu tóc nào phù hợp? Hãy khám phá ngay phong cách tóc
+      dựa trên chất tóc, khuôn mặt và sở thích của bạn.
+    </p>
+    <button
+      className={styles.btnPrimary}
+      onClick={() => (window.location.href = "/hair-consult")}
+    >
+      Bắt đầu tư vấn
+    </button>
+  </div>
+</RevealSection>
+
 
       {/* AI Chat Section */}
-      <section className={styles.section} ref={chatRef}>
+      <RevealSection className={styles.section} ref={chatRef}>
         <div className={styles.container}>
           <AIChat />
         </div>
-      </section>
+      </RevealSection>
 
       {/* Dịch vụ hot */}
-      <section className={styles.section}>
+      <RevealSection className={styles.section}>
         <div className={styles.container}>
           <div className={styles.textCenter}>
             <h3 className={styles.title}>Dịch vụ hot nhất</h3>
@@ -127,10 +147,7 @@ const Home = () => {
                 </div>
               ))}
               {hot.slice(0, 6).map((s) => (
-                <div
-                  key={`duplicate-${s.idService}`}
-                  className={styles.slideItem}
-                >
+                <div key={`duplicate-${s.idService}`} className={styles.slideItem}>
                   <ServiceCard
                     id={s.idService}
                     image={s.image}
@@ -144,7 +161,7 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </section>
+      </RevealSection>
 
       {/* Modal Login */}
       <Modal
@@ -152,13 +169,13 @@ const Home = () => {
         onClose={() => {
           setShowLoginModal(false);
           if (!isLogin && nextRoute) {
-            window.location.href = "/"; // Quay về Home nếu chưa login
+            window.location.href = "/";
           }
         }}
         onLoginSuccess={() => {
           setShowLoginModal(false);
           if (nextRoute) {
-            window.location.href = nextRoute; // Đi vào Booking
+            window.location.href = nextRoute;
             setNextRoute(null);
           }
         }}
