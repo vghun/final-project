@@ -173,23 +173,67 @@ export const cancelBooking = async (req, res) => {
     const { idBooking } = req.params;
 
     const booking = await db.Booking.findByPk(idBooking);
+
     if (!booking) {
       return res.status(404).json({ message: "Không tìm thấy lịch hẹn để hủy" });
     }
 
-    if (booking.status === "Cancelled") {
-      return res.status(400).json({ message: "Lịch hẹn này đã bị hủy trước đó" });
+    // ❌ Không cho hủy nếu là InProgress, Completed hoặc Cancelled
+    if (booking.status !== "Pending") {
+      return res.status(400).json({
+        message: `Không thể hủy lịch hẹn khi trạng thái đang là '${booking.status}'. Chỉ lịch hẹn Pending mới được phép hủy.`,
+      });
     }
 
+    // ✅ Chỉ khi Pending mới đổi thành Cancelled
     booking.status = "Cancelled";
     await booking.save();
 
-    return res.status(200).json({ message: "Đã hủy lịch hẹn thành công ✅" });
+    return res.status(200).json({ message: "Đã hủy lịch hẹn thành công" });
+
   } catch (error) {
     console.error("❌ Lỗi khi hủy lịch:", error);
     res.status(500).json({ message: "Lỗi khi hủy lịch", error: error.message });
   }
 };
+// ✅ CHECK-IN BOOKING
+export const checkInBooking = async (req, res) => {
+  try {
+    const { idBooking } = req.params;
+
+    // Tìm booking
+    const booking = await db.Booking.findByPk(idBooking);
+    if (!booking) {
+      return res.status(404).json({ message: "Không tìm thấy lịch hẹn" });
+    }
+
+    // Chỉ cho check-in khi trạng thái là Pending
+    if (booking.status !== "Pending") {
+      return res.status(400).json({
+        message: `Chỉ có lịch hẹn Pending mới được check-in. Trạng thái hiện tại: '${booking.status}'`,
+      });
+    }
+
+    // Cập nhật trạng thái
+    booking.status = "InProgress";
+    await booking.save();
+
+    return res.status(200).json({
+      message: "Đã check-in lịch hẹn thành công",
+      booking: {
+        idBooking: booking.idBooking,
+        status: booking.status,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Lỗi khi check-in booking:", error);
+    return res.status(500).json({
+      message: "Lỗi khi check-in booking",
+      error: error.message,
+    });
+  }
+};
+
 
 // ✅ Danh sách lịch hẹn bên Admin
 export const getAllBookingDetails = async (req, res) => {
@@ -371,7 +415,6 @@ export const payBooking = async (req, res) => {
       {
         isPaid: true,
         total: total || booking.total,
-        status: "Completed",
       },
       { transaction: t }
     );

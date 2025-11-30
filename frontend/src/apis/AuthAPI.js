@@ -16,8 +16,8 @@ export const AuthAPI = {
     return result;
   },
 
-  register: async ({ fullName, email, password, phoneNumber }) => {
-    const result = await authService.register({ fullName, email, password, phoneNumber });
+ register: async ({ fullName, email, phoneNumber, password, confirmPassword }) => {
+    const result = await authService.register({ fullName, email, phoneNumber, password, confirmPassword });
     return result;
   },
 

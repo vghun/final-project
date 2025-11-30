@@ -108,33 +108,38 @@ function Profile() {
     }
   };
 
-  const handleEditProfile = async () => {
-    if (!/^(0|\+84)[0-9]{9,10}$/.test(phoneNumber)) {
-      showToast({ text: "Số điện thoại không hợp lệ!", type: "error", duration: 3000 });
-      return;
-    }
+const handleEditProfile = async () => {
+  if (!/^(0|\+84)[0-9]{9,10}$/.test(phoneNumber)) {
+    showToast({ text: "Số điện thoại không hợp lệ!", type: "error", duration: 3000 });
+    return;
+  }
 
-    try {
-      const formData = new FormData();
-      formData.append("fullName", fullName);
-      formData.append("phoneNumber", phoneNumber);
-      if (avatarFile) formData.append("avatar", avatarFile);
+  try {
+    const formData = new FormData();
+    formData.append("fullName", fullName);
+    formData.append("phoneNumber", phoneNumber);
+    if (avatarFile) formData.append("avatar", avatarFile);
 
-      const updatedProfile = await ProfileAPI.updateProfile(accessToken, formData);
-      const updatedUser = updatedProfile.profile;
-      setProfile(updatedUser);
-      setUser({
-        ...updatedUser,
-        avatar: updatedUser.image || "/user.png",
-      });
-      setPreview(updatedUser.image || "/user.png");
+    const updatedProfile = await ProfileAPI.updateProfile(accessToken, formData);
 
-      showToast({ text: "Cập nhật thành công!", type: "success", duration: 3000 });
-    } catch (err) {
-      console.error("Lỗi cập nhật profile:", err);
-      showToast({ text: "Có lỗi khi cập nhật!", type: "error", duration: 3000 });
-    }
-  };
+    // ⚡ fix ở đây
+    const updatedUser = updatedProfile?.profile || updatedProfile;
+
+    setProfile(updatedUser);
+    setUser({
+      ...updatedUser,
+      avatar: updatedUser.image || "/user.png",
+    });
+    setPreview(updatedUser.image || "/user.png");
+
+    showToast({ text: "Cập nhật thành công!", type: "success", duration: 3000 });
+  } catch (err) {
+    console.error("Lỗi cập nhật profile:", err);
+    showToast({ text: "Có lỗi khi cập nhật!", type: "error", duration: 3000 });
+  }
+};
+
+
 
   const handleChangePassword = () => {
     showToast({

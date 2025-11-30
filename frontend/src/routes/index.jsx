@@ -11,6 +11,7 @@ import BarberPage from "~/pages/team";
 import  BarberProfile from "~/pages/BarberProfile";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { DefaultLayout } from "~/layouts"; 
+import HairConsult from "~/pages/HairConsult";
 
 export const publicRouter = [
   { path: config.routes.home, component: Home },
@@ -19,6 +20,8 @@ export const publicRouter = [
   { path: config.routes.reels, component: Reel },
   { path: config.routes.team, component: BarberPage },
   { path: config.routes.barberProfile, component: BarberProfile },
+  {path: config.routes.hairConsult, // thêm route hairConsult
+    component: HairConsult},
   
   {
     path: config.routes.admin,

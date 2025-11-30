@@ -2,20 +2,23 @@ import { useState } from "react";
 import Login from "./Login";
 import Register from "./Register";
 import ForgetPass from "./ForgetPass";
+import NewPass from "./NewPass";
 import styles from "./Modal.module.scss";
 import classNames from "classnames/bind";
-import NewPass from "./NewPass";
 
 const cx = classNames.bind(styles);
 
 function Modal({ isOpen, onClose }) {
   const [modalType, setModalType] = useState("login");
-  const [modalData, setModalData] = useState({}); // thêm state để giữ data (vd: email)
+  const [modalData, setModalData] = useState({});
 
-  // custom lại onSwitch để vừa đổi trang vừa lưu data
   const handleSwitch = (type, data = {}) => {
     setModalType(type);
     setModalData(data);
+  };
+
+  const handleLoginSuccess = () => {
+     setModalType(null); // chỉ đóng modal khi login thành công
   };
 
   const renderModalContent = () => {
@@ -25,25 +28,23 @@ function Modal({ isOpen, onClose }) {
       case "forgetpass":
         return <ForgetPass onSwitch={handleSwitch} />;
       case "newpass":
-        return (
-          <NewPass
-            onSwitch={handleSwitch}
-            email={modalData.email} // truyền email vào đây
-          />
-        );
+        return <NewPass onSwitch={handleSwitch} email={modalData.email} />;
       default:
-        return <Login onSwitch={handleSwitch} onClose={onClose} />;
+        return <Login onSwitch={handleSwitch} onClose={onClose} onLoginSuccess={handleLoginSuccess} />;
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className={cx("overlay")} onClick={onClose}>
+    <div
+      className={cx("overlay")}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && onClose) onClose();
+      }}
+    >
       <div className={cx("modal")} onClick={(e) => e.stopPropagation()}>
-        <button className={cx("close")} onClick={onClose}>
-          ×
-        </button>
+        <button className={cx("close")} onClick={onClose}>×</button>
         {renderModalContent()}
       </div>
     </div>

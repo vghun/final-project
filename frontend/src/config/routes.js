@@ -10,6 +10,7 @@ const routes = {
   barberProfile: "/barber/:id",
   team: "/team",
   bookingHistory: "/booking-history",
+  hairConsult: "/hair-consult",
 
 };
 

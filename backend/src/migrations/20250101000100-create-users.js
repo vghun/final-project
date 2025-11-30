@@ -9,7 +9,7 @@ export async function up(queryInterface, Sequelize) {
     },
     email: {
       type: Sequelize.STRING(100),
-      allowNull: false,
+      allowNull: true,
       unique: true,
     },
     password: {

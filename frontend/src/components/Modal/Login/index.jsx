@@ -1,7 +1,5 @@
 import { useState } from "react";
 import classNames from "classnames/bind";
-import { useNavigate } from "react-router-dom";
-
 import { useToast } from "~/context/ToastContext";
 import { useAuth } from "~/context/AuthContext";
 import { AuthAPI } from "~/apis/AuthAPI";
@@ -14,19 +12,16 @@ const cx = classNames.bind(styles);
 
 function Login({ onSwitch, onClose, onLoginSuccess }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const navigate = useNavigate();
-
   const { login } = useAuth();
   const { showToast } = useToast();
 
-  // ✅ Đảm bảo event có name/value dù Input là custom
+  // Cập nhật state khi input thay đổi
   const handleChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submit form data:", formData); // 👈 Kiểm tra
 
     if (!formData.email || !formData.password) {
       showToast({ text: "Vui lòng nhập đầy đủ thông tin", type: "error" });
@@ -37,49 +32,45 @@ function Login({ onSwitch, onClose, onLoginSuccess }) {
       const result = await AuthAPI.login(formData);
 
       if (result.accessToken && result.refreshToken && result.user) {
-        const userWithAvatar = {
-          ...result.user,
-          avatar: result.user.image || "/user.png",
-        };
-
+        // Login thành công → cập nhật context
+        const userWithAvatar = { ...result.user, avatar: result.user.image || "/user.png" };
         login(userWithAvatar, result.accessToken, result.refreshToken);
 
+        showToast({ text: result.message || "Đăng nhập thành công", type: "success" });
+
+        // Chỉ gọi khi login thành công
         if (onLoginSuccess) onLoginSuccess();
-
-        showToast({
-          text: result.message || "Đăng nhập thành công",
-          type: "success",
-        });
-
         if (onClose) onClose();
-        navigate("/");
-      } else {
-        showToast({
-          text: result.message || "Tài khoản hoặc mật khẩu không chính xác",
-          type: "error",
-        });
+        return;
       }
+
+      // Nếu API trả về OK nhưng không có token/user
+      showToast({ text: result.message || "Email hoặc mật khẩu không chính xác", type: "error" });
+
     } catch (err) {
       console.error("Login error:", err);
 
       const status = err.response?.status;
       const message = err.response?.data?.message;
 
-      // 🔒 Nếu tài khoản bị khóa
-      if (status === 403 || message?.includes("bị khóa")) {
-        showToast({
-          text: message || "Tài khoản của bạn đã bị khóa!",
-          type: "error",
-        });
-        return; // ⛔ Dừng luôn, không show lỗi khác
+      if (status === 401) {
+        // Sai email/password → chỉ show toast, KHÔNG đóng modal
+        showToast({ text: message || "Email hoặc mật khẩu không đúng", type: "error" });
+        return;
       }
 
-      // 🔹 Lỗi thông thường khác
-      showToast({
-        text: message || "Đăng nhập không thành công, vui lòng thử lại sau",
-        type: "error",
-      });
+      if (status === 403 || message?.includes("bị khóa")) {
+        showToast({ text: message || "Tài khoản của bạn đã bị khóa!", type: "error" });
+        return;
+      }
+
+      showToast({ text: "Đăng nhập không thành công, vui lòng thử lại sau", type: "error" });
     }
+  };
+
+  const handleSwitch = (e, target) => {
+    e.preventDefault();
+    if (onSwitch) onSwitch(target);
   };
 
   return (
@@ -89,7 +80,7 @@ function Login({ onSwitch, onClose, onLoginSuccess }) {
         <div className={cx("body")}>
           <p>
             Nếu bạn chưa có tài khoản,{" "}
-            <a href="#" onClick={() => onSwitch("register")}>
+            <a href="#" onClick={(e) => handleSwitch(e, "register")}>
               đăng ký ngay
             </a>
           </p>
@@ -101,7 +92,6 @@ function Login({ onSwitch, onClose, onLoginSuccess }) {
               required
               placeholder="Email"
               value={formData.email}
-              // ✅ Sửa cách truyền event
               onChange={(e) => handleChange("email", e.target.value)}
             />
             <Input
@@ -118,15 +108,16 @@ function Login({ onSwitch, onClose, onLoginSuccess }) {
             <div className={cx("forgetpass-wrapper")}>
               <div
                 className={cx("forgetpass")}
-                onClick={() => onSwitch("forgetpass")}
+                onClick={() => onSwitch && onSwitch("forgetpass")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && onSwitch && onSwitch("forgetpass")}
               >
                 Quên mật khẩu ?
               </div>
             </div>
 
-            <Button primary type="submit">
-              Đăng nhập
-            </Button>
+            <Button primary type="submit">Đăng nhập</Button>
           </form>
         </div>
       </div>

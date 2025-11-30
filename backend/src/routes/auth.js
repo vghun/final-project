@@ -13,7 +13,7 @@ const authRoutes = (app) => {
 
   // Xác thực OTP
   router.post("/verify-otp", userController.verifyOtp);
-
+  router.post("/create-customer", userController.createUser);
   // Đăng nhập
   router.post("/login", authController.login);
 
