@@ -10,19 +10,37 @@ export const getComments = async (idReel) => {
 };
 
 export const addComment = async (idReel, idUser, content) => {
-  return await ReelComment.create({ idReel, idUser, content, parentCommentId: null });
+  const created = await ReelComment.create({
+    idReel,
+    idUser,
+    content,
+    parentCommentId: null
+  });
+
+  // Query lại để lấy full thông tin user
+  return await ReelComment.findByPk(created.idComment, {
+    include: [{ model: db.User, attributes: ["idUser", "fullName", "image"] }]
+  });
 };
+
 
 export const addReply = async (parentCommentId, idUser, content) => {
   const parent = await ReelComment.findByPk(parentCommentId);
   if (!parent) throw new Error("Comment không tồn tại");
-  return await ReelComment.create({
+
+  const createdReply = await ReelComment.create({
     idReel: parent.idReel,
     idUser,
     content,
     parentCommentId,
   });
+
+  // Query lại để trả về full User
+  return await ReelComment.findByPk(createdReply.idComment, {
+    include: [{ model: db.User, attributes: ["idUser", "fullName", "image"] }]
+  });
 };
+
 
 export const updateComment = async (commentId, idUser, content) => {
   const comment = await ReelComment.findByPk(commentId);
