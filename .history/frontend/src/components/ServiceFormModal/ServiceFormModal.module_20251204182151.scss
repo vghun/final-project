@@ -1,0 +1,216 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal {
+  width: 900px;
+  max-width: 95vw;
+  max-height: 80vh;        // giới hạn chiều cao modal
+  background: #1d1d1d;
+  border-radius: 14px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  padding: 16px 20px;
+  background: #252525;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h3 { font-size: 18px; font-weight: 600; }
+  button {
+    background: none;
+    border: none;
+    color: #bbb;
+    font-size: 20px;
+    cursor: pointer;
+    &:hover { color: #fff; transform: scale(1.1); }
+  }
+}
+
+.body {
+  display: flex;             // 2 cột
+  flex: 1;                   // chiếm toàn bộ height modal
+  overflow: hidden;
+  
+  .leftImage {
+    width: 40%;              // ảnh bên trái
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+
+    .imagePreview {
+      width: 100%;
+      aspect-ratio: 16 / 9; 
+      max-height: 350px;  // hình ngang vừa phải
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    input {
+      margin-top: 8px;
+    }
+  }
+
+  .rightInfo {
+    flex: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;      // scroll nếu nội dung dài
+  }
+  textarea {
+    min-height: 50px;  // cao hơn nữa
+  }
+
+  label {
+    display: block;
+    margin-bottom: 4px;
+    color: #bcbcbc;
+    font-size: 14px;
+  }
+
+  input, textarea {
+    width: 100%;
+    padding: 10px;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    &:focus { border-color: #00aaff; outline: none; }
+    &:disabled { opacity: 0.6; background: #242424; cursor: not-allowed; }
+  }
+
+  textarea { height: 120px; resize: vertical; }
+
+  .branchList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    label {
+      background: #2c2c2c;
+      border: 1px solid #444;
+      padding: 6px 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      &:hover { background: #333; }
+    }
+  }
+
+  .statusToggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 0;
+    svg { font-size: 24px; }
+    span { font-size: 14px; }
+    &:hover { opacity: 0.8; }
+  }
+}
+
+.footer {
+  padding: 12px 20px;
+  background: #252525;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  .save {
+    padding: 8px 16px;
+    background: #00aaff;
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    &:hover { background: #33c6ff; transform: translateY(-1px); }
+  }
+}
+.fileButton {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #02111d;
+  color: #100202;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: center;
+
+  margin-top: 8px;
+
+  &:hover {
+    background: #6b787d;
+  }
+
+  input {
+    display: none;
+  }
+}
+.confirmOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.confirmModal {
+  background: #292222;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.confirmButtons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 15px;
+
+  button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+}
+
+
