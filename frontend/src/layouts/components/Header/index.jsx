@@ -62,7 +62,7 @@ function Header() {
                 <span>{user.fullName}</span>
                 <div className={cx("user-avatar")}>
                   <img
-                    src={user.avatar || "/user.png"}
+                    src={user.image || "/user.png"}
                     alt={user.fullName}
                   />
                 </div>

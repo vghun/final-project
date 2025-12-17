@@ -240,9 +240,9 @@ export const setResumeDate = async (id, resumeDate) => {
     }
 
     // ====================== CALL API ======================
-    const res = await request.patch(`/api/branches/${id}/suspend`, {
+    const res = await request.patch(`/api/branches/${id}/resume`, 
       resumeDate,
-    });
+    );
 
     return res;
   } catch (error) {

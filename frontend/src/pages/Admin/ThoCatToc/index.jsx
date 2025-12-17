@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import classNames from "classnames/bind";
 import styles from "./ThoCatToc.module.scss";
+import Toast from "~/components/Toast";
+import { faLock ,faLockOpen } from "@fortawesome/free-solid-svg-icons";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faStar,
   faPenToSquare,
   faTrash,
   faPlus,
-  faLock,
-  faLockOpen,
   faMapMarkerAlt,
   faExchangeAlt,
 } from "@fortawesome/free-solid-svg-icons";
@@ -18,51 +19,19 @@ import { BranchAPI } from "~/apis/branchAPI";
 const cx = classNames.bind(styles);
 
 function ThoCatToc() {
+  const [toastList, setToastList] = useState([]);
+
+  const showToast = (type, text, duration = 3000) => {
+    const id = Date.now();
+    setToastList((prev) => [...prev, { id, type, text, duration }]);
+  };
+
   const [barbers, setBarbers] = useState([]);
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showChangeBranch, setShowChangeBranch] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [unavailabilities, setUnavailabilities] = useState({});
-  const [editData, setEditData] = useState({
-    fullName: "",
-    phoneNumber: "",
-    email: "",
-    password: "",
-    idBranch: "",
-    profileDescription: "",
-  });
-
-  const [showLeaveModal, setShowLeaveModal] = useState(false);
-  const [leaveData, setLeaveData] = useState({
-    idBarber: "",
-    startDate: "",
-    endDate: "",
-    reason: "",
-  });
-
-  const openLeaveModal = (barber) => {
-    setLeaveData({
-      idBarber: barber.idBarber,
-      startDate: "",
-      endDate: "",
-      reason: "",
-    });
-    setShowLeaveModal(true);
-  };
-
-  const handleLeaveSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await BarberAPI.addUnavailability(leaveData);
-      alert("✅ Đã thêm lịch nghỉ phép cho thợ!");
-      setShowLeaveModal(false);
-    } catch (error) {
-      console.error("Lỗi khi thêm nghỉ phép:", error);
-      alert(error?.response?.data?.message || "❌ Không thể thêm lịch nghỉ!");
-    }
-  };
 
   const [formData, setFormData] = useState({
     email: "",
@@ -75,32 +44,57 @@ function ThoCatToc() {
 
   const [selectedBarber, setSelectedBarber] = useState(null);
   const [newBranchId, setNewBranchId] = useState("");
+  const [editData, setEditData] = useState({
+    fullName: "",
+    phoneNumber: "",
+    email: "",
+    idBranch: "",
+    profileDescription: "",
+  });
+// 🔹 Khóa tài khoản thợ
+// 🔹 Khóa/Mở khóa tài khoản thợ
+const handleToggleAccount = async (barber) => {
+  const isLocked = barber.status === "locked" || barber.status === "LOCKED";
+  const action = isLocked ? "mở" : "khóa";
+
+  if (!window.confirm(`Xác nhận ${action} tài khoản của ${barber.fullName}?`)) return;
+
+  try {
+    if (isLocked) {
+      await BarberAPI.unlock(barber.idBarber);
+      showToast("success", "Tài khoản đã được mở khóa!");
+    } else {
+      await BarberAPI.lock(barber.idBarber);
+      showToast("success", "Tài khoản đã bị khóa!");
+    }
+
+    // Cập nhật trạng thái ngay trong state
+    setBarbers((prev) =>
+      prev.map((b) =>
+        b.idBarber === barber.idBarber
+          ? { ...b, status: isLocked ? "active" : "locked" }
+          : b
+      )
+    );
+  } catch (error) {
+    showToast(
+      "error",
+      error?.response?.data?.message || `Không thể ${action} tài khoản!`
+    );
+  }
+};
+
+
 
   // 🔹 Lấy danh sách
   const fetchBarbers = async () => {
     try {
       const data = await BarberAPI.getAll();
       setBarbers(data || []);
-      await fetchBarberUnavailabilities(data || []);
     } catch (error) {
       console.error("Lỗi khi tải danh sách barber:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchBarberUnavailabilities = async (barbersList) => {
-    try {
-      const dataMap = {};
-      for (const barber of barbersList) {
-        const res = await BarberAPI.getUnavailabilitiesByBarber(
-          barber.idBarber
-        );
-        dataMap[barber.idBarber] = res?.unavailabilities || [];
-      }
-      setUnavailabilities(dataMap);
-    } catch (error) {
-      console.error("Lỗi khi tải lịch nghỉ:", error);
     }
   };
 
@@ -118,24 +112,7 @@ function ThoCatToc() {
     fetchBranches();
   }, []);
 
-  // 🔹 Khóa / mở khóa
-  const handleToggleLock = async (barber) => {
-    try {
-      if (barber.isLocked) {
-        await BarberAPI.unlock(barber.idBarber);
-        alert(`🔓 Đã mở khóa thợ: ${barber.fullName}`);
-      } else {
-        await BarberAPI.lock(barber.idBarber);
-        alert(`🔒 Đã khóa thợ: ${barber.fullName}`);
-      }
-      await fetchBarbers();
-    } catch (error) {
-      console.error("Lỗi khi cập nhật trạng thái khóa:", error);
-      alert("❌ Lỗi khi thay đổi trạng thái thợ!");
-    }
-  };
-
-  // 🔹 Mở modal thêm thợ
+  // 🔹 Modal thêm thợ
   const openAddModal = () => {
     setFormData({
       email: "",
@@ -148,25 +125,37 @@ function ThoCatToc() {
     setShowModal(true);
   };
 
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await BarberAPI.createBarber(formData);
+      showToast("success", "Tạo tài khoản cho thợ cắt tóc thành công!");
+      setShowModal(false);
+      await fetchBarbers();
+    } catch (error) {
+      showToast("error", error?.response?.data?.message || "Không thể tạo thợ mới!");
+    }
+  };
+
+  // 🔹 Modal sửa thợ
   const openEditModal = async (barber) => {
     setSelectedBarber(barber);
     try {
-      // 🔹 Gọi API lấy thông tin chi tiết thợ
       const detail = await BarberAPI.getProfile(barber.idBarber);
-
       setEditData({
         fullName: detail.fullName || "",
         phoneNumber: detail.phoneNumber || "",
         email: detail.email || "",
-        password: "",
         idBranch: detail.idBranch || "",
         profileDescription: detail.profileDescription?.trim() || "",
       });
-
       setShowEditModal(true);
     } catch (error) {
-      console.error("❌ Lỗi khi tải chi tiết thợ:", error);
-      alert("Không thể tải thông tin thợ để chỉnh sửa!");
+      showToast("error", "Không thể tải thông tin thợ để chỉnh sửa!");
     }
   };
 
@@ -174,79 +163,48 @@ function ThoCatToc() {
     e.preventDefault();
     try {
       await BarberAPI.updateBarber(selectedBarber.idBarber, editData);
-      alert("✅ Cập nhật thông tin thợ thành công!");
+      showToast("success", "Cập nhật thông tin thợ thành công!");
       setShowEditModal(false);
       await fetchBarbers();
     } catch (error) {
-      console.error("Lỗi khi cập nhật:", error);
-      alert(error?.response?.data?.message || "❌ Không thể cập nhật thợ!");
-    }
-  };
-  const handleDelete = async (barber) => {
-    if (!window.confirm(`⚠️ Xác nhận xóa thợ ${barber.fullName}?`)) return;
-    try {
-      await BarberAPI.deleteBarber(barber.idBarber);
-      alert("🗑️ Đã xóa thợ thành công!");
-      await fetchBarbers();
-    } catch (error) {
-      console.error("Lỗi khi xóa:", error);
-      alert(error?.response?.data?.message || "❌ Không thể xóa thợ!");
-    }
-  };
-
-  // 🔹 Xử lý nhập form
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // 🔹 Thêm thợ mới
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await BarberAPI.createBarber(formData);
-      alert("✅ Tạo thợ cắt tóc thành công!");
-      setShowModal(false);
-      await fetchBarbers();
-    } catch (error) {
-      console.error("Lỗi khi tạo thợ:", error);
-      alert(error?.response?.data?.message || "❌ Không thể tạo thợ mới!");
+      showToast("error", error?.response?.data?.message || "Không thể cập nhật thợ!");
     }
   };
 
   // 🔹 Đổi chi nhánh
   const openChangeBranchModal = (barber) => {
     setSelectedBarber(barber);
-    setNewBranchId("");
+    setNewBranchId(barber.idBranch || "");
     setShowChangeBranch(true);
   };
+const handleChangeBranch = async (e) => {
+  e.preventDefault();
+  if (!selectedBarber || !newBranchId) {
+    showToast("error", "Vui lòng chọn chi nhánh mới!");
+    return;
+  }
+  try {
+    const res = await BarberAPI.assignBranch({
+      idBarber: selectedBarber.idBarber,
+      idBranch: newBranchId,
+    });
 
-  const handleChangeBranch = async (e) => {
-    e.preventDefault();
-    if (!selectedBarber || !newBranchId) {
-      alert("⚠️ Vui lòng chọn chi nhánh mới!");
-      return;
-    }
-    try {
-      await BarberAPI.assignBranch({
-        idBarber: selectedBarber.idBarber,
-        idBranch: newBranchId,
-      });
-      alert(`✅ Đã chuyển ${selectedBarber.fullName} sang chi nhánh mới!`);
+    // Kiểm tra thật kỹ success
+    if (res.success) {
+      showToast("success", res.message);
       setShowChangeBranch(false);
       await fetchBarbers();
-    } catch (error) {
-      console.error("Lỗi khi đổi chi nhánh:", error);
-      alert("❌ Không thể đổi chi nhánh!");
+    } else {
+      showToast("error", res.message);
     }
-  };
+  } catch (error) {
+    showToast(
+      "error",
+      error?.message || "Không thể đổi chi nhánh!"
+    );
+  }
+};
 
-  const getLeaveText = (idBarber) => {
-    const leaves = unavailabilities[idBarber];
-    if (!leaves || leaves.length === 0) return "Không có";
-    return leaves
-      .map((l) => `${l.startDate} → ${l.endDate} (${l.reason})`)
-      .join(";\n"); // thêm xuống dòng
-  };
 
   if (loading)
     return <div className={cx("loading")}>Đang tải danh sách thợ...</div>;
@@ -268,10 +226,8 @@ function ThoCatToc() {
             <tr>
               <th>Thợ cắt tóc</th>
               <th>Chi nhánh</th>
-              <th>Ngày nghỉ phép</th>
               <th>Đánh giá</th>
-              <th>Khách hàng</th>
-              <th>Trạng thái</th>
+              <th>Tổng số khách hàng phục vụ</th>
               <th>Thao tác</th>
             </tr>
           </thead>
@@ -301,9 +257,6 @@ function ThoCatToc() {
                     <FontAwesomeIcon icon={faExchangeAlt} />
                   </button>
                 </td>
-                <td style={{ whiteSpace: "pre-line" }}>
-                  {getLeaveText(b.idBarber)}
-                </td>
 
                 <td className={cx("rating")}>
                   <FontAwesomeIcon icon={faStar} className={cx("star")} />{" "}
@@ -311,60 +264,35 @@ function ThoCatToc() {
                 </td>
                 <td>{b.customers || 0}</td>
 
-                <td>
-                  <div className={cx("statusCell")}>
-                    <span
-                      className={cx("status", {
-                        locked: b.isLocked,
-                        active: !b.isLocked,
-                      })}
-                    >
-                      {b.isLocked ? "Khóa" : "Hoạt động"}
-                    </span>
-                    <button
-                      className={cx("lockBtn")}
-                      onClick={() => handleToggleLock(b)}
-                      title={b.isLocked ? "Mở khóa thợ" : "Khóa thợ"}
-                    >
-                      <FontAwesomeIcon
-                        icon={b.isLocked ? faLockOpen : faLock}
-                      />
-                    </button>
-                  </div>
-                </td>
+<td>
+  <div className={cx("actions")}>
+    <button
+      className={cx("editBtn")}
+      onClick={() => openEditModal(b)}
+      title="Sửa thông tin thợ"
+    >
+      <FontAwesomeIcon icon={faPenToSquare} />
+    </button>
+<button
+  className={cx(b.status === "locked" ? "unlockBtn" : "lockBtn")}
+  onClick={() => handleToggleAccount(b)}
+  title={b.status === "locked" ? "Mở tài khoản" : "Khóa tài khoản"}
+>
+<FontAwesomeIcon icon={b.status === "locked" ? faLockOpen : faLock} />
 
-                <td>
-                  <div className={cx("actions")}>
-                    <button
-                      className={cx("editBtn")}
-                      onClick={() => openEditModal(b)}
-                      title="Sửa thông tin thợ"
-                    >
-                      <FontAwesomeIcon icon={faPenToSquare} />
-                    </button>
-                    <button
-                      className={cx("deleteBtn")}
-                      onClick={() => handleDelete(b)}
-                      title="Xóa thợ"
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
-                    <button
-                      className={cx("leaveBtn")}
-                      onClick={() => openLeaveModal(b)}
-                      title="Thêm lịch nghỉ phép"
-                    >
-                      📅
-                    </button>
-                  </div>
-                </td>
+</button>
+
+
+  </div>
+</td>
+
               </tr>
             ))}
           </tbody>
         </table>
       )}
 
-      {/* =============== MODAL THÊM THỢ =============== */}
+      {/* ================= MODAL THÊM THỢ ================= */}
       {showModal && (
         <div className={cx("modalOverlay")}>
           <div className={cx("modal")}>
@@ -450,7 +378,7 @@ function ThoCatToc() {
         </div>
       )}
 
-      {/* =============== MODAL ĐỔI CHI NHÁNH =============== */}
+      {/* ================= MODAL ĐỔI CHI NHÁNH ================= */}
       {showChangeBranch && (
         <div className={cx("modalOverlay")}>
           <div className={cx("modal")}>
@@ -486,7 +414,8 @@ function ThoCatToc() {
           </div>
         </div>
       )}
-      {/* =============== MODAL SỬA THÔNG TIN THỢ =============== */}
+
+      {/* ================= MODAL SỬA THÔNG TIN THỢ ================= */}
       {showEditModal && (
         <div className={cx("modalOverlay")}>
           <div className={cx("modal")}>
@@ -525,32 +454,6 @@ function ThoCatToc() {
                 required
               />
 
-              <label>Mật khẩu (để trống nếu không đổi)</label>
-              <input
-                type="password"
-                name="password"
-                value={editData.password}
-                onChange={(e) =>
-                  setEditData({ ...editData, password: e.target.value })
-                }
-                placeholder="Nhập mật khẩu mới nếu muốn"
-              />
-
-              <label>Chi nhánh</label>
-              <select
-                name="idBranch"
-                value={editData.idBranch}
-                onChange={(e) =>
-                  setEditData({ ...editData, idBranch: e.target.value })
-                }
-              >
-                <option value="">-- Không chọn --</option>
-                {branches.map((br) => (
-                  <option key={br.idBranch} value={br.idBranch}>
-                    {br.name}
-                  </option>
-                ))}
-              </select>
 
               <label>Mô tả hồ sơ</label>
               <textarea
@@ -581,61 +484,21 @@ function ThoCatToc() {
           </div>
         </div>
       )}
-      {showLeaveModal && (
-        <div className={cx("modalOverlay")}>
-          <div className={cx("modal")}>
-            <h3>Thêm lịch nghỉ phép cho thợ</h3>
-            <form onSubmit={handleLeaveSubmit}>
-              <label>Từ ngày</label>
-              <input
-                type="date"
-                name="startDate"
-                value={leaveData.startDate}
-                onChange={(e) =>
-                  setLeaveData({ ...leaveData, startDate: e.target.value })
-                }
-                required
-              />
 
-              <label>Đến ngày</label>
-              <input
-                type="date"
-                name="endDate"
-                value={leaveData.endDate}
-                onChange={(e) =>
-                  setLeaveData({ ...leaveData, endDate: e.target.value })
-                }
-                required
-              />
-
-              <label>Lý do</label>
-              <textarea
-                name="reason"
-                value={leaveData.reason}
-                onChange={(e) =>
-                  setLeaveData({ ...leaveData, reason: e.target.value })
-                }
-                rows="3"
-                placeholder="VD: Nghỉ ốm, đi công việc riêng..."
-                required
-              />
-
-              <div className={cx("modalActions")}>
-                <button type="submit" className={cx("saveBtn")}>
-                  Lưu nghỉ phép
-                </button>
-                <button
-                  type="button"
-                  className={cx("cancelBtn")}
-                  onClick={() => setShowLeaveModal(false)}
-                >
-                  Hủy
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Toasts */}
+      <div className={cx("toastContainer")}>
+        {toastList.map((t) => (
+          <Toast
+            key={t.id}
+            type={t.type}
+            text={t.text}
+            duration={t.duration}
+            onClose={() =>
+              setToastList((prev) => prev.filter((toast) => toast.id !== t.id))
+            }
+          />
+        ))}
+      </div>
     </div>
   );
 }

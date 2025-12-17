@@ -312,11 +312,26 @@ function parseDateSafe(input) {
 
 function parseDateYMD(input) {
   if (!input) return null;
+
+  // ✅ Sequelize trả về Date → dùng luôn
+  if (input instanceof Date) {
+    return input;
+  }
+
+  // ❗ FE phải gửi string YYYY-MM-DD
+  if (typeof input !== "string") {
+    throw new Error("Ngày không đúng định dạng YYYY-MM-DD");
+  }
+
   const parts = input.split("-");
-  if (parts.length !== 3) return null;
-  const [y, m, d] = parts.map(Number);
-  return new Date(y, m - 1, d);
+  if (parts.length !== 3) {
+    throw new Error("Ngày không đúng định dạng YYYY-MM-DD");
+  }
+
+  const [year, month, day] = parts.map(Number);
+  return new Date(year, month - 1, day);
 }
+
 const setSuspendDate = async (branchId, suspendDate) => {
   try {
     const branch = await Branch.findByPk(branchId);
@@ -379,13 +394,22 @@ const setResumeDate = async (branchId, resumeDate) => {
     const branch = await Branch.findByPk(branchId);
     if (!branch) throw new Error("Chi nhánh không tồn tại!");
 
-    const resume = parseDateYMD(resumeDate);
+    if (!branch.suspendDate) {
+      throw new Error("Chi nhánh chưa được thiết lập ngày tạm ngưng!");
+    }
+
+    const resume = parseDateSafe(resumeDate);
     if (!resume || isNaN(resume.getTime())) {
       throw new Error("Ngày hoạt động trở lại không hợp lệ!");
     }
 
-    branch.status = "Active";
+    // ✅ VALIDATE CỐT LÕI
+    if (resume <= branch.suspendDate) {
+      throw new Error("Ngày hoạt động trở lại phải sau ngày tạm ngưng!");
+    }
+
     branch.resumeDate = resume;
+
     await branch.save();
 
     return {
@@ -393,7 +417,6 @@ const setResumeDate = async (branchId, resumeDate) => {
       message: "Chi nhánh đã được thiết lập ngày hoạt động lại!",
       resumeDate: branch.resumeDate,
     };
-
   } catch (error) {
     console.error("Lỗi setResumeDate:", error);
     throw error;

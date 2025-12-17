@@ -6,19 +6,34 @@ import { BookingHistoryAPI } from "~/apis/bookingHistoryAPI";
 export default function BookingHistory() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [collapsedDates, setCollapsedDates] = useState({});
+
+  const toggleCollapse = (date) => {
+    setCollapsedDates(prev => ({ ...prev, [date]: !prev[date] }));
+  };
+
+  const groupByDate = (bookings) => {
+    return bookings.reduce((acc, booking) => {
+      const date = booking.date;
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(booking);
+      return acc;
+    }, {});
+  };
+
+  const bookingsByDate = groupByDate(bookings);
 
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         const res = await BookingHistoryAPI.getBookingHistory();
-        setBookings(res.data || []); // giả sử API trả về { success, data }
+        setBookings(res.data || []);
       } catch (error) {
         console.error("Lỗi lấy lịch sử booking:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchBookings();
   }, []);
 
@@ -33,34 +48,39 @@ export default function BookingHistory() {
         backgroundAttachment: "fixed",
       }}
     >
-      {/* Overlay mờ */}
       <div className={styles.overlay}></div>
 
       <div className={styles.list}>
         {loading ? (
-          <p style={{ color: "#fff", textAlign: "center" }}>Đang tải...</p>
+          <p className={styles.message}>Đang tải...</p>
         ) : bookings.length === 0 ? (
-          <p style={{ color: "#fff", textAlign: "center" }}>Chưa có lịch sử booking</p>
+          <p className={styles.message}>Chưa có lịch sử booking</p>
         ) : (
-      bookings.map((booking) => (
-            <BookingItem
-                key={booking.idBooking}
-                booking={{
-                date: booking.date,           // API trả trực tiếp
-                time: booking.time,           // API trả trực tiếp
-                service: booking.service || "", // nếu rỗng thì hiển thị ""
-                barber: {
-                    name: booking.barber.name,
-                    avatar: booking.barber.avatar
-                },
-                branch: {
-                    name: booking.branch.name,
-                    address: booking.branch.address
-                }
-                }}
-            />
-            ))
-
+          Object.entries(bookingsByDate).map(([date, dayBookings]) => {
+            const isCollapsed = collapsedDates[date];
+            return (
+              <div key={date} className={styles.dayGroup}>
+                <div
+                  className={styles.dayTitle}
+                  onClick={() => toggleCollapse(date)}
+                >
+                  <span>{date}</span>
+                  <span>{isCollapsed ? "▼" : "▲"}</span>
+                </div>
+                <div
+                  className={styles.dayContent}
+                  style={{ display: isCollapsed ? "none" : "flex" }}
+                >
+                  {dayBookings.map((booking) => (
+                    <BookingItem
+                      key={booking.idBooking}
+                      booking={booking}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
     </div>

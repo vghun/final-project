@@ -36,13 +36,28 @@ const assignUserAsBarber = async (req, res) => {
 const assignBarberToBranch = async (req, res) => {
   try {
     const { idBarber, idBranch } = req.body;
-    const barber = await BarberService.assignBarberToBranch(idBarber, idBranch);
-    res.json({ message: "Barber assigned to branch", barber });
+    const result = await BarberService.assignBarberToBranch(idBarber, idBranch);
+
+    if (result.success) {
+  return res.json({
+    success: true,          // thêm dòng này
+    message: result.message,
+    barber: result.barber,
+  });
+} else {
+  return res.status(400).json({
+    success: false,         // thêm dòng này
+    message: result.message,
+    bookingId: result.bookingId,
+  });
+}
+
   } catch (error) {
     console.error("Lỗi assignBarberToBranch:", error);
-    res.status(404).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
+
 
 const approveBarber = async (req, res) => {
   try {
@@ -59,13 +74,21 @@ const approveBarber = async (req, res) => {
 const lockBarber = async (req, res) => {
   try {
     const { idBarber } = req.body;
-    const barber = await BarberService.lockBarber(idBarber);
-    res.json({ message: "Barber locked", barber });
+    const result = await BarberService.lockBarber(idBarber);
+
+    if (!result.success) {
+      // Còn booking => không khoá
+      return res.status(400).json({ message: result.message });
+    }
+
+    // Nếu success === true => khoá thành công
+    res.json({ message: result.message, barber: result.barber });
   } catch (error) {
     console.error("Lỗi lockBarber:", error);
-    res.status(404).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
+
 // Mở khóa barber
 const unlockBarber = async (req, res) => {
   try {
@@ -129,17 +152,7 @@ const updateBarber = async (req, res) => {
   }
 };
 
-// 🔹 Xóa barber (xóa luôn user tương ứng)
-const deleteBarber = async (req, res) => {
-  try {
-    const { idBarber } = req.params;
-    const result = await BarberService.deleteBarber(idBarber);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error("Lỗi deleteBarber:", error);
-    return res.status(500).json({ message: "Lỗi khi xóa barber: " + error.message });
-  }
-};
+
 
 export const addBarberUnavailability = async (req, res) => {
   try {
@@ -247,7 +260,6 @@ export default {
   getBarberReward,
   createBarberWithUser,
   updateBarber,
-  deleteBarber,
   getBarberUnavailabilities,
   getBarberProfile,
   updateBarberProfile,
