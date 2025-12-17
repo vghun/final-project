@@ -101,7 +101,7 @@ export const createBookingService = async ({
   description,
   idCustomerVoucher,
 }) => {
-  // Lấy thông tin chi nhánh (THÊM suspendDate + resumeDate)
+  // Lấy thông tin chi nhánh
   const branch = await db.Branch.findByPk(idBranch, {
     attributes: ["name", "address", "suspendDate", "resumeDate"],
   });
@@ -110,26 +110,37 @@ export const createBookingService = async ({
     throw new Error("Branch not found");
   }
 
-  // ====== ✅ CHECK NGÀY BOOKING ======
+  // ====== CHECK NGÀY BOOKING ======
   const bookingDay = new Date(bookingDate).toISOString().split("T")[0];
 
   const { suspendDate, resumeDate } = branch;
 
-  // ❌ Không cho đặt từ ngày ngừng hoạt động trở đi
-  if (suspendDate && bookingDay >= suspendDate) {
+  const formatDDMMYYYY = (d) => {
+    if (!d) return "";
+    const dt = new Date(d);
+    return dt.toLocaleDateString("vi-VN");
+  };
+
+  // Nếu chi nhánh đang tạm ngưng: suspendDate <= bookingDay < resumeDate (hoặc resumeDate chưa set)
+  const isSuspendedNow =
+    suspendDate &&
+    bookingDay >= new Date(suspendDate).toISOString().split("T")[0] &&
+    (!resumeDate || bookingDay < new Date(resumeDate).toISOString().split("T")[0]);
+
+  if (isSuspendedNow) {
     throw new Error(
-      `Chi nhánh ngừng hoạt động từ ${suspendDate} — không thể đặt sau ngày này.`
+      `Chi nhánh tạm ngưng từ ${formatDDMMYYYY(suspendDate)} đến ${resumeDate ? formatDDMMYYYY(resumeDate) : "chưa xác định"} — không thể đặt vào thời gian này.`
     );
   }
 
-  // ❌ Không cho đặt trước ngày hoạt động lại
-  if (resumeDate && bookingDay < resumeDate) {
+  // Nếu đặt trước ngày hoạt động trở lại
+  if (resumeDate && bookingDay < new Date(resumeDate).toISOString().split("T")[0]) {
     throw new Error(
-      `Chi nhánh sẽ hoạt động lại từ ${resumeDate} — vui lòng chọn ngày sau thời điểm này.`
+      `Chi nhánh sẽ hoạt động lại từ ${formatDDMMYYYY(resumeDate)} — vui lòng chọn ngày sau thời điểm này.`
     );
   }
+
   // ====== END CHECK ======
-
 
   // Lấy thông tin barber
   const barber = await db.Barber.findByPk(idBarber, {
@@ -153,28 +164,19 @@ export const createBookingService = async ({
   });
 
   // Tạo chi tiết dịch vụ
-  const serviceDetails = [];
   for (const s of services) {
     const service = await db.Service.findByPk(s.idService);
     if (service) {
-      serviceDetails.push({
+      await db.BookingDetail.create({
+        idBooking: booking.idBooking,
         idService: service.idService,
-        name: service.name,
-        price: s.price,
         quantity: s.quantity || 1,
+        price: s.price,
       });
     }
   }
 
-  for (const s of serviceDetails) {
-    await db.BookingDetail.create({
-      idBooking: booking.idBooking,
-      idService: s.idService,
-      quantity: s.quantity,
-      price: s.price,
-    });
-  }
-
+  // Cập nhật voucher nếu có
   if (idCustomerVoucher) {
     await db.CustomerVoucher.update(
       { status: "used", usedAt: new Date() },
@@ -195,7 +197,7 @@ export const createBookingService = async ({
       barber: barber?.user?.fullName || "Tên barber",
       bookingDate,
       bookingTime,
-      services: serviceDetails,
+      services,
       total,
     });
   }

@@ -1,6 +1,8 @@
 $accent: #8b5e3c;
 $bg-dark: #1a1a1a;
 $text: #fff;
+$text: #f5f5f5;        // chữ sáng, dễ đọc
+$input-bg: #3a3a3a; 
 
 .overlay {
   position: fixed;
@@ -262,6 +264,29 @@ h2 {
   box-shadow: 0 0 20px rgba(139, 94, 60, 0.4);
   display: flex;
   flex-direction: column;
+
+  label {
+    color: $accent;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(139,94,60,0.5);
+    background: $input-bg;
+    color: $text;
+    font-size: 14px;
+
+    &:focus {
+      outline: none;
+      border-color: $accent;
+      box-shadow: 0 0 5px rgba(139,94,60,0.4);
+    }
+  }
+
 }
 
 /* Close button góc trên */
@@ -317,29 +342,31 @@ h2 {
 }
 
 /* Popup tạo khách */
+/* Popup tạo khách hàng */
+/* Popup tạo khách hàng - phiên bản sáng */
 .createCustomerPopup {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: $bg-dark;
-  color: $text;
+  background-color: #fdf6f0; // nền sáng
+  color: #2a1a0f; // chữ tối
   padding: 24px;
   border-radius: 16px;
   width: 350px;
   z-index: 1000;
-  box-shadow: 0 0 20px rgba(139, 94, 60, 0.5);
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
   display: flex;
   flex-direction: column;
   gap: 12px;
 
   h3 {
-    color: $accent;
+    color: #b8734c; // accent nâu
     margin-bottom: 12px;
   }
 
   label {
-    color: $accent;
+    color: #b8734c;
     font-weight: 600;
     margin-bottom: 4px;
   }
@@ -348,36 +375,52 @@ h2 {
     width: 100%;
     padding: 8px;
     border-radius: 8px;
-    border: 1px solid $accent;
-    background: #111;
-    color: $text;
+    border: 1px solid #d6c5bb;
+    background: #fff; // nền input trắng
+    color: #f6eee9; // chữ input tối
     font-size: 14px;
-  }
 
-  .popupBtn {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: 500;
-    transition: 0.2s;
-    margin-right: 8px;
-
-    &.saveBtn {
-      background-color: $accent;
-      color: $text;
-
-      &:hover {
-        background-color: darken($accent, 10%);
-      }
+    &:focus {
+      outline: none;
+      border-color: #8b5e3c;
+      box-shadow: 0 0 5px rgba(184,115,76,0.4);
     }
 
-    &.cancelBtn {
-      background-color: #333;
-      color: $text;
+    &::placeholder {
+      color: #a67c52;
+    }
+  }
 
-      &:hover {
-        background-color: #555;
+  .popupBtnRow {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+
+    button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.2s;
+      margin-left: 8px;
+
+      &.createBtn {
+        background-color: #b8734c;
+        color: #fff;
+
+        &:hover {
+          background-color: #8b5e3c;
+        }
+      }
+
+      &.cancelBtn {
+        background-color: #ccc;
+        color: #2a1a0f;
+
+        &:hover {
+          background-color: #aaa;
+        }
       }
     }
   }
