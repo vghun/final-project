@@ -204,7 +204,7 @@ export async function resetPassword(email, newPassword) {
   delete otpStore[email];
   return { message: "Đổi mật khẩu thành công" };
 }
-export async function  createUserService (fullName, phoneNumber ){
+export async function createUserService(fullName, phoneNumber) {
   if (!fullName || !phoneNumber) {
     throw new Error("Vui lòng cung cấp họ tên và số điện thoại");
   }
@@ -218,6 +218,7 @@ export async function  createUserService (fullName, phoneNumber ){
   // Sinh password tạm (hash 123456)
   const passwordHash = await bcrypt.hash("123456", 10);
 
+  // Tạo user
   const newUser = await db.User.create({
     fullName,
     phoneNumber,
@@ -227,5 +228,13 @@ export async function  createUserService (fullName, phoneNumber ){
     email: null,
   });
 
+  // Tạo customer tương ứng
+  const newCustomer = await db.Customer.create({
+    idCustomer: newUser.idUser,
+    loyaltyPoint: 0,
+    address: null,
+  });
+
+  // Trả về cả thông tin user và customer
   return newUser;
-};
+}

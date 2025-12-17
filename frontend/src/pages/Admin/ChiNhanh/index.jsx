@@ -56,17 +56,17 @@ const fetchBranches = async () => {
       list.map((b) => {
         const today = new Date().toISOString().split("T")[0];
 
-        let isSuspended = false;
-        let alreadySet = false;
+        let isSuspended = false;          // ĐANG tạm ngưng
+let isScheduledSuspend = false;  // Đã set ngày nhưng CHƯA tới
 
-        if (b.suspendDate && b.resumeDate) {
-          if (b.suspendDate > today) {
-            isSuspended = true;
-            alreadySet = true; // đã set suspend, chưa tới ngày
-          } else if (b.suspendDate <= today && b.resumeDate > today) {
-            isSuspended = true; // đang tạm ngưng
-          }
-        }
+if (b.suspendDate && b.resumeDate) {
+  if (b.suspendDate > today) {
+    isScheduledSuspend = true;
+  } else if (b.suspendDate <= today && b.resumeDate > today) {
+    isSuspended = true;
+  }
+}
+
 
         return {
           ...b,
@@ -77,7 +77,7 @@ const fetchBranches = async () => {
           status: b.status === "Active" ? "Hoạt động" : "Tạm ngưng",
           suspendInfo: {
             isSuspended,
-            alreadySet,
+            isScheduledSuspend,
             suspendDate: b.suspendDate || null,
             resumeDate: b.resumeDate || null,
           },
@@ -256,48 +256,50 @@ const openEditForm = (branch) => {
       showToast("error", "Lỗi khi lưu chi nhánh!");
     }
   };
+const formatVNDate = (dateStr) => {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-"); // tách từ 'YYYY-MM-DD'
+  return `${day}/${month}/${year}`;
+};
 
-  const handleToggleStatus = (branch) => {
+const handleToggleStatus = (branch) => {
   const today = new Date().toISOString().split("T")[0];
 
-  // 1. Chi nhánh mới, chưa suspend
-  if (branch.status === "Hoạt động" && !branch.suspendInfo.suspendDate) {
-    openSuspendForm(branch, "suspend");
-    return;
-  }
+  const startDate = branch.resumeDate; // ngày bắt đầu hoạt động
+  const { suspendDate, resumeDate } = branch.suspendInfo;
 
-  // 2. Đã set suspendDate > today
-  if (branch.suspendInfo.suspendDate && branch.suspendInfo.suspendDate > today) {
+  // 0️⃣ CHƯA TỚI NGÀY HOẠT ĐỘNG
+  if (startDate && startDate > today) {
     showToast(
       "info",
-      `Chi nhánh sẽ tạm dừng từ ${new Date(branch.suspendInfo.suspendDate).toLocaleDateString()}`,
+      `Chi nhánh sẽ bắt đầu hoạt động từ ${new Date(startDate).toLocaleDateString("vi-VN")}`,
       3000
     );
     return;
   }
 
-  // 3. Đang tạm ngưng (suspendDate ≤ today < resumeDate)
-  if (branch.suspendInfo.suspendDate && branch.suspendInfo.resumeDate &&
-      branch.suspendInfo.suspendDate <= today && branch.suspendInfo.resumeDate > today) {
+  // 1️⃣ ĐÃ LÊN LỊCH TẠM NGƯNG (CHƯA TỚI)
+  if (suspendDate && suspendDate > today) {
+    showToast(
+      "info",
+      `Chi nhánh sẽ tạm ngưng từ ${new Date(suspendDate).toLocaleDateString("vi-VN")}`,
+      3000
+    );
+    return;
+  }
+
+  // 2️⃣ ĐANG TẠM NGƯNG → CHỈ ĐƯỢC SET RESUME
+  if (
+    suspendDate &&
+    suspendDate <= today &&
+    (!resumeDate || resumeDate > today)
+  ) {
     openSuspendForm(branch, "resume");
     return;
   }
 
-  // 4. Đã set resumeDate ≤ today
-  if (branch.suspendInfo.resumeDate && branch.suspendInfo.resumeDate <= today) {
-    showToast(
-      "info",
-      `Chi nhánh đã hoạt động trở lại từ ${new Date(branch.suspendInfo.resumeDate).toLocaleDateString()}`,
-      3000
-    );
-    return;
-  }
-
-  // 5. Sau ngày resumeDate
-  if (branch.status === "Hoạt động") {
-    openSuspendForm(branch, "suspend");
-    return;
-  }
+  // 3️⃣ ĐANG HOẠT ĐỘNG → CHO SET TẠM NGƯNG
+  openSuspendForm(branch, "suspend");
 };
 
 

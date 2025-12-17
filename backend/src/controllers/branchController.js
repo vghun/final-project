@@ -72,6 +72,11 @@ export const setSuspendDate = async (req, res) => {
 };
 export const setResumeDate = async (req, res) => {
   try {
+     console.log("🔽 RESUME API HIT");
+    console.log("params.id =", req.params.id);
+    console.log("req.body =", req.body);
+    console.log("resumeDate =", req.body.resumeDate, typeof req.body.resumeDate);
+
     const branchId = req.params.id;
     const { resumeDate } = req.body;
 

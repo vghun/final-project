@@ -3,7 +3,6 @@ import { upsertBarbers } from "./pineconeService.js";
 import { fn, col, Op } from "sequelize";
 import ratingService from "./ratingService.js"; 
 const Barber = db.Barber;
-
 export const getAllBarbers = async () => {
   try {
     const barbers = await db.Barber.findAll({
@@ -143,10 +142,47 @@ export const assignUserAsBarber = async (data) => {
 
 export const assignBarberToBranch = async (idBarber, idBranch) => {
   const barber = await Barber.findByPk(idBarber);
-  if (!barber) throw new Error("Khong tìm thấy barber");
+  if (!barber) {
+    return {
+      success: false,
+      message: "Không tìm thấy barber",
+    };
+  }
+
+  const now = new Date();
+
+  // Kiểm tra booking tương lai ở chi nhánh cũ
+  const futureBooking = await Booking.findOne({
+    where: {
+      idBarber,
+      status: { [Op.in]: ["Pending", "InProgress"] },
+      bookingDate: { [Op.gte]: now },
+    },
+    include: [
+      {
+        model: Barber,
+        as: "barber",
+        where: { idBranch: barber.idBranch }, // chi nhánh cũ
+      },
+    ],
+  });
+
+  if (futureBooking) {
+    return {
+      success: false,
+      message: "Không thể chuyển chi nhánh. Thợ vẫn còn booking ở chi nhánh hiện tại.",
+      bookingId: futureBooking.idBooking,
+    };
+  }
+
   barber.idBranch = idBranch;
   await barber.save();
-  return barber;
+
+  return {
+    success: true,
+    message: "Chuyển chi nhánh thành công!",
+    barber,
+  };
 };
 
 export const approveBarber = async (idBarber) => {
@@ -159,11 +195,33 @@ export const approveBarber = async (idBarber) => {
 
 export const lockBarber = async (idBarber) => {
   const barber = await Barber.findByPk(idBarber);
-  if (!barber) throw new Error("Khong tìm thấy barber");
+  if (!barber) throw new Error("Không tìm thấy barber");
+
+  const hasFutureBooking = await Booking.findOne({
+    where: {
+      idBarber,
+      status: { [Op.in]: ["Pending", "InProgress"] },
+      bookingDate: { [Op.gte]: new Date() },
+    },
+  });
+  if (hasFutureBooking) {
+    return {
+      success: false,
+      message: "Không thể khóa barber. Thợ còn booking trong tương lai.",
+    };
+  }
+
   barber.isLocked = true;
   await barber.save();
-  return barber;
+
+  return {
+    success: true,
+    message: "Tài khoản barber đã bị khóa thành công!",
+  };
 };
+
+
+
 
 export const unlockBarber = async (idBarber) => {
   const barber = await Barber.findByPk(idBarber);
@@ -346,26 +404,6 @@ export const updateBarber = async (idBarber, data) => {
   }
 };
 
-// 🔹 Xóa barber (và user liên kết)
-export const deleteBarber = async (idBarber) => {
-  const t = await db.sequelize.transaction();
-  try {
-    const barber = await db.Barber.findByPk(idBarber, { transaction: t });
-    if (!barber) throw new Error("Không tìm thấy barber");
-
-    // Do có foreign key ON DELETE CASCADE, xóa user sẽ xóa luôn barber
-    await db.User.destroy({
-      where: { idUser: idBarber },
-      transaction: t,
-    });
-
-    await t.commit();
-    return { message: "Xóa barber thành công!" };
-  } catch (error) {
-    await t.rollback();
-    throw new Error("Lỗi khi xóa barber: " + error.message);
-  }
-};
 
 export const addBarberUnavailability = async (data) => {
   const { idBarber, startDate, endDate, reason } = data;
