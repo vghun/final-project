@@ -13,23 +13,17 @@ export const getQuiz = async () => {
 };
 
 // Gửi quiz answers để nhận gợi ý
-export const generateRecommendation = async (formData) => {
+export const generateRecommendation = async (payload) => {
   try {
-    console.log([...formData.entries()]);
-
-    const res = await request.post(
-      "/api/hair-consult/recommendation",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data", 
-        },
-      }
-    );
+    const res = await request.post("/api/hair-consult/recommendation", payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("generateRecommendation trả về:", res);
     return res;
   } catch (error) {
     console.error("Lỗi generateRecommendation:", error);
     throw error.response?.data || error;
   }
 };
-
