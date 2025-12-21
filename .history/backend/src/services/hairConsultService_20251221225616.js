@@ -9,7 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = "gemini-2.5-flash-lite"; // hoặc gemini-2.0-flash-lite
+const GEMINI_MODEL = "gemini-2.5-pro"; // model HairConsult
+console.log("GEMINI_API_KEY:", process.env.GEMINI_API_KEY);
 
 // 🔹 Đường dẫn quiz.json
 const quizPath = path.join(__dirname, "../data/quiz.json");
@@ -58,9 +59,31 @@ export const analyzeHairConsult = async ({ flow, answers, faceMetrics }) => {
   if (!flow || !flow.id) throw new Error("Thiếu flow id");
   if (!answers || Object.keys(answers).length === 0) throw new Error("Thiếu câu trả lời quiz");
 
-const prompt = `
-Bạn là chuyên gia tư vấn tóc nam.
+  const prompt = `
+Bạn là chuyên gia tư vấn tóc nam, chuyên nghiệp và lịch sự.
+Dựa trên thông tin sau, hãy phân tích và đưa ra gợi ý kiểu tóc phù hợp.
 
+Thông tin đầu vào:
+- Flow: ${flow.id} (${flow.label})
+- Quiz answers: ${JSON.stringify(answers, null, 2)}
+- Face metrics: ${JSON.stringify(faceMetrics || {}, null, 2)}
+
+Yêu cầu:
+1. Xác định khách thuộc loại khuôn mặt nào.
+2. Nếu flow là flowA (khách đã có mẫu):
+   - So sánh khuôn mặt với mẫu.
+   - Nêu hợp hay không hợp.
+   - Nếu hợp nhưng chưa đủ tiêu chuẩn, gợi ý chăm sóc tóc thêm bao lâu.
+   - Nếu hợp đủ tiêu chuẩn, tư vấn cắt luôn.
+3. Nếu flow là flowB (khách chưa có mẫu):
+   - Gợi ý các kiểu tóc phù hợp dựa trên thông số khuôn mặt.
+4. Trả về **JSON hợp lệ duy nhất**, không markdown hay text khác.
+5. JSON gồm các key:
+{
+  "faceType": "loại khuôn mặt",
+  "recommendedStyles": ["kiểu tóc 1", "kiểu tóc 2"],
+  "reasoning": "Giải thích tại sao chọn kiểu tóc này",
+  "careAdvice": "Gợi ý chăm sóc tóc nếu có"
 }
 `;
 
@@ -70,7 +93,12 @@ Bạn là chuyên gia tư vấn tóc nam.
     console.log("Gemini raw:", geminiRes);
 
     // Trả về đúng object mà frontend cần
-  return geminiRes;
+    return {
+      faceType: geminiRes.faceType,
+      recommendedStyles: geminiRes.recommendedStyles,
+      reasoning: geminiRes.reasoning,
+      careAdvice: geminiRes.careAdvice,
+    };
   } catch (err) {
     console.error("Lỗi analyzeHairConsult:", err);
     throw err;

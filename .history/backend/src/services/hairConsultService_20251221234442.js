@@ -61,6 +61,39 @@ export const analyzeHairConsult = async ({ flow, answers, faceMetrics }) => {
 const prompt = `
 Bạn là chuyên gia tư vấn tóc nam.
 
+====================
+AI FACE ANALYSIS
+====================
+Top 3 predictions (probability-based):
+${JSON.stringify(faceMetrics.top_predictions, null, 2)}
+
+Face measurements:
+${JSON.stringify(faceMetrics.measurements, null, 2)}
+
+====================
+QUIZ ANSWERS
+====================
+${JSON.stringify(answers, null, 2)}
+
+====================
+NHIỆM VỤ
+====================
+1. Phân tích khuôn mặt và kết hợp với câu trả lời quiz.
+2. Trả về tỷ lệ pha trộn (%) giữa các khuôn mặt trong top 3.
+3. Xác định:
+   - primaryFaceType (loại chiếm tỷ lệ cao nhất)
+   - confidenceLevel: cao / trung bình / thấp
+4. Đề xuất kiểu tóc phù hợp dựa trên quiz và faceMetrics.
+5. Kết quả phải JSON hợp lệ:
+{
+  "faceBlend": [
+    { "faceType": "", "ratio": 0.0 }
+  ],
+  "primaryFaceType": "",
+  "confidenceLevel": "",
+  "recommendedStyles": [],
+  "reasoning": "",
+  "careAdvice": ""
 }
 `;
 
