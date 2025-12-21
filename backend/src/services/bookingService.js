@@ -2,6 +2,7 @@ import db from "../models/index.js";
 import { Op, Sequelize } from "sequelize";
 import moment from "moment";
 import { sendBookingEmail } from "./mailService.js";
+import { createNotification } from "./notificationService.js";
 
 // Lấy tất cả chi nhánh
 export const getBranches = async (req, res) => {
@@ -201,59 +202,96 @@ export const createBookingService = async ({
       total,
     });
   }
+  const serviceIds = services.map(s => s.idService);
+  const realServices = await db.Service.findAll({
+    where: {
+      idService: { [Op.in]: serviceIds }
+    },
+    attributes: ["idService", "name"]
+  });
 
+  // Map idService → name
+  const serviceNameMap = {};
+  realServices.forEach(s => {
+    serviceNameMap[s.idService] = s.name;
+  });
+
+  // Tạo danh sách tên dịch vụ đẹp
+  const serviceNames = services
+    .map(s => serviceNameMap[s.idService] || "Dịch vụ không xác định")
+    .join(", ");
+
+
+  const formattedDate = moment(bookingDate).format("DD/MM/YYYY");
+
+  const content = `Đặt lịch thành công!
+
+Thợ cắt: ${barber?.user?.fullName || "Chưa xác định"}
+Ngày: ${formattedDate}
+Giờ: ${bookingTime}
+
+Dịch vụ đã chọn:
+• ${serviceNames || "Không có dịch vụ"}
+
+Cảm ơn bạn đã tin tưởng Barbershop!`;
+
+  await createNotification({
+    type: "BOOKING",
+    title: "Đặt lịch thành công!",
+    content, // Nội dung xuống dòng đẹp
+    targetRole: "customer",
+    targetId: idCustomer,
+  });
   return booking;
 };
-
-
 // Lấy danh sách booking theo id thợ và khoảng ngày
 export const getBarberBookings = async (barberId, startDate, endDate) => {
-    return await db.Booking.findAll({
-        where: {
-            idBarber: barberId,
-            [Op.and]: [
-                Sequelize.where(
-                    Sequelize.fn("DATE", Sequelize.col("bookingDate")),
-                    ">=",
-                    startDate
-                ),
-                Sequelize.where(
-                    Sequelize.fn("DATE", Sequelize.col("bookingDate")),
-                    "<=",
-                    endDate
-                )
-            ]
-        },
+  return await db.Booking.findAll({
+    where: {
+      idBarber: barberId,
+      [Op.and]: [
+        Sequelize.where(
+          Sequelize.fn("DATE", Sequelize.col("bookingDate")),
+          ">=",
+          startDate
+        ),
+        Sequelize.where(
+          Sequelize.fn("DATE", Sequelize.col("bookingDate")),
+          "<=",
+          endDate
+        )
+      ]
+    },
+    include: [
+      {
+        model: db.Customer,
         include: [
-            {
-                model: db.Customer,
-                include: [
-                    {
-                        model: db.User,
-                        as: "user",
-                        attributes: ["fullName", "phoneNumber", "image"],
-                    },
-                ],
-                attributes: ["idCustomer"],
-            },
-            {
-                model: db.BookingDetail,
-                as: "BookingDetails",
-                include: [
-                    {
-                        model: db.Service,
-                        as: "service",
-                        attributes: ["name", "duration", "price"],
-                    },
-                ],
-                attributes: ["idBookingDetail", "quantity", "price"],
-            },
+          {
+            model: db.User,
+            as: "user",
+            attributes: ["fullName", "phoneNumber", "image"],
+          },
         ],
-        order: [
-            ["bookingDate", "ASC"],
-            ["bookingTime", "ASC"],
+        attributes: ["idCustomer"],
+      },
+      {
+        model: db.BookingDetail,
+        as: "BookingDetails",
+        include: [
+          {
+            model: db.Service,
+            as: "service",
+            attributes: ["name", "duration", "price"],
+          },
         ],
-    });
+        attributes: ["idBookingDetail", "quantity", "price"],
+      },
+    ],
+    order: [
+      ["bookingDate", "ASC"],
+      ["bookingTime", "ASC"],
+    ],
+  });
 };
 
 

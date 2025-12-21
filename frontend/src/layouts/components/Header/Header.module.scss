@@ -160,3 +160,129 @@
     }
   }
 }
+.notification-wrapper {
+  position: relative;
+  margin-right: 16px;
+  cursor: pointer;
+}
+
+.bell-icon {
+  font-size: 20px;
+  color: #333;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background-color: #ff4d4f;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 50%;
+}
+.notify-dropdown {
+  position: absolute;
+  top: 28px;
+  right: 0;
+  width: 320px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.notify-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+.unread {
+  background-color: #e6f4ff;
+}
+
+.title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.content {
+  font-size: 13px;
+  color: #555;
+}
+/* Custom Dialog cho chi tiết thông báo */
+.custom-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001; /* Cao hơn header */
+}
+
+.custom-dialog {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  text-align: left;
+  position: relative;
+}
+
+.dialog-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: #1a1a1a;
+}
+
+.dialog-content {
+  white-space: pre-line; // ⭐ QUAN TRỌNG: giữ xuống dòng từ DB
+  line-height: 1.6;
+  font-size: 14px;
+  color: #333;
+}
+
+.dialog-content.no-content {
+  color: #888;
+  font-style: italic;
+}
+
+.dialog-close-btn {
+  padding: 10px 20px;
+  background-color: #ff8c00;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #ffa500;
+  }
+}
+.bell-trigger {
+  position: relative;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}

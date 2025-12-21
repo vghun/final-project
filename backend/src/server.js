@@ -27,7 +27,8 @@ import hashtagRoutes from "./routes/hashtag.js";
 import hairConsultRoutes from "./routes/hairConsult.js";
 import startBranchStatusCron from "./cron/branchStatusCron.js";
 import { authenticate, authorize } from "./middlewares/authMiddleware.js";
-
+import notificationRoute from "./routes/notification.js";
+import bannerRoute from "./routes/banner.js";
 dotenv.config();
 
 const app = express();
@@ -58,6 +59,8 @@ app.use("/api/statistics/summary", authenticate, authorize(["admin"]), summaryRo
 app.use("/api/booking-direct", bookingDirectRoutes);
 app.use("/api/hashtags", hashtagRoutes);
 app.use("/api/hair-consult", hairConsultRoutes);
+app.use("/api/notifications", notificationRoute);
+app.use("/api/banners", bannerRoute);
 
 // View engine & auth routes
 viewEngine(app);
