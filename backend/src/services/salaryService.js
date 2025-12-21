@@ -1,5 +1,6 @@
 import db from "../models/index.js";
 import { fn, col, Op } from "sequelize";
+import { createNotification } from "./notificationService.js";
 
 // ====================== Lấy lương real-time cho một tháng ======================
 export const getBarberSalariesOptimized = async (month, year) => {
@@ -166,7 +167,27 @@ export const confirmMonthlySalary = async (month, year) => {
       updateOnDuplicate: ["baseSalary", "commission", "tips", "bonus", "totalSalary", "status"],
     });
 
-    return { success: true, message: "Đã tính lương thành công cho tất cả thợ!" };
+    for (const salary of salaries) {
+      const barberId = salary.idBarber;
+      const total = parseFloat(salary.totalSalary).toLocaleString("vi-VN");
+
+      // Lấy userId của barber để gửi thông báo đúng người
+      const barber = await db.Barber.findByPk(barberId, {
+        include: [{ model: db.User, as: "user", attributes: ["idUser"] }],
+      });
+
+      if (barber?.user?.idUser) {
+        await createNotification({
+          type: "SALARY",
+          title: `Lương tháng ${month}/${year}`,
+          content: `Lương tháng ${month}/${year} của bạn là ${total} VNĐ. Chi tiết xem trong mục lương.`,
+          targetRole: "barber",
+          targetId: barber.user.idUser,
+        });
+      }
+    }
+
+    return { success: true, message: "Đã tính lương và gửi thông báo thành công!" };
   } catch (err) {
     console.error(err);
     return { success: false, message: "Tính lương thất bại" };
