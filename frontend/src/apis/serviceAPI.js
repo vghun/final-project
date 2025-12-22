@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8088/api/services";
+const API_URL = process.env.REACT_APP_API_BASE_URL + "/services";
 
 const serviceApi = {
   getHotPaged: (page = 1, limit = 4) =>

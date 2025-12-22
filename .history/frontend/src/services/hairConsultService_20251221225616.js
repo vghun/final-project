@@ -3,7 +3,7 @@ import * as request from "~/apis/configs/httpRequest";
 // Lấy quiz
 export const getQuiz = async () => {
   try {
-    const res = await request.get("/api/hair-consult/quiz");
+    const res = await request.get("/hair-consult/quiz");
     console.log("getQuiz trả về:", res);
     return res;
   } catch (error) {
@@ -15,7 +15,7 @@ export const getQuiz = async () => {
 // Gửi quiz answers để nhận gợi ý
 export const generateRecommendation = async (payload) => {
   try {
-    const res = await request.post("/api/hair-consult/recommendation", payload, {
+    const res = await request.post("/hair-consult/recommendation", payload, {
       headers: {
         "Content-Type": "application/json",
       },

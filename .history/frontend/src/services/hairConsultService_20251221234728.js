@@ -3,7 +3,7 @@ import * as request from "~/apis/configs/httpRequest";
 // Lấy quiz
 export const getQuiz = async () => {
   try {
-    const res = await request.get("/api/hair-consult/quiz");
+    const res = await request.get("/hair-consult/quiz");
     console.log("getQuiz trả về:", res);
     return res;
   } catch (error) {
@@ -18,7 +18,7 @@ export const generateRecommendation = async (formData) => {
     console.log([...formData.entries()]);
 
     const res = await request.post(
-      "/api/hair-consult/recommendation",
+      "/hair-consult/recommendation",
       formData,
       {
         headers: {

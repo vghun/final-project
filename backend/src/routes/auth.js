@@ -54,7 +54,7 @@ const authRoutes = (app) => {
     res.json({ message: "Xin chào Barber", user: req.user });
   });
 
-  return app.use("/auth", router);
+  return app.use("/api/auth", router);
 };
 
 export default authRoutes;

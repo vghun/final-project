@@ -3,7 +3,7 @@ import * as request from "~/apis/configs/httpRequest";
 // 📋 Lấy tất cả chi nhánh
 export const getAllBranches = async () => {
   try {
-    const res = await request.get("/api/branches");
+    const res = await request.get("/branches");
     console.log("API getAllBranches trả về:", res);
     return res;
   } catch (error) {
@@ -68,7 +68,7 @@ console.log("⛔ Dữ liệu gửi xuống API createBranch:", cleanedData);
 
 
     // ======================== GỬI API ========================
-    const res = await request.post("/api/branches", cleanedData);
+    const res = await request.post("/branches", cleanedData);
     return res;
 
   } catch (error) {
@@ -114,7 +114,7 @@ export const updateBranch = async (id, data) => {
     }
 
     // 6. Gọi API
-    const res = await request.put(`/api/branches/${id}`, data);
+    const res = await request.put(`/branches/${id}`, data);
 
     return res.data; // trả về dữ liệu từ backend
 
@@ -127,7 +127,7 @@ export const updateBranch = async (id, data) => {
 // 📋 Xoá chi nhánh
 export const deleteBranch = async (id) => {
   try {
-    const res = await request.del(`/api/branches/${id}`);
+    const res = await request.del(`/branches/${id}`);
     return res;
   } catch (error) {
     console.error(
@@ -141,7 +141,7 @@ export const deleteBranch = async (id) => {
 // 📋 Chuyển trạng thái chi nhánh
 export const toggleBranchStatus = async (id) => {
   try {
-    const res = await request.patch(`/api/branches/${id}/toggle`);
+    const res = await request.patch(`/branches/${id}/toggle`);
     return res;
   } catch (error) {
     console.error(
@@ -155,7 +155,7 @@ export const toggleBranchStatus = async (id) => {
 // 📋 Gán dịch vụ cho chi nhánh
 export const assignServiceToBranch = async (idBranch, idService) => {
   try {
-    const res = await request.post("/api/branches/assign-service", {
+    const res = await request.post("/branches/assign-service", {
       idBranch,
       idService,
     });
@@ -172,7 +172,7 @@ export const assignServiceToBranch = async (idBranch, idService) => {
 // 📋 Bỏ gán dịch vụ khỏi chi nhánh
 export const unassignServiceFromBranch = async (idBranch, idService) => {
   try {
-    const res = await request.del("/api/branches/unassign-service", {
+    const res = await request.del("/branches/unassign-service", {
       data: { idBranch, idService },
     });
     return res;
@@ -203,7 +203,7 @@ export const setSuspendDate = async (id, suspendDate) => {
     if (selectedDate <= today) {
       throw { message: "Ngày tạm ngưng phải lớn hơn ngày hiện tại ít nhất 1 ngày!" };
     }
-    const res = await request.patch(`/api/branches/${id}/suspend`, 
+    const res = await request.patch(`/branches/${id}/suspend`, 
     suspendDate
     );
 
@@ -240,7 +240,7 @@ export const setResumeDate = async (id, resumeDate) => {
     }
 
     // ====================== CALL API ======================
-    const res = await request.patch(`/api/branches/${id}/resume`, 
+    const res = await request.patch(`/branches/${id}/resume`, 
       resumeDate,
     );
 

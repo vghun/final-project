@@ -1,7 +1,7 @@
 // src/apis/notificationApi.js
 import axios from "axios";
 
-const API_URL = "http://localhost:8088/api/notifications";
+const API_URL = process.env.REACT_APP_API_BASE_URL + "/notifications";
 
 const notificationApi = {
   /**

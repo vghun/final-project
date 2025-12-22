@@ -8,9 +8,10 @@ export default function BookingList({ onSelect, date }) {
   // ===========================
   // 🔄 FETCH BOOKING LIST
   // ===========================
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   const fetchBookings = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8088/api/bookings/details");
+      const res = await fetch(`${API_BASE_URL}/bookings/details`);
       const data = await res.json();
 
       if (!data?.data) return;
@@ -76,7 +77,7 @@ export default function BookingList({ onSelect, date }) {
     if (!window.confirm("Bạn có chắc muốn hủy lịch hẹn này không?")) return;
 
     try {
-      const res = await fetch(`http://localhost:8088/api/bookings/${id}/cancel`, {
+      const res = await fetch(`${API_BASE_URL}/bookings/${id}/cancel`, {
         method: "PUT",
       });
       const data = await res.json();
@@ -99,7 +100,7 @@ export default function BookingList({ onSelect, date }) {
   // ===========================
   const handleCheckIn = async (id) => {
     try {
-      const res = await fetch(`http://localhost:8088/api/bookings/${id}/checkin`, {
+      const res = await fetch(`${API_BASE_URL}/bookings/${id}/checkin`, {
         method: "PUT",
       });
       const data = await res.json();

@@ -1,7 +1,8 @@
 // src/apis/bannerApi.js
 import axios from "axios";
 
-const API_URL = "http://localhost:8088/api/banners"; // Route mới
+const API_URL =
+  process.env.REACT_APP_API_BASE_URL + "/banners";
 
 const bannerApi = {
   /**

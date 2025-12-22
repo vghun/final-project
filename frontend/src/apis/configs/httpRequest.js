@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Tạo instance axios
 const request = axios.create({
-  baseURL: process.env.REACT_APP_BASE_URL,
+  baseURL: process.env.REACT_APP_API_BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -53,7 +53,7 @@ request.interceptors.response.use(
         if (!refreshToken) throw new Error("NO_REFRESH_TOKEN");
 
         const res = await axios.post(
-          `${process.env.REACT_APP_BASE_URL}/auth/refresh`,
+          `${process.env.REACT_APP_API_BASE_URL}/auth/refresh`,
           { refreshToken }
         );
 

@@ -33,10 +33,10 @@ const [isLoading, setIsLoading] = useState(false);
   const [branchDisplay, setBranchDisplay] = useState("-- Chọn cơ sở --");
 
   const today = new Date();
-
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   // ================= CALL API =================
   useEffect(() => {
-    fetch("http://localhost:8088/api/bookings/branches")
+    fetch(`${API_BASE_URL}/bookings/branches`)
       .then((res) => res.json())
       .then((data) => setBranches(data || []))
       .catch((err) => console.error("Error fetch branches:", err));
@@ -73,7 +73,7 @@ const [isLoading, setIsLoading] = useState(false);
   }
 
   try {
-    const res = await fetch(`http://localhost:8088/api/bookings/branches/${branchId}`);
+    const res = await fetch(`${API_BASE_URL}/bookings/branches/${branchId}`);
     const data = await res.json();
 
     setBooking((prev) => ({ ...prev, branch: data.name || "" }));
@@ -110,7 +110,7 @@ const [isLoading, setIsLoading] = useState(false);
     if (!barberId || !booking.branchId || !booking.date) return;
 
     try {
-      const res = await fetch(`http://localhost:8088/api/bookings/barbers/${barberId}`);
+      const res = await fetch(`${API_BASE_URL}/bookings/barbers/${barberId}`);
       const data = await res.json();
 
       const grouped = {};
@@ -234,7 +234,7 @@ if (!booking.services.length)
 
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch("http://localhost:8088/api/bookings/create", {
+      const res = await fetch(`${API_BASE_URL}/bookings/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

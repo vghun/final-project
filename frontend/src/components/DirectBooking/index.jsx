@@ -27,10 +27,11 @@ export default function DirectBooking({ onClose, onSuccess }) {
   });
 
   const today = new Date();
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   // ===== LOAD CHI NHÁNH =====
   useEffect(() => {
-    fetch("http://localhost:8088/api/bookings/branches")
+    fetch(`${API_BASE_URL}/bookings/branches`)
       .then((res) => res.json())
       .then((data) => setBranches(data || []))
       .catch((err) => console.error("Error fetch branches:", err));
@@ -45,7 +46,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
 
     setChecking(true);
     try {
-      const res = await fetch(`http://localhost:8088/api/booking-direct/find?phone=${phone}`);
+      const res = await fetch(`${API_BASE_URL}/booking-direct/find?phone=${phone}`);
       const data = await res.json();
 
       if (data.exists) {
@@ -74,7 +75,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
   }
 
   try {
-    const res = await fetch("http://localhost:8088/auth/create-customer", {
+    const res = await fetch(`${API_BASE_URL}/auth/create-customer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -120,7 +121,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
     }
 
     try {
-      const res = await fetch(`http://localhost:8088/api/bookings/branches/${branchId}`);
+      const res = await fetch(`${API_BASE_URL}/bookings/branches/${branchId}`);
       const data = await res.json();
       setBarbers(data.barbers || []);
       setServices(data.services || []);
@@ -148,7 +149,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
     if (!barberId) return;
 
     try {
-      const res = await fetch(`http://localhost:8088/api/bookings/barbers/${barberId}`);
+      const res = await fetch(`${API_BASE_URL}/bookings/barbers/${barberId}`);
       const data = await res.json();
 
       const grouped = {};
@@ -181,7 +182,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
     if (!form.barberId) return;
 
     try {
-      const res = await fetch(`http://localhost:8088/api/bookings/barbers/${form.barberId}?date=${date}`);
+      const res = await fetch(`${API_BASE_URL}/bookings/barbers/${form.barberId}?date=${date}`);
       const data = await res.json();
 
       const grouped = {};
@@ -256,7 +257,7 @@ export default function DirectBooking({ onClose, onSuccess }) {
     };
 
     try {
-      const res = await fetch("http://localhost:8088/api/booking-direct/create", {
+      const res = await fetch(`${API_BASE_URL}/booking-direct/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

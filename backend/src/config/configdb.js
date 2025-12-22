@@ -1,14 +1,18 @@
 import { Sequelize } from "sequelize";
 
 
-const sequelize = new Sequelize("account", "root", "xuandung", {
-  host: "localhost",
-  port: 3306,
+const sequelize = new Sequelize("barbershop", "rpWeBffxsABWN46.root", "I1zjl93hQooAG5uH", {
+  host: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
+  port: 4000,
   dialect: "mysql",
   logging: console.log,
   dialectOptions: {
-    connectTimeout: 5000,
-  },
+    ssl: {
+      require: true,
+      rejectUnauthorized: true, // Đảm bảo kiểm tra chứng chỉ
+      minVersion: 'TLSv1.2'     // TiDB Cloud yêu cầu tối thiểu TLS 1.2
+    }
+  }
 });
 
 const connectDB = async () => {
