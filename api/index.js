@@ -1,9 +1,8 @@
-import app from "../backend/src/app.js";
-import { createServer } from "http";
+// api/index.js
+import app from "../backend/src/app.js";  // import app Express của bạn
 
-// Vercel expects a default export function
-export default async function handler(req, res) {
-  // Tạo server tạm để handle request
-  const server = createServer(app);
-  server.emit("request", req, res);
-}
+// Vercel Serverless Function handler
+export default (req, res) => {
+  // Gọi trực tiếp Express app để xử lý request
+  app(req, res);
+};
