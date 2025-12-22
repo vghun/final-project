@@ -1,8 +1,5 @@
 // api/index.js
-import app from "../backend/src/app.js";  // import app Express của bạn
-
-// Vercel Serverless Function handler
-export default (req, res) => {
-  // Gọi trực tiếp Express app để xử lý request
-  app(req, res);
-};
+export default async function handler(req, res) {
+  const { default: app } = await import("../backend/src/app.js"); // dynamic import ES Module
+  app(req, res); // Express xử lý request
+}
