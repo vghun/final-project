@@ -85,8 +85,10 @@
       "react-app/jest"
     ],
     "rules": {
-    "no-throw-literal": "off"
-  }
+      "no-throw-literal": "off",
+      "no-unused-vars": "warn",
+      "react-hooks/exhaustive-deps": "warn"
+    }
   },
   "browserslist": {
     "production": [
