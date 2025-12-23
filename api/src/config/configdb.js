@@ -1,10 +1,11 @@
 import { Sequelize } from "sequelize";
-
+import mysql2 from "mysql2";
 
 const sequelize = new Sequelize("barbershop", "rpWeBffxsABWN46.root", "I1zjl93hQooAG5uH", {
   host: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
   port: 4000,
   dialect: "mysql",
+  dialectModule: mysql2,
   logging: console.log,
   dialectOptions: {
     ssl: {
