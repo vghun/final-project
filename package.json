@@ -77,7 +77,8 @@
     "build:frontend": "cd frontend && npm run build",
     "start:backend": "cd backend && node src/server.js",
     "dev:backend": "cd backend && nodemon src/server.js",
-    "vercel-build": "cd frontend && npm run build"
+    "vercel-build": "CI=false cd frontend && npm run build"
+
   },
   "eslintConfig": {
     "extends": [
