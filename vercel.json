@@ -14,7 +14,7 @@
       }
     },
     {
-      "src": "api/**/*.js",
+      "src": "backend/package.json",
       "use": "@vercel/node"
     }
   ],
