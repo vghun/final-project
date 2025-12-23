@@ -1,7 +1,7 @@
 import db from "../models/index.js";
 import sequelize from "sequelize"; 
 import Fuse from "fuse.js"; // 🚀 Thêm Fuse
-import { getHashtagsService, linkHashtagsToReelService } from "../services/hashtagService.js";
+import { getHashtagsService, linkHashtagsToReelService } from "./hashtagService.js";
 
 const { Reel, ReelLike, ReelComment, ReelView, Barber, User, Sequelize } = db;
 
