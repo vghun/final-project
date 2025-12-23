@@ -1,5 +1,4 @@
-// api/index.js
 export default async function handler(req, res) {
-  const { default: app } = await import("./src/app.js"); // dynamic import ES Module
-  app(req, res); // Express xử lý request
+  const { default: app } = await import("./src/app.js"); 
+  app(req, res); 
 }
