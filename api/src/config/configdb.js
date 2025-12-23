@@ -1,8 +1,8 @@
 import { Sequelize } from 'sequelize';
 import mysql2 from 'mysql2';
 
-const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
-  host: process.env.DB_HOST,
+const sequelize = new Sequelize("barbershop", "rpWeBffxsABWN46.root", "I1zjl93hQooAG5uH", {
+  host: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
   port: process.env.DB_PORT || 4000,
   dialect: 'mysql',
   dialectModule: mysql2,  // Force load mysql2
