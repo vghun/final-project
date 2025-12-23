@@ -4,8 +4,7 @@ import { Sequelize } from "sequelize";
 const sequelize = new Sequelize("barbershop", "rpWeBffxsABWN46.root", "I1zjl93hQooAG5uH", {
   host: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
   port: 4000,
-  dialect: 'mysql',
-  dialectModule: require('mysql2'),
+  dialect: "mysql",
   logging: console.log,
   dialectOptions: {
     ssl: {
