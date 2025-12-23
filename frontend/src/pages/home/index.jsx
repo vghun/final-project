@@ -195,11 +195,12 @@ const Home = () => {
       </RevealSection>
 
       {/* AI Chat */}
-      <RevealSection className={styles.section} ref={chatRef}>
-        <div className={styles.container}>
-          <AIChat />
-        </div>
-      </RevealSection>
+     <RevealSection className={styles.section}>
+  <div className={styles.container} ref={chatRef}>
+    <AIChat />
+  </div>
+</RevealSection>
+
 
       {/* Dịch vụ hot */}
       <RevealSection className={styles.section}>
