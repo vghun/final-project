@@ -14,22 +14,18 @@
       }
     },
     {
-      "src": "api/**/*.js",
+      "src": "backend/package.json",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*\\..*)",
-      "dest": "/frontend/$1"
+      "dest": "/backend/src/app.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/frontend/index.html"
+      "dest": "/frontend/$1"
     }
   ]
 }
