@@ -10,33 +10,36 @@ import { fetchCustomerGallery } from "~/services/customerGalleryService";
 const cx = classNames.bind(styles);
 
 function Profile() {
-  const { accessToken, user, setUser } = useAuth();
+  const { accessToken, setUser } = useAuth();
   const { showToast } = useToast();
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
 
-  // state form
+  // form state
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
-  const [preview, setPreview] = useState("");
+  const [preview, setPreview] = useState("/user.png");
 
-  // Gallery
+  // gallery
   const [galleryWorks, setGalleryWorks] = useState([]);
   const [galleryLoading, setGalleryLoading] = useState(true);
 
-  // Fetch profile
+  /* =======================
+     FETCH PROFILE (FIX LOOP)
+     ======================= */
   useEffect(() => {
     if (!accessToken) return;
 
     const fetchProfile = async () => {
+      setLoading(true);
       try {
         const res = await ProfileAPI.getProfile(accessToken);
         const userProfile = res.profile;
-        setProfile(userProfile);
 
+        setProfile(userProfile);
         setFullName(userProfile.fullName || "");
         setPhoneNumber(userProfile.phoneNumber || "");
         setPreview(userProfile.image || "/user.png");
@@ -53,11 +56,11 @@ function Profile() {
     };
 
     fetchProfile();
-  }, [accessToken, showToast]);
+  }, [accessToken]); // ❗ CHỈ accessToken
 
-  // Fetch gallery theo customer
-  // Thay đổi useEffect gallery
-  // Fetch gallery theo customer
+  /* =======================
+     FETCH GALLERY
+     ======================= */
   useEffect(() => {
     if (!accessToken) return;
 
@@ -68,7 +71,7 @@ function Profile() {
 
         const grouped = {};
         data.forEach((item) => {
-          const id = item.idbooking; // backend đã trả idbooking
+          const id = item.idbooking;
           if (!grouped[id]) {
             grouped[id] = {
               idBooking: id,
@@ -94,52 +97,59 @@ function Profile() {
     loadGallery();
   }, [accessToken]);
 
-  if (loading) return <div className={cx("loading")}>Đang tải...</div>;
-  if (!profile) return <div className={cx("loading")}>Không có dữ liệu</div>;
-
-  const { email, profileDetail } = profile;
-  const points = profileDetail?.loyaltyPoint || 0;
-
+  /* =======================
+     HANDLERS
+     ======================= */
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setAvatarFile(file);
-      setPreview(URL.createObjectURL(file));
-    }
+    if (!file) return;
+
+    setAvatarFile(file);
+    setPreview(URL.createObjectURL(file));
   };
 
-const handleEditProfile = async () => {
-  if (!/^(0|\+84)[0-9]{9,10}$/.test(phoneNumber)) {
-    showToast({ text: "Số điện thoại không hợp lệ!", type: "error", duration: 3000 });
-    return;
-  }
+  const handleEditProfile = async () => {
+    if (!/^(0|\+84)[0-9]{9,10}$/.test(phoneNumber)) {
+      showToast({
+        text: "Số điện thoại không hợp lệ!",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
 
-  try {
-    const formData = new FormData();
-    formData.append("fullName", fullName);
-    formData.append("phoneNumber", phoneNumber);
-    if (avatarFile) formData.append("avatar", avatarFile);
+    try {
+      const formData = new FormData();
+      formData.append("fullName", fullName);
+      formData.append("phoneNumber", phoneNumber);
+      if (avatarFile) formData.append("avatar", avatarFile);
 
-    const updatedProfile = await ProfileAPI.updateProfile(accessToken, formData);
+      const res = await ProfileAPI.updateProfile(accessToken, formData);
+      const updatedProfile = res.profile || res;
 
-    // ⚡ fix ở đây
-    const updatedUser = updatedProfile?.profile || updatedProfile;
+      setProfile(updatedProfile);
+      setPreview(updatedProfile.image || "/user.png");
 
-    setProfile(updatedUser);
-    setUser({
-      ...updatedUser,
-      avatar: updatedUser.image || "/user.png",
-    });
-    setPreview(updatedUser.image || "/user.png");
+      setUser((prev) => ({
+        ...prev,
+        ...updatedProfile,
+        avatar: updatedProfile.image || "/user.png",
+      }));
 
-    showToast({ text: "Cập nhật thành công!", type: "success", duration: 3000 });
-  } catch (err) {
-    console.error("Lỗi cập nhật profile:", err);
-    showToast({ text: "Có lỗi khi cập nhật!", type: "error", duration: 3000 });
-  }
-};
-
-
+      showToast({
+        text: "Cập nhật thành công!",
+        type: "success",
+        duration: 3000,
+      });
+    } catch (err) {
+      console.error("Lỗi cập nhật profile:", err);
+      showToast({
+        text: "Có lỗi khi cập nhật!",
+        type: "error",
+        duration: 3000,
+      });
+    }
+  };
 
   const handleChangePassword = () => {
     showToast({
@@ -148,6 +158,15 @@ const handleEditProfile = async () => {
       duration: 3000,
     });
   };
+
+  /* =======================
+     RENDER
+     ======================= */
+  if (loading) return <div className={cx("loading")}>Đang tải...</div>;
+  if (!profile) return <div className={cx("loading")}>Không có dữ liệu</div>;
+
+  const { email, profileDetail } = profile;
+  const points = profileDetail?.loyaltyPoint || 0;
 
   return (
     <div className={cx("wrapper")}>
@@ -180,7 +199,7 @@ const handleEditProfile = async () => {
                   type="file"
                   id="avatarUpload"
                   accept="image/*"
-                  style={{ display: "none" }}
+                  hidden
                   onChange={handleFileChange}
                 />
                 <label htmlFor="avatarUpload" className={cx("upload-btn")}>
@@ -236,10 +255,12 @@ const handleEditProfile = async () => {
         </div>
       </div>
 
-      {/* Gallery Customer giống barber */}
+      {/* Gallery */}
       <div className={styles.container}>
         <h2 className={styles.title}>Ảnh sau khi cắt tóc</h2>
-        {galleryWorks.length > 0 ? (
+        {galleryLoading ? (
+          <p>Đang tải...</p>
+        ) : galleryWorks.length > 0 ? (
           <div className={styles.grid}>
             {galleryWorks.map((work) => (
               <WorkCard key={work.idBooking} work={work} />

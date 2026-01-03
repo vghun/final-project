@@ -40,7 +40,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/services", serviceRoute);
-app.use("/user/profile", profileRoutes);
+app.use("/api/user/profile", profileRoutes);
 app.use("/api/chat", chatRoute);
 app.use("/api/barbers", barberRoutes);
 app.use("/api/branches", branchRoutes);
@@ -49,7 +49,7 @@ app.use("/api/ratings", ratingRoutes);
 app.use("/api/bookings", bookingRoute);
 app.use("/api/reels", reelRoute);
 app.use("/api/reels", reelCommentRoutes);
-app.use("/api/customer-gallery", customerGalleryRoutes);
+app.use("/api/customer-galleries", customerGalleryRoutes);
 app.use("/api/booking-history", bookingHistory);
 app.use("/api/vouchers", voucherRoutes);
 app.use("/api/loyalty-rules", loyaltyRuleRoute);
