@@ -35,13 +35,22 @@ export const calculateBarberSalaries = async (month, year) => {
 };
 
 /**
- * Lấy tổng quan lương các tháng (cả tháng hiện tại & các tháng trước)
- * @returns {Promise<Array>} Mảng dữ liệu tháng + status + salaries
+ * Lấy tổng quan lương các tháng (có hỗ trợ month/year)
+ * @param {Object} params
+ * @param {number} params.month - Tháng (1-12)
+ * @param {number} params.year - Năm (YYYY)
+ * @returns {Promise<Array>}
  */
-export const fetchSalaryOverview = async () => {
+export const fetchSalaryOverview = async ({ month, year }) => {
+  console.log("params nhận được:", { month, year });
+
   try {
-    const res = await request.get(`/api/salary/overview`);
-    console.log("fetchSalaryOverview trả về:", res);
+    const res = await request.get("/api/salary/overview", {
+      params: { month, year },
+      
+    });
+    
+
     return res;
   } catch (error) {
     console.error("Lỗi khi fetch salary overview:", error);

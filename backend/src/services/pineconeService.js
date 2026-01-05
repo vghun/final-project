@@ -5,45 +5,40 @@ const HF_API_KEY = process.env.HF_API_KEY;
 export async function createEmbedding(text) {
   try {
     const response = await fetch(
-      "https://api-inference.huggingface.co/models/intfloat/multilingual-e5-large",
+      "https://router.huggingface.co/hf-inference/models/intfloat/multilingual-e5-large",
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${HF_API_KEY}`,
+          Authorization: `Bearer ${process.env.HF_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          inputs: text // đảm bảo model sẵn sàng
+          inputs: `passage: ${text}`,
         }),
       }
     );
 
     const result = await response.json();
 
-    // debug kết quả
     console.log("HF embedding result:", result);
 
-    // xử lý đa dạng format trả về
-    if (Array.isArray(result)) {
-      if (Array.isArray(result[0])) {
-        // chuẩn mảng 2 chiều [ [..embedding..] ]
-        return result[0];
-      } else {
-        // một số trường hợp trả mảng 1 chiều
-        return result;
-      }
-    } else if (result?.embedding) {
-      // một số API có key "embedding"
-      return result.embedding;
-    } else {
-      throw new Error("HF API returned unexpected format");
+    // ✅ CASE 1: HF trả mảng 1 chiều (đang gặp)
+    if (Array.isArray(result) && typeof result[0] === "number") {
+      return result;
     }
+
+    // ✅ CASE 2: HF trả mảng 2 chiều
+    if (Array.isArray(result) && Array.isArray(result[0])) {
+      return result[0];
+    }
+
+    throw new Error("HF API returned unexpected format");
   } catch (err) {
     console.error("⚠️ HF API failed:", err.message);
-    // fallback tạm thời
     return Array(1024).fill(0.01);
   }
 }
+
 
 // Test upsert barbers bằng text, Pinecone tự sinh vector
 export async function upsertBarbers(barbers) {

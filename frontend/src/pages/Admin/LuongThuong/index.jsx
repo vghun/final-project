@@ -16,23 +16,30 @@ function LuongThuong() {
   const [loading, setLoading] = useState(false);
 
   // ----------------- Lấy dữ liệu bảng lương + overview -----------------
-  const fetchData = async (m, y) => {
-    setLoading(true);
-    try {
-      const overviewData = await SalaryAPI.getSalaryOverview();
-      setOverview(overviewData);
+const fetchData = async (m, y) => {
+  setLoading(true);
+  try {
+    const overviewData = await SalaryAPI.getSalaryOverview({
+      month: m,
+      year: y,
+    });
 
-      // Lấy bảng lương từ backend → backend trả đầy đủ barberName, branchName, status, ...
-      const monthData = overviewData.find(item => item.month === m && item.year === y);
-      setSalaries(monthData?.salaries || []);
-    } catch (error) {
-      console.error("Lỗi load dữ liệu:", error);
-      setSalaries([]);
-      setOverview([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setOverview(overviewData);
+
+    const monthData = overviewData.find(
+      item => item.month === m && item.year === y
+    );
+
+    setSalaries(monthData?.salaries || []);
+  } catch (error) {
+    console.error("Lỗi load dữ liệu:", error);
+    setSalaries([]);
+    setOverview([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchData(month, year);
@@ -40,24 +47,30 @@ function LuongThuong() {
 
   // ----------------- Tính lương -----------------
   const calculateSalary = async () => {
-    setLoading(true);
-    try {
-      const result = await SalaryAPI.calculateSalaries(month, year);
-      alert(result.message);
+  setLoading(true);
+  try {
+    const result = await SalaryAPI.calculateSalaries(month, year);
+    alert(result.message);
 
-      // Lấy overview mới nhất từ backend → status sẽ đúng
-      const overviewData = await SalaryAPI.getSalaryOverview();
-      setOverview(overviewData);
+    const overviewData = await SalaryAPI.getSalaryOverview({
+      month,
+      year,
+    });
 
-      const monthData = overviewData.find(item => item.month === month && item.year === year);
-      setSalaries(monthData?.salaries || []);
-    } catch (err) {
-      console.error(err);
-      alert("Tính lương thất bại!");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setOverview(overviewData);
+
+    const monthData = overviewData.find(
+      item => item.month === month && item.year === year
+    );
+
+    setSalaries(monthData?.salaries || []);
+  } catch (err) {
+    console.error(err);
+    alert("Tính lương thất bại!");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // ----------------- Kiểm tra nút Tính lương -----------------
   const now = new Date();

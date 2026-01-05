@@ -34,13 +34,13 @@ export const SalaryAPI = {
   /**
    * Lấy tổng quan các tháng để frontend biết tháng nào đã tính, chưa tính
    */
-  getSalaryOverview: async () => {
-    try {
-      const res = await salaryService.fetchSalaryOverview();
-      return res;
-    } catch (error) {
-      console.error("SalaryAPI.getSalaryOverview lỗi:", error);
-      throw error;
-    }
-  },
+  getSalaryOverview: async (params) => {
+  try {
+    const res = await salaryService.fetchSalaryOverview(params);
+    return res;
+  } catch (error) {
+    console.error("SalaryAPI.getSalaryOverview lỗi:", error);
+    throw error;
+  }
+},
 };

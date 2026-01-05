@@ -66,20 +66,23 @@ export const getBarberSalariesOptimized = async (month, year) => {
 
 // ====================== Lấy danh sách tháng + trạng thái lương ======================
 // ====================== Lấy danh sách tháng + trạng thái lương ======================
-export const getSalaryOverview = async () => {
+export const getSalaryOverview = async ({ month, year }) => {
   const today = new Date();
+
+  const selectedMonth = Number(month) || today.getMonth() + 1;
+  const selectedYear = Number(year) || today.getFullYear();
+
   const currentMonth = today.getMonth() + 1;
   const currentYear = today.getFullYear();
 
   const months = [];
 
-  for (let month = 1; month <= currentMonth; month++) {
+  for (let m = 1; m <= selectedMonth; m++) {
     let salaries = [];
     let canCalculate = false;
 
-    // Lấy dữ liệu đã lưu từ DB
     const savedSalaries = await db.Salary.findAll({
-      where: { month, year: currentYear },
+      where: { month: m, year: selectedYear },
       include: [
         {
           model: db.Barber,
@@ -93,15 +96,15 @@ export const getSalaryOverview = async () => {
       ],
     });
 
-    if (month === currentMonth) {
-      // Tháng hiện tại → real-time, không được tính
-      salaries = (await getBarberSalariesOptimized(month, currentYear)).map((s) => ({
-        ...s,
-        status: "Chưa tính",
-      }));
+    const isCurrentMonth =
+      selectedYear === currentYear && m === currentMonth;
+
+    if (isCurrentMonth) {
+      salaries = (await getBarberSalariesOptimized(m, selectedYear)).map(
+        (s) => ({ ...s, status: "Chưa tính" })
+      );
       canCalculate = false;
     } else if (savedSalaries.length > 0) {
-      // Tháng trước đã lưu
       salaries = savedSalaries.map((s) => ({
         idBarber: s.barber.idBarber,
         barberName: s.barber?.user?.fullName || "",
@@ -113,28 +116,27 @@ export const getSalaryOverview = async () => {
         totalSalary: s.totalSalary || 0,
         status: s.status ? "Đã tính" : "Chưa tính",
       }));
-      // Nếu còn thợ chưa tính → bật nút tính lương
+
       canCalculate = savedSalaries.some((s) => !s.status);
     } else {
-      // Tháng trước chưa lưu → lấy snapshot real-time, bật nút tính lương
-      salaries = (await getBarberSalariesOptimized(month, currentYear)).map((s) => ({
-        ...s,
-        status: "Chưa tính",
-      }));
+      salaries = (await getBarberSalariesOptimized(m, selectedYear)).map(
+        (s) => ({ ...s, status: "Chưa tính" })
+      );
       canCalculate = true;
     }
 
     months.push({
-      month,
-      year: currentYear,
-      isCurrentMonth: month === currentMonth,
+      month: m,
+      year: selectedYear,
+      isCurrentMonth,
       canCalculate,
-      salaries: Array.isArray(salaries) ? salaries : [],
+      salaries,
     });
   }
 
   return months;
 };
+
 
 // ====================== Xác nhận tính lương toàn bộ thợ ======================
 export const confirmMonthlySalary = async (month, year) => {

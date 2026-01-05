@@ -9,7 +9,6 @@ export const getSalaryOverview = async (req, res) => {
       month,
       year,
     });
-  
 
     return res.status(200).json(months);
   } catch (err) {

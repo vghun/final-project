@@ -5,7 +5,7 @@ import axios from "axios";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL_STRATEGIC = "gemini-2.5-flash";   
-const GEMINI_MODEL_ANALYTICS = "gemini-2.0-flash-lite";
+const GEMINI_MODEL_ANALYTICS = "gemini-2.5-flash-lite";
 
 const taskQueue = [];
 let isProcessing = false;

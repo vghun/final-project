@@ -3,7 +3,7 @@ import axios from "axios";
 import { createEmbedding } from "./pineconeService.js";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL_MAIN = "gemini-2.5-flash";      
+const GEMINI_MODEL_MAIN = "gemini-2.5-flash-lite";      
 const GEMINI_MODEL_INTENT = process.env.GEMINI_MODEL;   
 
 // ---------------------
