@@ -9,65 +9,64 @@ import RevealSection from "~/components/RevealSection/RevealSection";
 import AddBannerModal from "~/components/AddBannerModal";
 import { fetchActiveBanners, uploadBanner } from "~/services/bannerService";
 import { useToast } from "~/context/ToastContext";
+
 const DEFAULT_BANNER = "/brand.jpg";
 
 const Home = () => {
   const { isLogin, user, accessToken } = useAuth();
   const chatRef = useRef(null);
   const sliderRef = useRef(null);
-
   const [hot, setHot] = useState([]);
   const [page, setPage] = useState(1);
   const limit = 4;
-
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [nextRoute, setNextRoute] = useState(null);
   const [showAddBanner, setShowAddBanner] = useState(false);
 
   /* ===== BANNER ===== */
-  /* ===== BANNER ===== */
   const [banners, setBanners] = useState([]);
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [isHovered, setIsHovered] = useState(false); // Theo dõi hover
+  const intervalRef = useRef(null); // Để clear interval chính xác
   const { showToast } = useToast();
-
 
   useEffect(() => {
     const loadBanners = async () => {
       try {
         const data = await fetchActiveBanners();
-
         if (Array.isArray(data) && data.length > 0) {
           setBanners(data);
         } else {
-          setBanners([]); // fallback dùng DEFAULT_BANNER
+          setBanners([]);
         }
       } catch (err) {
         console.error("Lỗi load banner:", err);
         setBanners([]);
       }
     };
-
     loadBanners();
   }, []);
 
-
-  /* Chỉ chạy auto-slide khi có nhiều hơn 1 banner */
+  /* Auto-slide: chỉ chạy khi có >1 banner và không hover */
   useEffect(() => {
-    if (banners.length <= 1) {
-      setCurrentBanner(0);
+    if (banners.length <= 1 || isHovered) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       return;
     }
 
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setCurrentBanner((prev) =>
         prev === banners.length - 1 ? 0 : prev + 1
       );
     }, 4000);
 
-    return () => clearInterval(interval);
-  }, [banners.length]);
-
-  /* ================== */
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [banners.length, isHovered]);
 
   useEffect(() => {
     const loadHot = async () => {
@@ -84,16 +83,13 @@ const Home = () => {
   useEffect(() => {
     const slider = sliderRef.current;
     if (!slider) return;
-
     const slideWidth =
       slider.querySelector(`.${styles.slideItem}`)?.offsetWidth || 280;
     let scrollPosition = 0;
-
     const scrollSlider = () => {
       scrollPosition += slideWidth;
       slider.scrollTo({ left: scrollPosition, behavior: "smooth" });
     };
-
     const interval = setInterval(scrollSlider, 3000);
     return () => clearInterval(interval);
   }, [hot]);
@@ -111,14 +107,9 @@ const Home = () => {
     }
   };
 
-  /* Banner hiện tại */
-  // 1. Sửa currentBannerImage
   const currentBannerImage =
-    banners.length > 0
-      ? banners[currentBanner]  // ← banners là mảng string → lấy trực tiếp
-      : DEFAULT_BANNER;
-  
-  /* Xử lý click dot */
+    banners.length > 0 ? banners[currentBanner] : DEFAULT_BANNER;
+
   const handleDotClick = (index) => {
     if (banners.length > 1) {
       setCurrentBanner(index);
@@ -134,10 +125,16 @@ const Home = () => {
       >
         <div className={styles.overlay}></div>
 
-        <div className={styles.heroContent}>
+        {/* Div trong suốt để bắt sự kiện hover toàn bộ banner */}
+        <div
+          className={styles.hoverDetector}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        />
+
+        <div className={`${styles.heroContent} ${isHovered ? styles.faded : ""}`}>
           <h1>Barbershop</h1>
           <p>Chăm sóc tóc cho quý ông – Phong cách & Chất lượng</p>
-
           <div className={styles.heroButtons}>
             <button className={styles.btnPrimary} onClick={handleBookingClick}>
               Đặt lịch
@@ -148,7 +145,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Nút Add Banner cho Admin - góc dưới bên phải */}
+        {/* Nút Add Banner cho Admin */}
         {user?.role === "admin" && (
           <button
             className={styles.addBannerBtn}
@@ -158,15 +155,16 @@ const Home = () => {
           </button>
         )}
 
-        {/* Dots indicator - giữa phía dưới */}
+        {/* Dots indicator */}
         <div className={styles.bannerDots}>
           {banners.map((_, index) => (
             <span
               key={index}
-              className={`${styles.dot} ${(banners.length <= 1 ? 0 : currentBanner) === index
-                ? styles.activeDot
-                : ""
-                }`}
+              className={`${styles.dot} ${
+                (banners.length <= 1 ? 0 : currentBanner) === index
+                  ? styles.activeDot
+                  : ""
+              }`}
               onClick={() => handleDotClick(index)}
             />
           ))}
@@ -210,7 +208,6 @@ const Home = () => {
               Những dịch vụ được khách hàng yêu thích và đặt nhiều nhất
             </p>
           </div>
-
           <div className={styles.sliderWrapper} ref={sliderRef}>
             <div className={styles.slider}>
               {hot.concat(hot).map((s, i) => (
@@ -227,6 +224,7 @@ const Home = () => {
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
       />
+
       <AddBannerModal
         isOpen={showAddBanner}
         onClose={() => setShowAddBanner(false)}
@@ -237,15 +235,10 @@ const Home = () => {
             if (data.title) formData.append("title", data.title);
             if (data.startAt) formData.append("startAt", data.startAt);
             if (data.endAt) formData.append("endAt", data.endAt);
-
             await uploadBanner(formData, accessToken);
-
-            // Reload banner
             const refreshed = await fetchActiveBanners();
             setBanners(refreshed);
             setCurrentBanner(0);
-
-            // HIỆN TOAST THÀNH CÔNG theo ToastContext của bạn
             showToast({ text: "Thêm banner thành công!", type: "success" });
           } catch (err) {
             console.error("Upload banner lỗi:", err);
